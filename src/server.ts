@@ -20,6 +20,7 @@ import {
   BrokerageAccountCredentialStatusResolver,
   OptionsGreeksHistoryCustomResolver,
   TradingSettingsResolver,
+  AlpacaAccountCredentialsResolver,
 } from './resolvers/custom';
 import { createServer } from 'http';
 import cors from 'cors';
@@ -165,6 +166,12 @@ const startServer = async () => {
       OptionsGreeksHistoryCustomResolver,
       TradingSettingsResolver,
       BrokerageAccountCredentialStatusResolver,
+      // CORTEX-P0-001 (phase-2 readiness): additive, server-principal-gated
+      // `alpacaAccountCredentials` query. Inert for the live engine (not wired
+      // to it yet) and removes/alters no existing field; it is the migration
+      // target that must exist before the ordinary APIKey/APISecret fields can
+      // be excised in a later PR. See docs/security/cortex-p0-001-enablement.md.
+      AlpacaAccountCredentialsResolver,
     ],
     validate: false,
     // Row-level tenancy scoping (SP2-G7 / SOC2). Applies ONLY to user-scoped
