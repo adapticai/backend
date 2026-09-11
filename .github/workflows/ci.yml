@@ -1,12 +1,13 @@
 name: CI - Backend Legacy
 
-# stable-release is the PRODUCTION branch (publishes @stable, consumed by the
-# trading engine). It must run the same CI gate as main — its absence here meant
-# every production publish shipped with zero test/lint/codegen-drift execution
-# (audit B01-backend-legacy-01).
+# Every branch that can publish to npm must run this gate first: an unguarded
+# publish branch ships production packages with zero test/lint/codegen-drift
+# execution, and the consumers only discover it at install time. `main` is the
+# production branch and publishes the `@stable` dist-tag consumed by the trading
+# engine, so it is gated here unconditionally.
 on:
   pull_request:
-    branches: [main, develop, stable-release]
+    branches: [main, develop]
     paths:
       - 'src/**'
       - 'prisma/**'
@@ -14,7 +15,7 @@ on:
       - 'tsconfig.json'
       - '.github/workflows/**'
   push:
-    branches: [main, stable-release]
+    branches: [main]
     paths:
       - 'src/**'
       - 'prisma/**'

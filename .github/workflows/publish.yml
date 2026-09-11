@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - stable-release
       - platform-alignment
     # Only publish-relevant inputs (anything that can alter dist/) trigger this pipeline; the dist-content
     # diff below still gates the actual publish. README-npm.md IS an input — prepare-package.mjs copies it to dist/README.md.
@@ -42,8 +41,15 @@ jobs:
       - name: Determine release channel
         id: channel
         run: |
+          # `main` is the production branch and publishes the 0.0.x train under the
+          # `stable` dist-tag, which is what every engine/utils consumer pins. The
+          # dist-tag is the contract; the branch name is not. An unrecognised branch
+          # fails the job rather than falling through to a different tag and a
+          # different version-derivation path — a silent channel switch publishes a
+          # numerically-higher version on a tag nobody consumes while the consumed
+          # tag stops advancing, which is invisible until a consumer is starved.
           BRANCH="${GITHUB_REF_NAME}"
-          if [ "$BRANCH" = "stable-release" ]; then
+          if [ "$BRANCH" = "main" ]; then
             echo "npm_tag=stable" >> $GITHUB_OUTPUT
             echo "is_stable=true" >> $GITHUB_OUTPUT
             echo "is_alignment=false" >> $GITHUB_OUTPUT
@@ -52,9 +58,8 @@ jobs:
             echo "is_stable=false" >> $GITHUB_OUTPUT
             echo "is_alignment=true" >> $GITHUB_OUTPUT
           else
-            echo "npm_tag=latest" >> $GITHUB_OUTPUT
-            echo "is_stable=false" >> $GITHUB_OUTPUT
-            echo "is_alignment=false" >> $GITHUB_OUTPUT
+            echo "::error::Branch '$BRANCH' has no defined release channel. Add one explicitly before publishing from it."
+            exit 1
           fi
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
           echo "Release channel: branch=$BRANCH"
@@ -212,13 +217,8 @@ jobs:
               echo "Latest stable version is $STABLE_VERSION, bumping to $NEW_VERSION"
             fi
           else
-            # Main channel: existing patch bump logic
-            echo "Checking current version..."
-            CURRENT_VERSION=$(jq -r .version package-npm.json)
-            echo "Current version is $CURRENT_VERSION"
-            cd dist
-            NEW_VERSION=$(npm version patch --no-git-tag-version --allow-same-version | sed 's/^v//')
-            cd ..
+            echo "::error::No version-derivation path for this channel."
+            exit 1
           fi
 
           echo "New version is $NEW_VERSION"
