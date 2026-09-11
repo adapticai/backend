@@ -21,6 +21,12 @@ export {
 // Export GraphQL validation plugin
 export {
   createValidationPlugin,
+  resolveValidationMode,
+  ValidationMode,
+  VALIDATION_MODE_ENV_VAR,
+  BOUNDED_PERCENTAGE_FIELDS,
+  REQUIRED_NON_EMPTY_STRING_FIELDS,
+  POSITIVE_NUMBER_FIELDS,
   VALIDATION_RULES,
 } from './graphql-validation-plugin';
 

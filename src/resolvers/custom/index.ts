@@ -6,3 +6,10 @@
 
 export { OptionsGreeksHistoryCustomResolver } from './OptionsGreeksHistoryCustomResolver';
 export { OptionsGreeksHistorySystemSummary } from './OptionsGreeksHistorySystemSummary';
+export {
+  TradingSettingsResolver,
+  TradingSettings,
+  TradingSettingsInput,
+  OrgTradingDefaultsPayload,
+  FundTradingOverridesPayload,
+} from './TradingSettingsResolver';

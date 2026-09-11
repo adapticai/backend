@@ -106,14 +106,16 @@ describe('Allocation Validator', () => {
     });
 
     it('should reject allocation with non-numeric values', () => {
+      // Intentionally violate AllocationValues at runtime to exercise the
+      // defensive numeric check inside validateAllocationPercentages.
       const allocation = {
-        equities: 'invalid' as unknown as number,
+        equities: 'invalid',
         optionsContracts: 5,
         futures: 0,
         etfs: 10,
         forex: 0,
         crypto: 15,
-      };
+      } as unknown as AllocationValues;
 
       const result = validateAllocationPercentages(allocation);
 

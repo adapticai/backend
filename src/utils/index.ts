@@ -7,12 +7,26 @@
  */
 
 /**
+ * Check if a value is a plain object (created via {} or new Object()), as opposed
+ * to a class instance (Date, Decimal, Buffer, etc.) that should be treated as a leaf.
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== 'object' || value === null) return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+/**
  * Recursively removes undefined and null properties from an object or array.
  *
  * This utility is called by generated CRUD functions to clean GraphQL variables
  * before passing them to Apollo Client. The input objects contain Prisma-typed
  * fields (Date, Decimal, bigint, JsonValue, nested relations, etc.) which cannot
  * be enumerated exhaustively. The return value is used as Apollo OperationVariables.
+ *
+ * Class instances (Date, Decimal, etc.) are preserved as leaf values — only plain
+ * objects and arrays are recursed into. This prevents Decimal objects (which have
+ * no own enumerable keys) from being incorrectly stripped as "empty objects".
  *
  * We use Record<string, unknown> for the parameter to accept all generated Prisma
  * input shapes without needing to enumerate every possible field type.
@@ -27,28 +41,18 @@ export function removeUndefinedProps(
         (item) =>
           item !== undefined &&
           item !== null &&
-          (typeof item !== 'object' ||
-            Object.keys(item as Record<string, unknown>).length > 0)
+          (!isPlainObject(item) || Object.keys(item).length > 0)
       ) as unknown as Record<string, unknown>;
-  } else if (
-    typeof obj === 'object' &&
-    obj !== null &&
-    !(obj instanceof Date)
-  ) {
-    const record = obj as Record<string, unknown>;
+  } else if (isPlainObject(obj)) {
+    const record = obj;
     return Object.keys(record).reduce((acc: Record<string, unknown>, key) => {
       const value = record[key];
 
       if (value !== undefined && value !== null) {
         let cleanedValue: unknown;
 
-        if (
-          key === 'where' &&
-          typeof value === 'object' &&
-          value !== null &&
-          !(value instanceof Date)
-        ) {
-          const whereObj = value as Record<string, unknown>;
+        if (key === 'where' && isPlainObject(value)) {
+          const whereObj = value;
           if (
             Object.prototype.hasOwnProperty.call(whereObj, 'id') &&
             whereObj.id !== undefined
@@ -71,9 +75,7 @@ export function removeUndefinedProps(
         if (
           cleanedValue !== undefined &&
           cleanedValue !== null &&
-          (typeof cleanedValue !== 'object' ||
-            cleanedValue instanceof Date ||
-            Object.keys(cleanedValue as Record<string, unknown>).length > 0)
+          (!isPlainObject(cleanedValue) || Object.keys(cleanedValue).length > 0)
         ) {
           acc[key] = cleanedValue;
         }

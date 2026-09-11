@@ -15,19 +15,25 @@ export function lowerCaseFirstLetter(string: string): string {
 
 /**
  * Removes undefined properties from an object recursively.
+ *
+ * Preserves the structural shape of the input so consumers can keep using the
+ * filtered value with the same type as the original. Pure primitives and
+ * `null` values pass through untouched.
+ *
  * @param obj - The object to filter.
  * @returns A new object without undefined properties.
  */
-export const removeUndefinedProps = (obj: any): any => {
+export const removeUndefinedProps = <T>(obj: T): T => {
   if (Array.isArray(obj)) {
-    return obj.map(removeUndefinedProps);
-  } else if (obj !== null && typeof obj === 'object') {
-    return Object.entries(obj)
-      .filter(([_, v]) => v !== undefined)
-      .reduce((acc, [k, v]) => {
+    return obj.map((item) => removeUndefinedProps(item)) as unknown as T;
+  }
+  if (obj !== null && typeof obj === 'object') {
+    return Object.entries(obj as Record<string, unknown>)
+      .filter(([, v]) => v !== undefined)
+      .reduce<Record<string, unknown>>((acc, [k, v]) => {
         acc[k] = removeUndefinedProps(v);
         return acc;
-      }, {} as any);
+      }, {}) as T;
   }
   return obj;
 };

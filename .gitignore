@@ -1,5 +1,5 @@
 # Node modules
-node_modules/
+node_modules
 
 # Build artifacts
 dist/
@@ -36,5 +36,13 @@ docker-compose.yml
 .vscode/
 
 # Lock files
-package-lock.json
+# package-lock.json is COMMITTED as of 2026-08-08 (supply-chain pin for the
+# publish/CI chain — flagged by the post-audit security review). npm version
+# keeps it synced during the CI bump.
 yarn.lock
+
+# Claude Code agent worktrees
+.claude/
+
+# Graphify code-graph output (regenerate with ../scripts/graphify-refresh.sh backend-legacy)
+graphify-out/

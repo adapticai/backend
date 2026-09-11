@@ -1,0 +1,186 @@
+# Cloud Build pipeline for @adaptic/backend-legacy on Google Cloud Run.
+#
+# Pipeline phases (each waits for the previous):
+#   1. build     - multi-stage Docker build of the runtime image
+#   2. push      - push image (immutable :SHORT_SHA and :latest tags) to AR
+#   3. migrate   - ensure Cloud Run migration Job exists, then execute it
+#                  against DIRECT_DATABASE_URL (bypassing the AlloyDB pool)
+#   4. deploy    - update the Cloud Run service, shift 100% traffic only if
+#                  migrations succeeded
+#
+# Substitutions you may override on a trigger / manual submit:
+#   _REGION              GCP region                   (default: us-east4)
+#   _AR_REPO             Artifact Registry repo       (default: adaptic-images)
+#   _SERVICE_NAME        Cloud Run service name       (default: adaptic-backend)
+#   _MIGRATE_JOB_NAME    Cloud Run Job name           (default: adaptic-backend-migrate)
+#   _RUNTIME_SA          Runtime service account email
+#   _VPC_NETWORK         VPC for Direct VPC egress    (default: adaptic-vpc)
+#   _VPC_SUBNET          Subnet for Direct VPC egress (default: adaptic-us-east4)
+#   _ALLOWED_ORIGINS     Comma-separated CORS origins
+#   _BACKEND_HTTPS_URL   Self-reference HTTPS URL the API publishes for clients
+#   _BACKEND_WS_URL      Self-reference WSS URL for subscriptions
+#   _GOOGLE_OAUTH_CLIENT_IDS  Comma-separated Google client IDs allowed as `aud`
+#
+# Real secrets (DATABASE_URL, DIRECT_DATABASE_URL, JWT_SECRET, JWT_SALT,
+# PULSE_API_KEY, DATABASE_URL_PRISMA_IO) live in Secret Manager and are
+# mounted at runtime via --set-secrets.
+
+substitutions:
+  _REGION: us-east4
+  _AR_REPO: adaptic-images
+  _SERVICE_NAME: adaptic-backend
+  _MIGRATE_JOB_NAME: adaptic-backend-migrate
+  _RUNTIME_SA: adaptic-run-runtime@adaptic-438004.iam.gserviceaccount.com
+  _VPC_NETWORK: adaptic-vpc
+  _VPC_SUBNET: adaptic-us-east4
+  _ALLOWED_ORIGINS: https://adaptic.ai,https://stable.adaptic.ai,https://app.adaptic.ai,https://os.adaptic.ai,https://engine.adaptic.ai,https://adaptic-platform-stable.up.railway.app,https://adaptic-engine-stable.up.railway.app,https://adaptic-app-stable.up.railway.app
+  _BACKEND_HTTPS_URL: https://stable-api.adaptic.ai/graphql
+  _BACKEND_WS_URL: wss://stable-api.adaptic.ai/graphql
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  dynamicSubstitutions: true
+  # E2_HIGHCPU_8 provides only 8 GB, which cannot host the builder stage's
+  # 12 GB `tsc` heap (see Dockerfile). Cloud Build offers no 16 GB tier, so the
+  # next size up is E2_HIGHCPU_32 (32 vCPU / 32 GB); the extra cores also cut
+  # the single-threaded-dominated build's wall time.
+  machineType: E2_HIGHCPU_32
+  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
+
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE_NAME}:${SHORT_SHA}
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE_NAME}:latest
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg
+      - BUILDKIT_INLINE_CACHE=1
+      - --cache-from
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE_NAME}:latest
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE_NAME}:${SHORT_SHA}
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE_NAME}:latest
+      - .
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    waitFor: ['build']
+    args:
+      - push
+      - --all-tags
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE_NAME}
+
+  - id: migrate-job-upsert
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    waitFor: ['push']
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        IMAGE="${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE_NAME}:${SHORT_SHA}"
+        if gcloud run jobs describe "${_MIGRATE_JOB_NAME}" --region="${_REGION}" >/dev/null 2>&1; then
+          ACTION=update
+        else
+          ACTION=create
+        fi
+        gcloud run jobs "$$ACTION" "${_MIGRATE_JOB_NAME}" \
+          --region="${_REGION}" \
+          --image="$$IMAGE" \
+          --service-account="${_RUNTIME_SA}" \
+          --command=npm \
+          --args=run,migrate \
+          --network="${_VPC_NETWORK}" \
+          --subnet="${_VPC_SUBNET}" \
+          --vpc-egress=private-ranges-only \
+          --set-secrets=DIRECT_DATABASE_URL=DIRECT_DATABASE_URL:latest,DATABASE_URL=DATABASE_URL:latest \
+          --max-retries=1 \
+          --task-timeout=900s
+
+  - id: migrate-execute
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    waitFor: ['migrate-job-upsert']
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        gcloud run jobs execute "${_MIGRATE_JOB_NAME}" \
+          --region="${_REGION}" \
+          --wait
+
+  # Cloud Run sizing notes (institutional-grade trading backend, billions of AUM):
+  # - 8 vCPU / 16 GiB per instance (Cloud Run gen2 maximum CPU; memory headroom for
+  #   Apollo persisted-query cache + Prisma pool + GraphQL resolution working set).
+  # - min=3 ensures HA across zones and warm capacity for sub-100ms p50.
+  # - max=25 fits the default project quota (200 vCPU / 400 GiB per region).
+  #   Quota-increase request filed at deploy time will lift this to 100 once
+  #   approved; the cap is the only constraint forcing 25 today.
+  # - concurrency=150 is the Node/Apollo sweet spot: more than this and event-loop
+  #   tail latency degrades; less than this and we waste committed CPU.
+  # - --no-cpu-throttling keeps the Node event loop, Prisma heartbeat, and the
+  #   rate-limiter sweep ticking even when no requests are in-flight.
+  # - --cpu-boost: ~5x CPU during cold start to satisfy the startup probe quickly.
+  # - --session-affinity stabilizes graphql-ws subscriptions across reconnects
+  #   when multiple revisions or instances are serving (best-effort, not strict).
+  # - Direct VPC egress to adaptic-vpc routes AlloyDB traffic over PSC; no NAT
+  #   needed since the consumer endpoint sits in the same subnet.
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    waitFor: ['migrate-execute']
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        cat > /workspace/env-vars.yaml <<ENV
+        NODE_ENV: "production"
+        ALLOWED_ORIGINS: "${_ALLOWED_ORIGINS}"
+        BACKEND_HTTPS_URL: "${_BACKEND_HTTPS_URL}"
+        BACKEND_WS_URL: "${_BACKEND_WS_URL}"
+        DATABASE_POOL_SIZE: "40"
+        DATABASE_POOL_TIMEOUT_MS: "30000"
+        DATABASE_STATEMENT_TIMEOUT_MS: "30000"
+        RATE_LIMIT_MAX: "10000"
+        RATE_LIMIT_MAX_UNAUTH: "1000"
+        APQ_ENABLED: "true"
+        APQ_MAX_CACHE_SIZE: "5000"
+        # Mutation-input validation scope. 'scoped' validates only top-level
+        # scalar input fields (Json audit columns exempt); 'legacy' restores the
+        # pre-2026-07 deep name-pattern recursion (rollback lever); 'off' kills
+        # the plugin. See src/middleware/graphql-validation-plugin.ts.
+        GRAPHQL_VALIDATION_MODE: "scoped"
+        OTEL_TRACING_ENABLED: "false"
+        PROMETHEUS_METRICS_ENABLED: "true"
+        NODE_OPTIONS: "--max-old-space-size=12288"
+        ENV
+        gcloud run deploy "${_SERVICE_NAME}" \
+          --region="${_REGION}" \
+          --image="${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE_NAME}:${SHORT_SHA}" \
+          --service-account="${_RUNTIME_SA}" \
+          --network="${_VPC_NETWORK}" \
+          --subnet="${_VPC_SUBNET}" \
+          --vpc-egress=private-ranges-only \
+          --port=8080 \
+          --cpu=8 \
+          --memory=16Gi \
+          --min-instances=3 \
+          --max-instances=12 \
+          --concurrency=150 \
+          --timeout=300 \
+          --cpu-boost \
+          --execution-environment=gen2 \
+          --no-cpu-throttling \
+          --session-affinity \
+          --allow-unauthenticated \
+          --ingress=all \
+          --env-vars-file=/workspace/env-vars.yaml \
+          --set-secrets=DATABASE_URL=DATABASE_URL:latest,DIRECT_DATABASE_URL=DIRECT_DATABASE_URL:latest,JWT_SECRET=JWT_SECRET:latest,JWT_SALT=JWT_SALT:latest,PULSE_API_KEY=PULSE_API_KEY:latest,DATABASE_URL_PRISMA_IO=DATABASE_URL_PRISMA_IO:latest,GOOGLE_OAUTH_CLIENT_IDS=GOOGLE_OAUTH_CLIENT_IDS:latest \
+          --startup-probe=httpGet.path=/readyz,httpGet.port=8080,initialDelaySeconds=10,timeoutSeconds=5,periodSeconds=10,failureThreshold=18 \
+          --liveness-probe=httpGet.path=/livez,httpGet.port=8080,initialDelaySeconds=30,timeoutSeconds=3,periodSeconds=15,failureThreshold=4
+
+timeout: 1800s

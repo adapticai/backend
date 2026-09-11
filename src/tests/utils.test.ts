@@ -8,10 +8,47 @@ describe('removeUndefinedProps', () => {
     expect(result).toEqual({ a: 1, c: 'hello' });
   });
 
-  it('should remove null properties from a flat object', () => {
+  // This case previously asserted that null was REMOVED, which is how the
+  // defect survived: the behaviour was pinned as intended. In a Prisma update
+  // an omitted field is left alone and `{ set: null }` clears it, so dropping
+  // null makes clearing a field impossible on every generated model — the
+  // mutation returns the unchanged row and reports success.
+  it('should preserve null properties, which mean "set this to null"', () => {
     const input = { a: 1, b: null, c: 'hello' };
     const result = removeUndefinedProps(input);
-    expect(result).toEqual({ a: 1, c: 'hello' });
+    expect(result).toEqual({ a: 1, b: null, c: 'hello' });
+  });
+
+  it('should preserve a Prisma set-null operation so a field can be cleared', () => {
+    // The exact shape the generated CRUD functions build for
+    // `update({ id, advancedModelId: null })`. Before the fix this reduced to
+    // `{ where: { id }, data: { id: { set: id } } }` — the field silently gone.
+    const input = {
+      where: { id: 'policy-1' },
+      data: {
+        id: { set: 'policy-1' },
+        advancedModelId: { set: null },
+        advancedModelProvider: { set: null },
+        untouched: undefined,
+      },
+    };
+    const result = removeUndefinedProps(input);
+    expect(result).toEqual({
+      where: { id: 'policy-1' },
+      data: {
+        id: { set: 'policy-1' },
+        advancedModelId: { set: null },
+        advancedModelProvider: { set: null },
+      },
+    });
+  });
+
+  it('should still distinguish undefined from null on the same object', () => {
+    const input = { cleared: null, untouched: undefined, kept: 'v' };
+    const result = removeUndefinedProps(input);
+    expect(result).toEqual({ cleared: null, kept: 'v' });
+    expect(Object.prototype.hasOwnProperty.call(result, 'untouched')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(result, 'cleared')).toBe(true);
   });
 
   it('should handle nested objects recursively', () => {

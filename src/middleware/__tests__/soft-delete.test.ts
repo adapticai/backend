@@ -13,7 +13,7 @@ describe('Soft Delete Utilities', () => {
   describe('SOFT_DELETE_MODELS', () => {
     it('should include the expected models', () => {
       expect(SOFT_DELETE_MODELS.has('User')).toBe(true);
-      expect(SOFT_DELETE_MODELS.has('BrokerageAccount')).toBe(true);
+      expect(SOFT_DELETE_MODELS.has('AlpacaAccount')).toBe(true);
       expect(SOFT_DELETE_MODELS.has('Trade')).toBe(true);
       expect(SOFT_DELETE_MODELS.has('Action')).toBe(true);
     });
@@ -72,7 +72,7 @@ describe('Soft Delete Utilities', () => {
   describe('isSoftDeleteModel', () => {
     it('should return true for models with soft delete support', () => {
       expect(isSoftDeleteModel('User')).toBe(true);
-      expect(isSoftDeleteModel('BrokerageAccount')).toBe(true);
+      expect(isSoftDeleteModel('AlpacaAccount')).toBe(true);
       expect(isSoftDeleteModel('Trade')).toBe(true);
       expect(isSoftDeleteModel('Action')).toBe(true);
     });
@@ -162,7 +162,7 @@ describe('Soft Delete Utilities', () => {
 
       const modelTablePairs: Array<[string, string]> = [
         ['User', 'users'],
-        ['BrokerageAccount', 'brokerage_accounts'],
+        ['AlpacaAccount', 'alpaca_accounts'],
         ['Trade', 'trades'],
         ['Action', 'actions'],
       ];

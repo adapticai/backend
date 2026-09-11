@@ -27,7 +27,7 @@
   - `src/generated/typegraphql-prisma/` (by `prisma generate`)
   - `src/generated/selectionSets/` (by `generate:selections`)
   - `src/generated/typeStrings/` (by `generate:strings`)
-  - `src/[A-Z]*.ts` (by `generate:functions`, 62 PascalCase model CRUD files)
+  - `src/[A-Z]*.ts` (by `generate:functions`, one PascalCase model CRUD file per Prisma model; 67 files as of 2026-05-22)
   - `src/index.ts` (by `generate:functions`)
 - Codegen pipeline order (must run sequentially):
   1. `prisma generate` -- TypeGraphQL models, enums, resolvers, inputs from schema
@@ -42,7 +42,7 @@
 
 - Use `npm run migrate:dev` for development migrations (runs `prisma migrate dev` then `prisma migrate deploy`).
 - Use `npm run migrate` (deploy only) for production.
-- Migration files should never be modified after creation. There are 149 migrations in the history.
+- Migration files should never be modified after creation. There are 165 migrations in the history (as of 2026-05-22; verify with `ls prisma/migrations/ | wc -l`).
 - Name migrations descriptively when prompted by Prisma (e.g., `added_fund_model`, `align_to_authjs`).
 - Always test migrations on dev before applying to production.
 - For non-trivial schema changes (field removal, type changes, model renames), plan a rollback strategy.
@@ -50,8 +50,8 @@
 ## Type Exports
 
 - All canonical types exported from the package root via `src/index.ts`:
-  - `types` namespace -- All 62 Prisma model types
-  - `enums` namespace -- All Prisma enums
+  - `types` namespace -- All Prisma model types (67 as of 2026-05-22)
+  - `enums` namespace -- All Prisma enums (73 as of 2026-05-22)
   - `typeStrings` -- String representations of types (for LLM context)
 - Per-model CRUD functions exported as named exports (e.g., `Account.create()`, `Trade.get()`).
 - Apollo Client utilities exported: `getApolloClient`, `getApolloModules`, `setTokenProvider`, `configureConnectionPool`.

@@ -73,8 +73,21 @@ export default [
       ...eslint.configs.recommended.rules,
       ...tseslint.configs['recommended'].rules,
 
-      // TypeScript strict checking - warn initially given generated code
-      '@typescript-eslint/no-explicit-any': 'warn',
+      // === Type Safety (institutional-grade) ===
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unsafe-assignment': 'warn',
+      '@typescript-eslint/no-unsafe-member-access': 'warn',
+      '@typescript-eslint/no-unsafe-call': 'warn',
+      '@typescript-eslint/no-unsafe-return': 'warn',
+      '@typescript-eslint/no-unsafe-argument': 'warn',
+      '@typescript-eslint/consistent-type-assertions': [
+        'error',
+        {
+          assertionStyle: 'as',
+          objectLiteralTypeAssertions: 'allow-as-parameter',
+        },
+      ],
+      '@typescript-eslint/no-non-null-assertion': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -84,10 +97,24 @@ export default [
         },
       ],
 
-      // Floating promises must be handled
+      // === Async Safety ===
       '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': [
+        'error',
+        {
+          checksVoidReturn: {
+            arguments: false,
+            attributes: true,
+            properties: true,
+            returns: true,
+            variables: true,
+          },
+          checksConditionals: true,
+        },
+      ],
+      '@typescript-eslint/await-thenable': 'error',
 
-      // No eslint-disable comments (enforced via no-restricted-syntax)
+      // No eslint-disable comments
       'no-restricted-syntax': [
         'error',
         {
@@ -96,20 +123,17 @@ export default [
         },
       ],
 
-      // Code quality
+      // === Code Quality ===
+      '@typescript-eslint/no-require-imports': 'off',
       'no-console': ['error', { allow: ['warn', 'error'] }],
       'no-debugger': 'error',
       'no-var': 'error',
-      'prefer-const': 'warn',
+      'prefer-const': 'error',
       'no-eval': 'error',
       'no-implied-eval': 'error',
-      'no-undef': 'off', // TypeScript handles this
-      'no-case-declarations': 'warn',
-      'no-throw-literal': 'warn',
-
-      // Allow require() for legacy codegen scripts
-      '@typescript-eslint/no-require-imports': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'off',
+      'no-undef': 'off',
+      'no-case-declarations': 'error',
+      'no-throw-literal': 'error',
     },
   },
   {
@@ -159,16 +183,18 @@ export default [
           caughtErrors: 'none',
         },
       ],
+      '@typescript-eslint/no-non-null-assertion': 'off',
 
       'no-console': 'off',
       'no-debugger': 'warn',
       'no-var': 'error',
-      'prefer-const': 'warn',
+      'prefer-const': 'error',
       'no-eval': 'error',
       'no-implied-eval': 'error',
       'no-undef': 'off',
       'no-unused-vars': 'off',
-      'no-case-declarations': 'warn',
+      'no-case-declarations': 'error',
+      'no-throw-literal': 'error',
     },
   },
 ];

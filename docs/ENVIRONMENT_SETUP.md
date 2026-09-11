@@ -82,6 +82,32 @@ Required only for Railway deployments:
 | ------------------ | --------------------- | --------- |
 | `GLOBAL_NAMESPACE` | Application namespace | `adaptic` |
 
+#### Observability & Security Toggles
+
+All of the following are read by the server bootstrap at startup. They default
+to **on** in production/staging and **off** in development unless an explicit
+override is set. See `docs/audits/2026-05-22-readability/README.md` for the
+wire-up decisions made during the 2026-05-22 readability sweep.
+
+| Variable                          | Description                                                                            | Default                  |
+| --------------------------------- | -------------------------------------------------------------------------------------- | ------------------------ |
+| `OTEL_TRACING_ENABLED`            | Enables OpenTelemetry tracing (HTTP, Express, GraphQL instrumentation)                 | `true` in production/staging |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`     | OTLP HTTP endpoint for the trace collector                                             | `http://localhost:4318/v1/traces` |
+| `OTEL_SERVICE_NAME`               | Service name attached to all spans                                                     | `backend-legacy`         |
+| `PROMETHEUS_METRICS_ENABLED`      | Enables Prometheus metrics collection and the `GET /metrics` endpoint                  | `true` in production/staging |
+| `APQ_ENABLED`                     | Enables Automatic Persisted Queries (in-memory LRU cache)                              | `true`                   |
+| `APQ_MAX_CACHE_SIZE`              | Max APQ cache entries before LRU eviction                                              | `1000`                   |
+| `GRAPHQL_COMPLEXITY_ENABLED`      | Enables the query complexity + depth guard plugin                                      | `true` in production/staging |
+| `GRAPHQL_MAX_DEPTH`               | Max allowed query depth                                                                | `10`                     |
+| `GRAPHQL_MAX_COMPLEXITY_AUTH`     | Max query complexity for authenticated users                                           | `1000`                   |
+| `GRAPHQL_MAX_COMPLEXITY_UNAUTH`   | Max query complexity for unauthenticated users                                         | `200`                    |
+| `GOOGLE_OAUTH_CLIENT_IDS`         | Comma-separated list of Google OAuth client IDs accepted as Bearer-token audiences. **REQUIRED in production.** Boot fails fast if unset. | (none)                   |
+
+The CORS `ALLOWED_ORIGINS` value is *additive* — the server hardcodes a small
+baseline of `localhost:{3000, 3001, 4000}`, `https://adaptic.ai`,
+`https://os.adaptic.ai`, and `https://stable.adaptic.ai`, and appends any
+comma-separated entries from `ALLOWED_ORIGINS` on top. See `src/server.ts`.
+
 ## Local Development Setup
 
 ### 1. Generate Secure Secrets
@@ -180,8 +206,8 @@ DATABASE_URL="<railway-or-prisma-accelerate-url>"
 
 ```env
 ALLOWED_ORIGINS="https://app.adaptic.ai,https://adaptic.ai"
-BACKEND_HTTPS_URL="https://api.adaptic.ai/graphql"
-BACKEND_WS_URL="wss://api.adaptic.ai/subscriptions"
+BACKEND_HTTPS_URL="https://stable-api.adaptic.ai/graphql"
+BACKEND_WS_URL="wss://stable-api.adaptic.ai/subscriptions"
 DATABASE_URL="<production-database-url>"
 ```
 

@@ -8,8 +8,8 @@ A custom aggregation resolver that provides system-wide statistics for Greeks hi
 
 ### Location
 
-- **Resolver**: `/Users/ravi/adapticai/backend-legacy/src/resolvers/custom/OptionsGreeksHistoryCustomResolver.ts`
-- **Output Type**: `/Users/ravi/adapticai/backend-legacy/src/resolvers/custom/OptionsGreeksHistorySystemSummary.ts`
+- **Resolver**: `src/resolvers/custom/OptionsGreeksHistoryCustomResolver.ts`
+- **Output Type**: `src/resolvers/custom/OptionsGreeksHistorySystemSummary.ts`
 
 ### GraphQL Query
 

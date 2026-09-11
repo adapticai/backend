@@ -26,11 +26,11 @@ describe('parseMutationOperation', () => {
   });
 
   it('should parse updateOne operations', () => {
-    const result = parseMutationOperation('updateOneBrokerageAccount');
+    const result = parseMutationOperation('updateOneAlpacaAccount');
     expect(result).toEqual({
       operationType: 'UPDATE',
-      modelName: 'BrokerageAccount',
-      operationName: 'updateOneBrokerageAccount',
+      modelName: 'AlpacaAccount',
+      operationName: 'updateOneAlpacaAccount',
     });
   });
 
@@ -84,22 +84,28 @@ describe('parseMutationOperation', () => {
 });
 
 describe('extractUserId', () => {
-  it('should extract sub from user object', () => {
-    expect(extractUserId({ sub: 'user-123' })).toBe('user-123');
+  // The AuditLog.userId column is typed `String? @db.Uuid` in the Prisma
+  // schema. Since 2026-03-18 (commit 4435f30) extractUserId validates the
+  // raw id against a UUID regex and returns null for non-UUID values, so
+  // that Prisma.auditLog.create() never receives a malformed UUID (which
+  // would throw at the database boundary and fail the mutation request).
+  const UUID_A = '11111111-2222-3333-4444-555555555555';
+  const UUID_B = '99999999-8888-7777-6666-aaaaaaaaaaaa';
+
+  it('should extract sub from user object when sub is a UUID', () => {
+    expect(extractUserId({ sub: UUID_A })).toBe(UUID_A);
   });
 
-  it('should extract id from user object when sub is missing', () => {
-    expect(extractUserId({ id: 'user-456' })).toBe('user-456');
+  it('should extract id from user object when sub is missing and id is a UUID', () => {
+    expect(extractUserId({ id: UUID_A })).toBe(UUID_A);
   });
 
-  it('should prefer sub over id', () => {
-    expect(extractUserId({ sub: 'sub-value', id: 'id-value' })).toBe(
-      'sub-value'
-    );
+  it('should prefer sub over id when both are UUIDs', () => {
+    expect(extractUserId({ sub: UUID_A, id: UUID_B })).toBe(UUID_A);
   });
 
-  it('should return the string directly for string users', () => {
-    expect(extractUserId('user-string')).toBe('user-string');
+  it('should return the string directly for string users when it is a UUID', () => {
+    expect(extractUserId(UUID_A)).toBe(UUID_A);
   });
 
   it('should return null for null or undefined', () => {
@@ -109,6 +115,23 @@ describe('extractUserId', () => {
 
   it('should return null for user object with no id fields', () => {
     expect(extractUserId({ name: 'John' })).toBeNull();
+  });
+
+  it('should return null for non-UUID sub values (e.g. Auth0-style ids)', () => {
+    expect(extractUserId({ sub: 'auth0|123456' })).toBeNull();
+    expect(extractUserId({ sub: 'user-123' })).toBeNull();
+  });
+
+  it('should return null for non-UUID id values', () => {
+    expect(extractUserId({ id: 'not-a-uuid' })).toBeNull();
+  });
+
+  it('should return null for non-UUID raw string users', () => {
+    expect(extractUserId('user-string')).toBeNull();
+  });
+
+  it('should accept uppercase UUIDs (case-insensitive regex)', () => {
+    expect(extractUserId(UUID_A.toUpperCase())).toBe(UUID_A.toUpperCase());
   });
 });
 

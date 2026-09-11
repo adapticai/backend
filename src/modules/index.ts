@@ -61,6 +61,8 @@ export {
   getApolloModules,
   configureConnectionPool,
   setTokenProvider,
+  stopClient,
+  getPoolStats,
   client
 } from './client';
 
@@ -70,34 +72,8 @@ export type {
   HttpLinkType,
   NormalizedCacheObject,
   TokenProvider,
+  PoolStats,
 } from './client';
-
-// Sub-project 2 Area A1 — canonical JSON shapes + read-time helpers
-// for the AlpacaAccount → BrokerageAccount port. These exports MUST
-// be preserved across codegen runs; the generator template embeds
-// them so they survive every \`npm run build\`.
-export type { TradingPolicyJson } from './types/trading-policy';
-export { DEFAULT_TRADING_POLICY } from './types/trading-policy';
-export type {
-  LlmConfigurationJson,
-  LlmProvider,
-} from './types/llm-configuration';
-export { DEFAULT_LLM_CONFIGURATION } from './types/llm-configuration';
-export type {
-  PolicyOverlayEntry,
-  OverlayType,
-  OverlaySeverity,
-  OverlayStatus,
-} from './types/policy-overlay';
-export {
-  effectivePolicy,
-  EffectivePolicyContextError,
-  brokerageAccountWithPolicyContextSelectionSet,
-} from './helpers/effective-policy';
-export type { BrokerageAccountWithPolicyContext } from './helpers/effective-policy';
-export { effectiveLlmConfig } from './helpers/effective-llm-config';
-export type { EncryptedApiKey } from './helpers/kms-envelope';
-export { encryptApiKey, decryptApiKey } from './helpers/kms-envelope';
 
 `;
 

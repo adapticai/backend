@@ -1,4 +1,50 @@
+# Files excluded from the Docker build context.
+# Mirror .gcloudignore so behavior is consistent for `docker build .` and
+# `gcloud builds submit`.
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Node artifacts (installed fresh inside the deps stage)
 node_modules
-npm-debug.log
+npm-debug.log*
+yarn-debug.log*
+
+# Build outputs (regenerated inside the builder stage)
+dist
+src/generated
+coverage
+.tsbuildinfo
+
+# Editor + OS noise
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Local environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Claude Code agent worktrees / scratch
+.claude
+.claude.json
+
+# Self
 Dockerfile
 .dockerignore
+.gcloudignore
+
+# Testing artifacts
+.nyc_output
+junit.xml
+
+# Misc
+README-npm.md
+.husky
+docs

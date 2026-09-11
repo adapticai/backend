@@ -5,7 +5,7 @@
  * Instead of removing records from the database, a `deletedAt` timestamp
  * is set, and query helpers filter out soft-deleted records by default.
  *
- * Models with soft delete support: User, BrokerageAccount, Trade, Action
+ * Models with soft delete support: User, AlpacaAccount, Trade, Action
  *
  * Usage patterns:
  * 1. Use `softDeleteFilter()` in where clauses to exclude deleted records
@@ -25,7 +25,7 @@ import { logger } from '../utils/logger';
  */
 const SOFT_DELETE_MODELS = new Set([
   'User',
-  'BrokerageAccount',
+  'AlpacaAccount',
   'Trade',
   'Action',
 ]);
@@ -166,7 +166,7 @@ async function restoreRecord(
  */
 const TABLE_NAME_MAP: Record<string, string> = {
   User: 'users',
-  BrokerageAccount: 'brokerage_accounts',
+  AlpacaAccount: 'alpaca_accounts',
   Trade: 'trades',
   Action: 'actions',
 };

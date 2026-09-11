@@ -15,7 +15,7 @@ const EXCLUDED_FIELDS = new Set([
   'createdAt',
   'updatedAt',
   'slug',
-  'brokerageAccountId',
+  'alpacaAccountId',
 ]);
 
 const SCALAR_TYPE_MAP: { [key: string]: string } = {
@@ -66,10 +66,16 @@ const shouldExcludeField = (fieldName: string): boolean => {
   );
 };
 
+/** Parsed values produced by parseMetaTags — booleans, single strings, or string arrays. */
+type MetaTagValue = boolean | string | string[];
+
+/** Parsed meta-tag map keyed by the directive name (e.g. GQL.SKIP, TYPESTRING.INCLUDE). */
+type MetaTagMap = { [key: string]: MetaTagValue };
+
 const parseMetaTags = (
   documentation?: string
-): { meta: { [key: string]: any }; description: string } => {
-  const meta: { [key: string]: any } = {};
+): { meta: MetaTagMap; description: string } => {
+  const meta: MetaTagMap = {};
   if (!documentation) return { meta, description: '' };
 
   const metaTagRegex = /([A-Z]+\.[A-Z]+)=((?:\[[^\]]+\])|(?:[^\s]+))/g;
@@ -81,7 +87,7 @@ const parseMetaTags = (
     const key = match[1];
     const value = match[2];
 
-    let parsedValue: any = value;
+    let parsedValue: MetaTagValue = value;
     if (value.toLowerCase() === 'true') parsedValue = true;
     else if (value.toLowerCase() === 'false') parsedValue = false;
     else if (value.startsWith('[') && value.endsWith(']')) {
@@ -314,7 +320,7 @@ const generateTypeString = (
 
 const shouldProcessField = (
   field: DMMF.Field,
-  metaTags: { [key: string]: any }
+  metaTags: MetaTagMap
 ): boolean => {
   if (metaTags['TYPESTRING.SKIP'] === true) {
     return false;

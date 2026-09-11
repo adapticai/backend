@@ -1,6 +1,6 @@
 # Backend-Legacy Debugging Playbook
 
-This playbook covers the most common failure modes in the backend-legacy package and how to resolve them. The package owns the Prisma schema (62 models, 63 enums), the codegen pipeline, and type exports consumed by engine, utils, and platform.
+This playbook covers the most common failure modes in the backend-legacy package and how to resolve them. The package owns the Prisma schema (67 models, 73 enums as of 2026-05-22; verify with `grep -c '^model ' prisma/schema.prisma` and `grep -c '^enum ' prisma/schema.prisma`), the codegen pipeline, and type exports consumed by engine, utils, and platform.
 
 ---
 
@@ -29,6 +29,7 @@ This playbook covers the most common failure modes in the backend-legacy package
 6. Confirm every model has exactly one `@id` field (or a compound `@@id`).
 
 **Common causes:**
+
 - Malformed `@relation` directive (missing `fields` or `references`)
 - Missing `@id` on a model
 - Duplicate model/enum names after a merge
@@ -66,6 +67,7 @@ clean -> generate -> fix-imports -> generate:selections -> generate:functions ->
 5. If `fix-imports` fails, check `fix-import-paths.cjs` for path patterns that no longer match generated output.
 
 **Common causes:**
+
 - Running codegen stages out of order (most common: skipping `npm run generate` before `generate:functions`)
 - Prisma version mismatch between `@prisma/client`, `prisma`, `@prisma/internals`, and `@prisma/generator-helper`
 - A new model with deeply nested self-referential relations exceeding MAX_DEPTH
@@ -94,6 +96,7 @@ clean -> generate -> fix-imports -> generate:selections -> generate:functions ->
    ```
 
 **Common causes:**
+
 - Edited migration file after creation (Prisma checksums will fail)
 - Constraint violation on existing data (adding NOT NULL without a default)
 - Conflicting migrations from parallel branches
@@ -130,6 +133,7 @@ The package publishes types via `dist/index.d.ts` (see `package.json` `types` fi
    ```
 
 **Common causes:**
+
 - Generated files not included in tsconfig `include` patterns
 - Build not run after schema changes (stale `dist/`)
 - `package.json` `files` field missing a pattern
@@ -162,6 +166,7 @@ When engine, utils, or other consumers report type errors after a backend-legacy
    ```
 
 **Common causes:**
+
 - Consumer not rebuilt after backend-legacy changes
 - Prisma version drift between packages
 - Stale `node_modules/@adaptic/backend-legacy` (needs reinstall or link)
@@ -185,6 +190,7 @@ Selection sets are generated from the Prisma DMMF into `src/generated/selectionS
 5. If a field appears in the schema but not in the selection set, check whether it is a relation that exceeds the depth limit or is explicitly excluded.
 
 **Common causes:**
+
 - Schema changed but `npm run generate:selections` not re-run
 - New relation field exceeds MAX_DEPTH (4 levels)
 - Field excluded by `@GQL.SKIP` or `@GQL.EXCLUDE` meta-tags in schema comments
@@ -201,6 +207,7 @@ The project includes a schema validation script at `scripts/validate-schema.sh` 
 3. `git diff --quiet -- src/generated/` -- drift detection (exit code 2 if drift found)
 
 If CI fails with exit code 2, it means the schema was changed but generated code was not regenerated and committed. Fix:
+
 ```bash
 npm run generate
 git add src/generated/

@@ -1,0 +1,46 @@
+# Files excluded from the Cloud Build / `gcloud` upload context.
+# Mirrors .dockerignore where possible. Keep .gcloudignore self-contained so
+# that `gcloud builds submit` does not require parsing .dockerignore.
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Node artifacts
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs (regenerated inside Docker)
+dist
+src/generated
+coverage
+.tsbuildinfo
+
+# Editor + OS noise
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Claude Code agent worktrees / scratch
+.claude
+.claude.json
+*.code-workspace
+
+# Local environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Testing artifacts
+.nyc_output
+junit.xml
+
+# Misc
+README-npm.md
+.husky

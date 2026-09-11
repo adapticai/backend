@@ -1,0 +1,13 @@
+-- AlterTable
+ALTER TABLE "trading_policies" ADD COLUMN     "dayTradeOnly" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "hardPositionExitMinutes" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "intradayTradingWindows" JSONB,
+ADD COLUMN     "maxAnomalousSlippageBps" INTEGER NOT NULL DEFAULT 10,
+ADD COLUMN     "maxAtrPercentage" DOUBLE PRECISION NOT NULL DEFAULT 2.0,
+ADD COLUMN     "maxEntrySpreadBps" INTEGER NOT NULL DEFAULT 5,
+ADD COLUMN     "maxOrdersPerWindow" INTEGER NOT NULL DEFAULT 10,
+ADD COLUMN     "minAtrPercentage" DOUBLE PRECISION NOT NULL DEFAULT 0.3,
+ADD COLUMN     "minBookDepthShares" INTEGER NOT NULL DEFAULT 5000,
+ADD COLUMN     "minIntradayLiquidityShares" INTEGER NOT NULL DEFAULT 10000,
+ADD COLUMN     "orderWindowSeconds" INTEGER NOT NULL DEFAULT 5,
+ADD COLUMN     "sameSideReentryDelayMs" INTEGER NOT NULL DEFAULT 5000;

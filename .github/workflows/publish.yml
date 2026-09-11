@@ -4,6 +4,30 @@ on:
   push:
     branches:
       - main
+      - stable-release
+      - platform-alignment
+    # Only publish-relevant inputs (anything that can alter dist/) trigger this pipeline; the dist-content
+    # diff below still gates the actual publish. README-npm.md IS an input — prepare-package.mjs copies it to dist/README.md.
+    paths:
+      - 'src/**'
+      - 'prisma/**'
+      - 'scripts/**'
+      - '*.json'
+      - '*.mjs'
+      - '*.cjs'
+      - '*.js'
+      - 'tsconfig*.json'
+      - 'vitest.config.ts'
+      - 'README-npm.md'
+      - '.github/workflows/publish.yml'
+
+# Serialize publish runs per branch (audit B01-backend-legacy-04): two overlapping
+# runs both read dist-tags, derive the same NEW_VERSION, and the loser fails at
+# `npm publish` (duplicate version) or at the post-publish `git push` — after
+# already publishing. Never cancel an in-flight publish; queue instead.
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   publish:
@@ -14,6 +38,26 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine release channel
+        id: channel
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          if [ "$BRANCH" = "stable-release" ]; then
+            echo "npm_tag=stable" >> $GITHUB_OUTPUT
+            echo "is_stable=true" >> $GITHUB_OUTPUT
+            echo "is_alignment=false" >> $GITHUB_OUTPUT
+          elif [ "$BRANCH" = "platform-alignment" ]; then
+            echo "npm_tag=alignment" >> $GITHUB_OUTPUT
+            echo "is_stable=false" >> $GITHUB_OUTPUT
+            echo "is_alignment=true" >> $GITHUB_OUTPUT
+          else
+            echo "npm_tag=latest" >> $GITHUB_OUTPUT
+            echo "is_stable=false" >> $GITHUB_OUTPUT
+            echo "is_alignment=false" >> $GITHUB_OUTPUT
+          fi
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "Release channel: branch=$BRANCH"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -28,22 +72,37 @@ jobs:
         run: npm cache clean --force
 
       - name: Install dependencies in the root folder
-        run: npm install
+        # npm ci: reproducible install from the committed lockfile (supply-chain
+        # pin, post-audit security-review follow-up). The dist-folder install
+        # below stays npm install — dist/package.json is generated per-build
+        # and has no lockfile by design.
+        run: npm ci
 
       - name: Build npm package
         run: npm run build:package
+        env:
+          # tsc peaks >4GB compiling the full generated CRUD surface (grew with the
+          # IR domain); the default Node heap OOMs here. Railway builds via the
+          # Dockerfile (NODE_OPTIONS=--max-old-space-size=6144); match with headroom.
+          NODE_OPTIONS: --max-old-space-size=8192
 
-      # # Filter dist/ files based on .npmignore
-      # - name: Filter dist files with .npmignore
-      #   run: |
-      #     echo "Filtering dist/ files based on .npmignore..."
-      #     mkdir -p ./filtered_dist
-      #     rsync -av --exclude-from=.npmignore dist/ ./filtered_dist/
-      #     mv ./filtered_dist dist
+      # Quality gate (audit B01-backend-legacy-01): the publish flow previously ran
+      # zero tests/lint before shipping @stable to npm — the branch the trading
+      # engine consumes. Typecheck is enforced by the full `tsc` inside
+      # `build:package` above (the job fails on any type error); this step adds the
+      # lint and vitest gates. Runs AFTER the build because the vitest suite and
+      # lint config resolve against `src/generated/**`, which is gitignored and only
+      # exists post-codegen. Any failure here aborts the job before `npm publish`.
+      - name: Quality gate (lint + unit tests)
+        run: |
+          npm run lint
+          npm run test
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
 
       - name: Install dependencies in dist folder
         working-directory: dist
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Set up Git user
         run: |
@@ -59,65 +118,110 @@ jobs:
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
 
+      # Skip-if-unchanged gate (audit B01-backend-legacy-04). The previous
+      # implementation was dead logic on THREE counts: (1) it compared npm tarball
+      # listings (paths prefixed `package/`) against unprefixed `find` output, so
+      # every line always differed; (2) the tarball listing was written to the
+      # PARENT of the workspace while the compare step read it from the workspace
+      # root, so `comm` compared against an empty stream; (3) the local listing was
+      # taken AFTER `npm install` in dist/, so it always contained node_modules.
+      # Net effect: diff_output was unconditionally true and every push published a
+      # new version. This rewrite compares actual file CONTENT (diff -r) between
+      # dist/ and the extracted published tarball, excluding node_modules,
+      # package.json (carries the version bump), and package-lock.json (created by
+      # the dist install, never published).
       - name: Get current package content from npm
         id: get_npm_package_content
+        env:
+          NPM_TAG: ${{ steps.channel.outputs.npm_tag }}
         run: |
-          npm view ${{ env.PACKAGE_NAME }} dist.tarball | xargs curl -sL | tar -tzf - > ../npm_package_files.txt
-
-      - name: List local dist files
-        id: list_dist_files
-        run: find . -type f | sed 's|^\./||' > ../local_dist_files.txt
-        working-directory: dist
+          rm -rf npm_published_package && mkdir -p npm_published_package
+          TARBALL_URL=$(npm view "$PACKAGE_NAME@$NPM_TAG" dist.tarball 2>/dev/null || echo "")
+          if [ -n "$TARBALL_URL" ]; then
+            curl -sL "$TARBALL_URL" | tar -xzf - -C npm_published_package
+            echo "tarball_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "No published version found for tag '$NPM_TAG', treating as first publish"
+            echo "tarball_found=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Compare dist content with published package
         id: compare_dist
+        env:
+          TARBALL_FOUND: ${{ steps.get_npm_package_content.outputs.tarball_found }}
         run: |
-          comm -3 <(sort local_dist_files.txt) <(sort npm_package_files.txt) > diff.txt
-          if [ -s diff.txt ]; then
-            echo "Differences found."
-            cat diff.txt
-            echo "::set-output name=diff_output::true"
+          if [ "$TARBALL_FOUND" != "true" ]; then
+            echo "First publish for this tag — publishing."
+            echo "diff_output=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          if diff -r -q \
+               --exclude=node_modules \
+               --exclude=package.json \
+               --exclude=package-lock.json \
+               dist npm_published_package/package > dist_diff.txt 2>&1; then
+            echo "No content differences vs published package."
+            echo "diff_output=false" >> $GITHUB_OUTPUT
           else
-            echo "No differences found."
-            echo "::set-output name=diff_output::false"
+            echo "Content differences found vs published package:"
+            head -50 dist_diff.txt
+            echo "diff_output=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Check always-build-npm flag
         id: check_always_build
         run: |
           ALWAYS_BUILD=$(jq -r '."always-build-npm" // false' package-npm.json)
-          echo "::set-output name=always_build::$ALWAYS_BUILD"
+          echo "always_build=$ALWAYS_BUILD" >> $GITHUB_OUTPUT
 
       - name: Determine if publish is necessary
         id: should_publish
         run: |
           if [ "${{ steps.compare_dist.outputs.diff_output }}" == "false" ] && [ "${{ steps.check_always_build.outputs.always_build }}" != "true" ]; then
             echo "No changes detected and always-build-npm is not true. Skipping publish."
-            echo "::set-output name=should_publish::false"
+            echo "should_publish=false" >> $GITHUB_OUTPUT
           else
             echo "Changes detected or always-build-npm is true. Proceeding with publish."
-            echo "::set-output name=should_publish::true"
+            echo "should_publish=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Bump version if necessary
         id: bump_version
         if: steps.should_publish.outputs.should_publish == 'true'
+        env:
+          IS_STABLE: ${{ steps.channel.outputs.is_stable }}
+          IS_ALIGNMENT: ${{ steps.channel.outputs.is_alignment }}
         run: |
-          echo "Checking current version..."
+          if [ "$IS_ALIGNMENT" = "true" ]; then
+            # Alignment channel: prerelease derived from the stable base so it
+            # never collides with (and always sorts below) the next stable patch.
+            STABLE_VERSION=$(npm view "$PACKAGE_NAME" dist-tags.stable 2>/dev/null || echo "0.0.900")
+            PATCH=$(echo "$STABLE_VERSION" | cut -d'.' -f3)
+            NEW_VERSION="0.0.$((PATCH + 1))-alignment.${GITHUB_RUN_NUMBER}"
+            echo "Alignment prerelease version: $NEW_VERSION (stable base $STABLE_VERSION)"
+          elif [ "$IS_STABLE" = "true" ]; then
+            # Stable channel: derive version from latest stable-tagged npm release
+            STABLE_VERSION=$(npm view "$PACKAGE_NAME" dist-tags.stable 2>/dev/null || echo "")
+            if [ -z "$STABLE_VERSION" ]; then
+              NEW_VERSION="0.0.900"
+              echo "No existing stable release found, starting at $NEW_VERSION"
+            else
+              PATCH=$(echo "$STABLE_VERSION" | cut -d'.' -f3)
+              NEW_PATCH=$((PATCH + 1))
+              NEW_VERSION="0.0.$NEW_PATCH"
+              echo "Latest stable version is $STABLE_VERSION, bumping to $NEW_VERSION"
+            fi
+          else
+            # Main channel: existing patch bump logic
+            echo "Checking current version..."
+            CURRENT_VERSION=$(jq -r .version package-npm.json)
+            echo "Current version is $CURRENT_VERSION"
+            cd dist
+            NEW_VERSION=$(npm version patch --no-git-tag-version --allow-same-version | sed 's/^v//')
+            cd ..
+          fi
 
-          # Get the current version from package-npm.json
-          CURRENT_VERSION=$(jq -r .version package-npm.json)
-          echo "Current version is $CURRENT_VERSION"
-
-          # Move to the directory where npm version bump should occur
-          cd dist
-
-          # Bump the version using npm and strip the "v" prefix
-          NEW_VERSION=$(npm version patch --no-git-tag-version --allow-same-version | sed 's/^v//')
           echo "New version is $NEW_VERSION"
-
-          # Move back to the root directory
-          cd ..
 
           # Update the version in package-npm.json
           jq --arg new_version "$NEW_VERSION" '.version=$new_version' package-npm.json > tmp.json && mv tmp.json package-npm.json
@@ -128,7 +232,7 @@ jobs:
           echo "Updated dist/package.json to version $NEW_VERSION"
 
           # Ensure both files are staged for commit
-          git add package-npm.json dist/package.json -f
+          git add package-npm.json package-lock.json dist/package.json -f
 
           # Check for changes and commit if there are any
           if git diff-index --cached --quiet HEAD --; then
@@ -143,22 +247,26 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TAG: ${{ steps.channel.outputs.npm_tag }}
         working-directory: dist
         run: |
-          # Ensure temporary files are removed
-          rm -f ../npm_package_files.txt ../local_dist_files.txt diff.txt
+          # Ensure compare-step artifacts are removed before publishing
+          rm -rf ../npm_published_package ../dist_diff.txt
           echo "Publishing package..."
           echo "Registry URL: $(npm config get registry)"
           echo "Package name: $(jq -r .name package.json)"
           echo "Package version: $(jq -r .version package.json)"
+          echo "NPM tag: $NPM_TAG"
           echo "NPM whoami: $(npm whoami || echo 'Not authenticated')"
 
-          echo "Running: npm publish --access public"
-          npm publish --access public
+          echo "Running: npm publish --access public --tag $NPM_TAG"
+          npm publish --access public --tag "$NPM_TAG"
 
       - name: Remove dist/package.json after publish and push changes
         if: steps.should_publish.outputs.should_publish == 'true'
+        env:
+          BRANCH: ${{ steps.channel.outputs.branch }}
         run: |
           git rm dist/package.json
           git commit -m "ci: remove dist/package.json after publish"
-          git push origin HEAD:main
+          git push origin "HEAD:$BRANCH"

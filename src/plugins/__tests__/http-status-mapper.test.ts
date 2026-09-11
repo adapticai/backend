@@ -38,9 +38,7 @@ function makeContext(
   };
 }
 
-async function invokePlugin(
-  ctx: ReturnType<typeof makeContext>
-): Promise<void> {
+async function invokePlugin(ctx: ReturnType<typeof makeContext>): Promise<void> {
   const plugin = createHttpStatusMapperPlugin();
   // Each lifecycle hook is optional; assert it exists before calling so a
   // future refactor that removes the listener fails the test rather than

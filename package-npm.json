@@ -1,6 +1,6 @@
 {
   "name": "@adaptic/backend-legacy",
-  "version": "0.0.86",
+  "version": "0.0.1022",
   "description": "Backend executable CRUD functions with dynamic variables construction, and type definitions for the Adaptic AI platform.",
   "type": "module",
   "types": "index.d.ts",
@@ -22,10 +22,6 @@
     "resolvers/",
     "utils/",
     "validators/",
-    "config/",
-    "middleware/",
-    "types/",
-    "helpers/",
     "*.d.ts",
     "*.js",
     "*.cjs",
@@ -50,14 +46,14 @@
     }
   },
   "dependencies": {
-    "@prisma/client": "^5.17.0",
+    "@prisma/client": "^6.19.0",
     "reflect-metadata": "^0.2.2",
     "cross-fetch": "^4.0.0"
   },
   "devDependencies": {
-    "prisma": "^5.17.0",
-    "typegraphql-prisma": "^0.27.2",
-    "typescript": "^5.6.2"
+    "prisma": "^6.19.2",
+    "typegraphql-prisma": "^0.28.0",
+    "typescript": "^5.9.2"
   },
   "engines": {
     "node": ">=20.0.0"

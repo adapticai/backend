@@ -39,7 +39,7 @@ echo ""
 
 # Step 2: Run prisma generate to verify code generation works
 echo "[2/3] Running prisma generate (checking code generation)..."
-if SKIP_PRISMA_VERSION_CHECK=true npx prisma generate --no-engine; then
+if SKIP_PRISMA_VERSION_CHECK=true npx prisma generate; then
   echo "  --> Code generation succeeded."
 else
   echo "  --> ERROR: Code generation failed."

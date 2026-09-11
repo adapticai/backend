@@ -102,16 +102,23 @@ function parseMutationOperation(
  * Extracts the user ID from the context user object.
  * Handles both JWT-decoded objects and raw string tokens.
  *
+ * The result must be a syntactically valid UUID because the
+ * `AuditLog.userId` column is typed `String? @db.Uuid` in the Prisma
+ * schema. Non-UUID values (e.g. Auth0-style `sub` like `auth0|abc`) are
+ * coerced to `null` so the downstream `auditLog.create()` does not fail
+ * at the Postgres boundary and abort the originating mutation.
+ *
  * @param user - The user object from GraphQL context
- * @returns The user ID string or null
+ * @returns The user ID string when a valid UUID, otherwise null
  */
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function extractUserId(
   user: AuditUser | string | null | undefined
 ): string | null {
   if (!user) return null;
-  const rawId = typeof user === 'string' ? user : (user.sub || user.id || null);
+  const rawId = typeof user === 'string' ? user : user.sub || user.id || null;
   if (!rawId) return null;
   return UUID_REGEX.test(rawId) ? rawId : null;
 }

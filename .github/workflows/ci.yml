@@ -1,20 +1,26 @@
 name: CI - Backend Legacy
 
+# stable-release is the PRODUCTION branch (publishes @stable, consumed by the
+# trading engine). It must run the same CI gate as main — its absence here meant
+# every production publish shipped with zero test/lint/codegen-drift execution
+# (audit B01-backend-legacy-01).
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, stable-release]
     paths:
       - 'src/**'
       - 'prisma/**'
       - 'package.json'
       - 'tsconfig.json'
+      - '.github/workflows/**'
   push:
-    branches: [main]
+    branches: [main, stable-release]
     paths:
       - 'src/**'
       - 'prisma/**'
       - 'package.json'
       - 'tsconfig.json'
+      - '.github/workflows/**'
 
 jobs:
   lint-typecheck:
@@ -25,10 +31,37 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+
       - run: npm ci
+      # src/generated/** is gitignored; lint passes without it but tsc and
+      # the vitest suite resolve imports from it, so every checking job must
+      # run the codegen chain first (mirrors the publish workflow's build).
+      - name: Generate code from schema
+        run: |
+          npm run generate
+          npm run fix-imports
+          npm run generate:selections
+          npm run generate:functions
+          npm run generate:strings
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          DIRECT_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      # Linting walks the same ~1.3M generated lines as the type-check below
+      # and needs the same heap for the same reason. Without it the step dies
+      # at exit 134 before reporting a single rule violation, which reads in
+      # the run list as a failing lint gate but is actually no lint gate at
+      # all — every rule it would have enforced goes unchecked.
       - run: npm run lint
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+      # Type-checking the full surface incl. ~1.3M generated lines exceeds
+      # the runner's default Node heap (observed OOM at exit 134). 6144 MB was
+      # not enough either — it only looked sufficient while the lint step above
+      # aborted first and this one never ran. Matched to the build job, which
+      # walks the same surface and has held at this allowance.
       - run: npx tsc --noEmit
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
 
   test:
     name: Test & Coverage
@@ -38,8 +71,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+
       - run: npm ci
+      # src/generated/** is gitignored; lint passes without it but tsc and
+      # the vitest suite resolve imports from it, so every checking job must
+      # run the codegen chain first (mirrors the publish workflow's build).
+      - name: Generate code from schema
+        run: |
+          npm run generate
+          npm run fix-imports
+          npm run generate:selections
+          npm run generate:functions
+          npm run generate:strings
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          DIRECT_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
       - run: npm run test:coverage
       - name: Upload coverage report
         if: always()
@@ -53,13 +99,17 @@ jobs:
     name: Verify Generated Code Matches Schema
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # prisma validate/generate only need the datasource env vars to
+      # RESOLVE (no connection is made); fall back to a syntactically valid
+      # dummy so the job does not depend on repo secrets being configured.
+      DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://ci:ci@localhost:5432/ci' }}
+      DIRECT_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+
       - run: npm ci
 
       - name: Validate Prisma schema
@@ -67,25 +117,35 @@ jobs:
 
       - name: Generate code from schema
         run: |
-          SKIP_PRISMA_VERSION_CHECK=true npx prisma generate --no-engine
+          SKIP_PRISMA_VERSION_CHECK=true npx prisma generate
           node fix-import-paths.cjs
           npx ts-node src/modules/generateSelections.ts
           npx ts-node src/modules/index.ts
+          # fix-compound-unique-keys rewrites the whereUniqueInput of every
+          # model with a @@unique compound key (e.g. EquityBar's
+          # symbol_timeStamp_timespan) in the generated CRUD. The build script
+          # runs it between generate:functions and generate:strings; omitting it
+          # here regenerates those models in the naive single-key form and
+          # reports FALSE drift against the correctly-built committed surface.
+          node fix-compound-unique-keys.cjs
           npx ts-node src/modules/generateStrings.ts
 
       - name: Check for generated code drift
+        # src/generated/** is gitignored, so diffing it can never detect
+        # drift. The TRACKED generated surface is the per-model CRUD files
+        # at src/*.ts (written by generate:functions) — regenerating from
+        # the committed schema and diffing those is the real check. HARD
+        # FAILURE since 2026-08-08: the investor-relations codegen landed
+        # (audit B01-backend-legacy-13 closed), so any drift now means a
+        # schema change was committed without its regenerated surface.
         run: |
-          if ! git diff --quiet src/generated/; then
-            echo "::error::Generated code is out of date. Run 'npm run build' and commit the regenerated files."
-            echo ""
-            echo "=== Changed files ==="
-            git diff --name-only src/generated/
-            echo ""
-            echo "=== Diff summary ==="
-            git diff --stat src/generated/
+          if ! git diff --quiet -- 'src/*.ts'; then
+            echo "::error::Committed CRUD surface differs from a fresh regeneration of the committed schema. Run 'npm run build' and commit the regenerated files."
+            git diff --name-only -- 'src/*.ts'
+            git diff --stat -- 'src/*.ts' | tail -3
             exit 1
           fi
-          echo "Generated code is up to date."
+          echo "Committed CRUD surface matches the committed schema."
 
   build:
     name: Build
@@ -96,6 +156,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+
       - run: npm ci
+      # Full pipeline (codegen + dual tsc) needs the same heap allowance the
+      # publish workflow grants (Dockerfile parity: 6-8GB); default 4GB OOMs.
       - run: npm run build
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192

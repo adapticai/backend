@@ -54,20 +54,45 @@ async function checkDatabase(): Promise<'connected' | 'disconnected'> {
 }
 
 /**
- * Creates an Express router with a GET /health endpoint.
+ * Creates an Express router with health-probe endpoints.
  *
- * The endpoint returns HTTP 200 when healthy (database reachable)
- * and HTTP 503 when degraded (database unreachable).
+ * - `GET /livez` — Process-only liveness check. Always returns HTTP 200 with
+ *   `{ status, service, version, uptime }`. Safe for Cloud Run / Kubernetes
+ *   liveness probes since it never touches the database.
+ * - `GET /readyz` — Readiness check. Returns HTTP 200 only when the database
+ *   is reachable (`SELECT 1`), HTTP 503 otherwise. Suitable for Cloud Run
+ *   startup probes and load-balancer readiness.
+ * - `GET /health` — Full health snapshot including memory usage and database
+ *   status. Returns 503 when the database is unreachable. Kept for
+ *   backward compatibility with existing Railway/uptime checks.
  *
- * Response includes: service name, version, uptime in seconds,
- * memory usage (RSS, heap used, heap total in MB), database status,
- * and an ISO 8601 timestamp.
- *
- * This endpoint should be mounted before auth middleware so it
- * remains accessible without authentication.
+ * All endpoints should be mounted before auth middleware so they remain
+ * accessible without authentication.
  */
 export function createHealthRouter(): Router {
   const router = Router();
+
+  router.get('/livez', (_req: Request, res: Response): void => {
+    res.status(200).json({
+      status: 'ok',
+      service: SERVICE_NAME,
+      version: PACKAGE_VERSION,
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor((Date.now() - startedAt) / 1000),
+    });
+  });
+
+  router.get('/readyz', async (_req: Request, res: Response): Promise<void> => {
+    const databaseStatus = await checkDatabase();
+    const isReady = databaseStatus === 'connected';
+    res.status(isReady ? 200 : 503).json({
+      status: isReady ? 'ready' : 'not-ready',
+      service: SERVICE_NAME,
+      version: PACKAGE_VERSION,
+      database: databaseStatus,
+      timestamp: new Date().toISOString(),
+    });
+  });
 
   router.get('/health', async (_req: Request, res: Response): Promise<void> => {
     const databaseStatus = await checkDatabase();

@@ -32,7 +32,7 @@ To use the `@adaptic/backend-legacy` package, the only requirement is to ensure 
 
 Add the folowing to your `.env` file or add them as environment variables in your deployment environment:
 
-- `BACKEND_HTTPS_URL`: The HTTPS URL of your GraphQL server. E.g. `https://api.adaptic.ai/graphql` for production, and `https://localhost:4000/graphql` for local development.
+- `BACKEND_HTTPS_URL`: The HTTPS URL of your GraphQL server. E.g. `https://stable-api.adaptic.ai/graphql` for production, and `https://localhost:4000/graphql` for local development.
 
 Example `.env` file:
 

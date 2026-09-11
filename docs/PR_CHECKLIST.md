@@ -87,7 +87,7 @@ Use this checklist before opening or approving a PR that touches the backend-leg
 
 ## Version and Release
 
-- [ ] `package.json` version bumped if publishing to NPM (currently `0.0.43`)
+- [ ] `package.json` version handled by the publish workflow (no need to bump manually; CI bumps + publishes on push to `main` / `stable-release`)
 - [ ] Changelog or PR description documents user-facing changes
 - [ ] Prisma version aligned across the dependency chain:
   - `@prisma/client`: `^6.19.2`

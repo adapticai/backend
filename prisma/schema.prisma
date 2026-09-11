@@ -1,6 +1,5 @@
 generator client {
-  provider   = "prisma-client-js"
-  engineType = "dataproxy"
+  provider = "prisma-client-js"
 }
 
 generator typegraphql {
@@ -285,25 +284,13 @@ enum AssetType {
   OTHER
 }
 
-// Specifies the type of brokerage account being used.
-enum BrokerageAccountType {
+// Specifies the type of Alpaca account being used.
+enum AlpacaAccountType {
   /// A simulated trading account for testing strategies without real money.
   PAPER
 
   /// A live trading account with real funds.
   LIVE
-}
-
-// Specifies the brokerage provider for an account.
-enum BrokerageProvider {
-  /// Alpaca Markets broker.
-  ALPACA
-
-  /// Interactive Brokers.
-  IBKR
-
-  /// Coinbase exchange.
-  COINBASE
 }
 
 // Enumerates the possible actions that can be performed on an action under a trade.
@@ -368,18 +355,102 @@ enum TradeStatus {
   /// The trade has been superseded by a newer trade via re-underwriting.
   SUPERSEDED
 
-  /// The broker rejected the order (e.g., insufficient buying power,
-  /// bad symbol, halted asset). SEC Rule 15c3-5 forensic record retained.
+  /// The broker rejected the order (e.g., insufficient buying power, bad symbol, halted asset). Forensic record retained per SEC Rule 15c3-5.
   REJECTED_BROKER
 
-  /// A pre-trade compliance/risk check rejected the trade
-  /// (e.g., wash-trade cooldown, KYC, restricted list).
-  /// SEC Rule 15c3-5 forensic record retained.
+  /// A pre-trade compliance/risk check rejected the trade (e.g., wash-trade cooldown, KYC, restricted list). Forensic record retained per SEC Rule 15c3-5.
   REJECTED_COMPLIANCE
 
-  /// The trade failed during execution due to a system error
-  /// (e.g., network, broker outage). SEC Rule 15c3-5 forensic record retained.
+  /// The trade failed during execution due to a system error (e.g., network, broker outage). Forensic record retained per SEC Rule 15c3-5.
   FAILED
+}
+
+// === Wave F (F8.3 / F8.4) — canonical decision/attribution axes as typed enums ===
+// Additive typed domains for axes historically stored as free String, or (for direction)
+// re-derived from order verbs. The paired columns are NULLABLE and dual-written; the legacy
+// String columns are RETAINED for back-compat and dropped only in a later coordinated change.
+
+// Derived position direction (thesis side) for a trade or realized outcome.
+enum TradeSide {
+  /// Net-bullish thesis: the position profits when the name rises.
+  LONG
+
+  /// Net-bearish thesis: the position profits when the name falls.
+  SHORT
+}
+
+// Upstream ensemble producer that emitted the merged signal behind a trade/outcome. Typed
+// domain of the legacy free-string `signalSource` (whose live values are lowercase, e.g.
+// "ensemble" | "llm_only"); the dual-write mapper normalises case to these members.
+enum TradeSignalSource {
+  /// Blended transformer + LLM ensemble signal.
+  ENSEMBLE
+
+  /// LLM-only decision path (no transformer contribution).
+  LLM_ONLY
+
+  /// Transformer-only decision path (no LLM contribution).
+  TRANSFORMER_ONLY
+
+  /// Drift-fallback path taken when the primary producers were unavailable or degraded.
+  DRIFT_FALLBACK
+
+  /// Manually initiated (operator) trade.
+  MANUAL
+}
+
+// High-level decision pathway that produced a trade. Mirrors the engine ML-system
+// DecisionPathway; typed domain of the legacy free-string `pathway`.
+enum DecisionPathway {
+  /// Decision made purely by the ML / transformer stack.
+  ML_ONLY
+
+  /// Decision made purely by the LLM.
+  LLM_ONLY
+
+  /// Blended ML + LLM decision.
+  HYBRID
+
+  /// Fallback path taken when the primary pathways were unavailable.
+  FALLBACK
+
+  /// Deterministic rules-engine decision.
+  RULES
+
+  /// Pathway could not be determined.
+  UNKNOWN
+}
+
+// Exit-tier classification for exit trades. Typed domain of the legacy free-string
+// `exitTier`; NULL on open trades.
+enum ExitTier {
+  /// Tier A — volatility / regime circuit-breaker exit.
+  TIER_A
+
+  /// Tier B — engine-internal stop-logic exit.
+  TIER_B
+
+  /// Tier C — LLM advisory re-evaluation exit.
+  TIER_C
+
+  /// Manually initiated (operator) exit.
+  MANUAL
+
+  /// End-of-day flatten exit.
+  EOD
+}
+
+// What triggered an action within a trade. Typed domain of the legacy free-string
+// `triggerSource`.
+enum ActionTriggerSource {
+  /// The original entry signal.
+  ORIGINAL_SIGNAL
+
+  /// A re-underwriting re-evaluation of the standing thesis.
+  REUNDERWRITING
+
+  /// A reversal response (thesis flip / hard-close).
+  REVERSAL
 }
 
 // Categorizes the types of alerts that can be generated.
@@ -428,6 +499,9 @@ enum AlertCategory {
 
   /// Alerts related to portfolio management.
   PORTFOLIO
+
+  /// Alerts related to risk governance (account/strategy state changes, escalations).
+  GOVERNANCE
 }
 
 // Specifies the importance level of an event.
@@ -456,6 +530,38 @@ enum SubscriptionPlan {
 
 // OpenAI API language models available for text generation.
 enum OpenaiModel {
+  /// GPT-5.6 Sol (current flagship trio; recommended for advanced/complex queries)
+  /// API model id: "gpt-5.6-sol"
+  GPT_5_6_SOL
+
+  /// GPT-5.6 Terra (current flagship trio)
+  /// API model id: "gpt-5.6-terra"
+  GPT_5_6_TERRA
+
+  /// GPT-5.6 Luna (current flagship trio)
+  /// API model id: "gpt-5.6-luna"
+  GPT_5_6_LUNA
+
+  /// GPT-5.5 (prior flagship; still supported)
+  /// API model id: "gpt-5.5"
+  GPT_5_5
+
+  /// GPT-5.5 Pro (top-tier reasoning; ~6x cost of GPT-5.5)
+  /// API model id: "gpt-5.5-pro"
+  GPT_5_5_PRO
+
+  /// GPT-5.4 (prior flagship; still supported)
+  /// API model id: "gpt-5.4"
+  GPT_5_4
+
+  /// GPT-5.4 mini (cost-efficient GPT-5.4)
+  /// API model id: "gpt-5.4-mini"
+  GPT_5_4_MINI
+
+  /// GPT-5.4 nano (smallest / cheapest GPT-5.4)
+  /// API model id: "gpt-5.4-nano"
+  GPT_5_4_NANO
+
   /// GPT-5 (flagship; best for coding + agentic chains)
   /// API model id: "gpt-5"
   GPT_5
@@ -479,10 +585,221 @@ enum OpenaiModel {
   /// GPT-4.1 nano (fastest / cheapest 4.1)
   /// API model id: "gpt-4.1-nano"
   GPT_4_1_NANO
+
+  /// o1 reasoning model
+  /// API model id: "o1"
+  O1
+
+  /// o1-mini reasoning model
+  /// API model id: "o1-mini"
+  O1_MINI
+
+  /// o3 reasoning model
+  /// API model id: "o3"
+  O3
+
+  /// o3-mini reasoning model
+  /// API model id: "o3-mini"
+  O3_MINI
+
+  /// o4-mini reasoning model
+  /// API model id: "o4-mini"
+  O4_MINI
 }
 
-/// Supported LLM providers for multi-provider model routing.
-/// Used in organization-level llmDefaults and fund-level llmOverrides.
+/// Anthropic Claude language models available for text generation.
+enum AnthropicModel {
+  /// Claude Fable 5 (current most capable model; recommended for advanced/complex queries)
+  /// API model id: "claude-fable-5"
+  CLAUDE_FABLE_5
+
+  /// Claude Opus 5 (current flagship for agentic and enterprise workloads)
+  /// API model id: "claude-opus-5"
+  CLAUDE_OPUS_5
+
+  /// Claude Opus 4.7 (prior flagship; still supported)
+  /// API model id: "claude-opus-4-7"
+  CLAUDE_OPUS_4_7
+
+  /// Claude Opus 4.6 (prior flagship; still supported)
+  /// API model id: "claude-opus-4-6"
+  CLAUDE_OPUS_4_6
+
+  /// Claude Sonnet 4.6 (mid-tier; balance of capability and cost)
+  /// API model id: "claude-sonnet-4-6"
+  CLAUDE_SONNET_4_6
+
+  /// Claude Haiku 4.5 (fast and economical)
+  /// API model id: "claude-haiku-4-5"
+  CLAUDE_HAIKU_4_5
+}
+
+/// DeepSeek language models available for text generation.
+enum DeepseekModel {
+  /// DeepSeek V4 Pro (current flagship; recommended for advanced/complex queries; 1.6T parameters / 49B activated; 1M ctx)
+  /// API model id: "deepseek-v4-pro"
+  DEEPSEEK_V4_PRO
+
+  /// DeepSeek V4 Flash (mid-tier; 284B parameters / 13B activated; 1M ctx)
+  /// API model id: "deepseek-v4-flash"
+  DEEPSEEK_V4_FLASH
+
+  /// DeepSeek Chat (legacy non-thinking; retires July 24, 2026 — currently aliased to V4 Flash non-thinking)
+  /// API model id: "deepseek-chat"
+  DEEPSEEK_CHAT
+
+  /// DeepSeek Reasoner (legacy thinking; retires July 24, 2026 — currently aliased to V4 Flash thinking)
+  /// API model id: "deepseek-reasoner"
+  DEEPSEEK_REASONER
+}
+
+/// Kimi (Moonshot) language models available for text generation.
+enum KimiModel {
+  /// Kimi K2.6 (current flagship; recommended for advanced/complex queries)
+  /// API model id: "kimi-k2.6"
+  KIMI_K2_6
+
+  /// Kimi K2.5 (prior flagship; still supported)
+  /// API model id: "kimi-k2.5"
+  KIMI_K2_5
+
+  /// Kimi K2 (September 2025 release)
+  /// API model id: "kimi-k2-0905-preview"
+  KIMI_K2_0905_PREVIEW
+
+  /// Kimi K2 Turbo (faster variant)
+  /// API model id: "kimi-k2-turbo-preview"
+  KIMI_K2_TURBO_PREVIEW
+
+  /// Kimi K2 Thinking (reasoning variant)
+  /// API model id: "kimi-k2-thinking"
+  KIMI_K2_THINKING
+
+  /// Kimi K2 Thinking Turbo (faster reasoning variant)
+  /// API model id: "kimi-k2-thinking-turbo"
+  KIMI_K2_THINKING_TURBO
+}
+
+/// Qwen (Alibaba DashScope) language models available for text generation.
+enum QwenModel {
+  /// Qwen3 Max (current flagship; recommended for advanced/complex queries)
+  /// API model id: "qwen3-max"
+  QWEN3_MAX
+
+  /// Qwen3.5 Plus (mid-tier; balance of capability and cost)
+  /// API model id: "qwen3.5-plus"
+  QWEN3_5_PLUS
+
+  /// Qwen3.5 Flash (fast and economical)
+  /// API model id: "qwen3.5-flash"
+  QWEN3_5_FLASH
+}
+
+/// xAI Grok language models available for text generation.
+enum XaiModel {
+  /// Grok 4.3 (current flagship; recommended for advanced/complex queries)
+  /// API model id: "grok-4.3"
+  GROK_4_3
+
+  /// Grok 4.20 (long-context option; 2M ctx)
+  /// API model id: "grok-4.20"
+  GROK_4_20
+
+  /// Grok 4.1 Fast (cheap and fast workhorse)
+  /// API model id: "grok-4.1-fast"
+  GROK_4_1_FAST
+
+  /// Grok 4 (prior flagship)
+  /// API model id: "grok-4"
+  GROK_4
+
+  /// Grok 4 Fast Reasoning (reasoning variant)
+  /// API model id: "grok-4-fast-reasoning"
+  GROK_4_FAST_REASONING
+
+  /// Grok 4 Fast Non-Reasoning (non-reasoning variant)
+  /// API model id: "grok-4-fast-non-reasoning"
+  GROK_4_FAST_NON_REASONING
+
+  /// Grok 3 (legacy)
+  /// API model id: "grok-3"
+  GROK_3
+
+  /// Grok 3 Mini (legacy fast tier)
+  /// API model id: "grok-3-mini"
+  GROK_3_MINI
+}
+
+/// Google Gemini language models available for text generation.
+enum GeminiModel {
+  /// Gemini 3.1 Pro (current flagship; recommended for advanced/complex queries)
+  /// API model id: "gemini-3.1-pro-preview"
+  GEMINI_3_1_PRO_PREVIEW
+
+  /// Gemini 3 Flash (mid-tier; balance of capability and cost)
+  /// API model id: "gemini-3-flash-preview"
+  GEMINI_3_FLASH_PREVIEW
+
+  /// Gemini 3.1 Flash Lite (fast and economical)
+  /// API model id: "gemini-3.1-flash-lite-preview"
+  GEMINI_3_1_FLASH_LITE_PREVIEW
+}
+
+/// DeepInfra-hosted open-weight language models available for text generation.
+/// DeepInfra hosts models authored by other organisations, so every id is
+/// namespaced "<org>/<model>" and preserves the author's own casing. The wire id
+/// is the quoted string below, never the member name: enum members are Postgres
+/// and GraphQL identifiers and cannot contain "/" or "." , so the member is the
+/// id uppercased with "/", "-" and "." folded to "_". Consumers that need the
+/// callable id read the documented string, which is what the free-text
+/// model-id columns store.
+enum DeepinfraModel {
+  /// DeepSeek V4 Pro (flagship; recommended for advanced/complex queries)
+  /// API model id: "deepseek-ai/DeepSeek-V4-Pro"
+  DEEPSEEK_AI_DEEPSEEK_V4_PRO
+
+  /// DeepSeek V4 Flash (mid-tier; latency-sensitive work)
+  /// API model id: "deepseek-ai/DeepSeek-V4-Flash"
+  DEEPSEEK_AI_DEEPSEEK_V4_FLASH
+
+  /// DeepSeek V4.1 Flash (newer mid-tier revision)
+  /// API model id: "deepseek-ai/DeepSeek-V4.1-Flash"
+  DEEPSEEK_AI_DEEPSEEK_V4_1_FLASH
+
+  /// GLM-5.3 (Z.ai flagship open-weight model)
+  /// API model id: "zai-org/GLM-5.3"
+  ZAI_ORG_GLM_5_3
+
+  /// GLM-5.3 Flash (fast, economical GLM-5.3)
+  /// API model id: "zai-org/GLM-5.3-Flash"
+  ZAI_ORG_GLM_5_3_FLASH
+
+  /// Kimi K3 (Moonshot open-weight flagship)
+  /// API model id: "moonshotai/Kimi-K3"
+  MOONSHOTAI_KIMI_K3
+
+  /// gpt-oss 120B (OpenAI open-weight; larger tier)
+  /// API model id: "openai/gpt-oss-120b"
+  OPENAI_GPT_OSS_120B
+
+  /// gpt-oss 20B (OpenAI open-weight; smaller, cheaper tier)
+  /// API model id: "openai/gpt-oss-20b"
+  OPENAI_GPT_OSS_20B
+
+  /// Ling 3.0 flash Fin (finance-tuned; fast tier)
+  /// API model id: "inclusionAI/Ling-3.0-flash-Fin"
+  INCLUSIONAI_LING_3_0_FLASH_FIN
+
+  /// Nemotron 3 Nano 30B A3B (NVIDIA; small mixture-of-experts)
+  /// API model id: "nvidia/Nemotron-3-Nano-30B-A3B"
+  NVIDIA_NEMOTRON_3_NANO_30B_A3B
+
+  /// Qwen3.8 2.4T A95B (Qwen flagship mixture-of-experts)
+  /// API model id: "Qwen/Qwen3.8-2.4T-A95B"
+  QWEN_QWEN3_8_2_4T_A95B
+}
+
+/// Supported LLM providers for multi-provider model routing
 enum LlmProvider {
   OPENAI
   ANTHROPIC
@@ -491,6 +808,12 @@ enum LlmProvider {
   QWEN
   XAI
   GEMINI
+
+  /// DeepInfra: an inference host rather than a model author. It serves
+  /// open-weight models from many organisations behind one API, so its model
+  /// ids are namespaced "<org>/<model>" and are the only ids in this schema
+  /// that carry a slash and mixed case.
+  DEEPINFRA
 }
 
 // Defines the status of model versions during their lifecycle.
@@ -869,404 +1192,7 @@ enum AuthProvider {
   // Add more providers as needed
 }
 
-// Defines the business structure type of an organization.
-enum OrgBusinessType {
-  /// Fund operator / management company — manages one or more funds.
-  FUND_OPERATOR
-
-  /// Family office — manages a single family's wealth.
-  FAMILY_OFFICE
-
-  /// Sovereign wealth fund.
-  SWF
-
-  /// Private investment office.
-  PRIVATE_OFFICE
-}
-
-// Regulatory registration status for an organization.
-enum RegulatoryStatus {
-  /// Registered with a regulatory authority.
-  REGISTERED
-
-  /// Exempt from registration requirements.
-  EXEMPT
-
-  /// Registration application in progress.
-  PENDING_REGISTRATION
-
-  /// Regulation not applicable to this entity type.
-  NOT_APPLICABLE
-}
-
-// Defines roles within an organization.
-enum OrgRole {
-  /// Full control, billing, can delete org.
-  OWNER
-
-  /// Manage members, funds, settings.
-  ADMIN
-
-  /// Trade execution, position management.
-  PORTFOLIO_MANAGER
-
-  /// Compliance monitoring, reporting.
-  COMPLIANCE_OFFICER
-
-  /// Investor verification.
-  KYC_AML_OFFICER
-
-  /// Read-only audit access.
-  AUDITOR
-
-  /// Basic access, no special privileges.
-  MEMBER
-}
-
-// Defines roles within a fund (scoped access).
-enum FundRole {
-  /// Full fund management.
-  MANAGER
-
-  /// Can execute trades.
-  TRADER
-
-  /// Fund-level compliance.
-  COMPLIANCE
-
-  /// Read-only fund audit.
-  AUDITOR
-
-  /// Read-only dashboard access.
-  VIEWER
-}
-
-// Defines the lifecycle status of a fund.
-enum FundStatus {
-  /// Fund is being configured.
-  SETUP
-
-  /// Fund is operational.
-  ACTIVE
-
-  /// Fund is temporarily inactive.
-  PAUSED
-
-  /// Fund is permanently closed.
-  CLOSED
-}
-
-// Defines the type of investor.
-enum InvestorType {
-  /// Individual retail investor.
-  INDIVIDUAL
-
-  /// Institutional investor (e.g., pension fund, endowment).
-  INSTITUTIONAL
-
-  /// Fund of funds investor.
-  FUND_OF_FUNDS
-}
-
-// Defines the KYC verification status of an investor.
-enum KycStatus {
-  /// KYC verification pending.
-  PENDING
-
-  /// KYC under review.
-  IN_REVIEW
-
-  /// KYC approved.
-  APPROVED
-
-  /// KYC rejected.
-  REJECTED
-
-  /// KYC approval expired.
-  EXPIRED
-}
-
-// Defines the status of an investment in a fund.
-enum InvestmentStatus {
-  /// Investment is active.
-  ACTIVE
-
-  /// Investment has been redeemed.
-  REDEEMED
-
-  /// Investment is suspended.
-  SUSPENDED
-}
-
 /// ### Models
-
-// Represents an organization (ManCo / fund operator firm).
-model Organization {
-  /// Unique identifier for the organization. TYPESTRING.SKIP=true
-  id String @id @default(uuid()) @db.Uuid
-
-  /// The name of the organization.
-  name String
-
-  /// URL-friendly identifier for the organization, must be unique.
-  slug String @unique
-
-  /// URL to the organization's logo image.
-  logoUrl String?
-
-  /// The organization's website URL.
-  website String?
-
-  /// Business structure type determining the operational model.
-  businessType OrgBusinessType?
-
-  /// Jurisdiction country code (ISO 3166-1 alpha-2), e.g. "US", "GB", "SG".
-  jurisdiction String?
-
-  /// Regulatory registration status for this organization.
-  regulatoryStatus RegulatoryStatus?
-
-  /// Brief description of the organization.
-  description String?
-
-  /// Default trading settings for all funds in this organization.
-  /// Fund-level overrides take precedence over these defaults.
-  tradingDefaults Json?
-
-  /// Default LLM provider/model configuration for all funds in this organization.
-  /// Stores: defaultProvider, miniProvider, normalProvider, advancedProvider,
-  /// miniModel, normalModel, advancedModel, and per-provider API keys.
-  /// Fund-level llmOverrides take precedence over these defaults.
-  llmDefaults Json?
-
-  /// Timestamp when the organization was created. TYPESTRING.SKIP=true
-  createdAt DateTime @default(now())
-
-  /// Timestamp when the organization was last updated. TYPESTRING.SKIP=true
-  updatedAt DateTime @updatedAt
-
-  /// Timestamp when the organization was soft-deleted. TYPESTRING.SKIP=true
-  deletedAt DateTime?
-
-  /// List of members in this organization. TYPESTRING.SKIP=true GQL.EXCLUDE=['organization']
-  members OrgMembership[]
-
-  /// List of funds operated by this organization. TYPESTRING.SKIP=true GQL.EXCLUDE=['organization']
-  funds Fund[]
-
-  @@map(name: "organizations")
-}
-
-// Represents a user's membership in an organization.
-model OrgMembership {
-  /// Unique identifier for the membership. TYPESTRING.SKIP=true
-  id String @id @default(uuid()) @db.Uuid
-
-  /// Foreign key referencing the Organization. TYPESTRING.SKIP=true
-  organizationId String @db.Uuid
-
-  /// Relation to the Organization. TYPESTRING.SKIP=true GQL.EXCLUDE=['members']
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  /// Foreign key referencing the User. TYPESTRING.SKIP=true
-  userId String @db.Uuid
-
-  /// Relation to the User. TYPESTRING.SKIP=true GQL.EXCLUDE=['orgMemberships']
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  /// The role assigned to this member within the organization.
-  role OrgRole @default(MEMBER)
-
-  /// Fine-grained permission overrides. TYPESTRING.SKIP=true
-  permissions String[] @default([])
-
-  /// Timestamp when the membership was created. TYPESTRING.SKIP=true
-  createdAt DateTime @default(now())
-
-  /// Timestamp when the membership was last updated. TYPESTRING.SKIP=true
-  updatedAt DateTime @updatedAt
-
-  @@unique([organizationId, userId])
-  @@index([userId])
-  @@map(name: "org_memberships")
-}
-
-// Represents a fund operated by an organization.
-model Fund {
-  /// Unique identifier for the fund. TYPESTRING.SKIP=true
-  id String @id @default(uuid()) @db.Uuid
-
-  /// The name of the fund.
-  name String
-
-  /// URL-friendly identifier for the fund, unique within its organization.
-  slug String
-
-  /// A description of the fund.
-  description String?
-
-  /// The lifecycle status of the fund.
-  status FundStatus @default(SETUP)
-
-  /// Fund-level trading settings overrides.
-  /// Values here take precedence over the organization's tradingDefaults.
-  tradingOverrides Json?
-
-  /// Fund-level LLM provider/model configuration overrides.
-  /// Values here take precedence over the organization's llmDefaults.
-  /// Same JSON shape as Organization.llmDefaults.
-  llmOverrides Json?
-
-  /// Active and recent policy overlays for this fund (charter §2.4 F4,
-  /// sub-project 2 spec §4.4). Array of PolicyOverlayEntry. Active
-  /// overlays are deep-merged into effectivePolicy() output. The engine
-  /// archiver moves entries to Tier-A PolicyOverlayHistory on every
-  /// status flip away from ACTIVE; steady-state size ≤ 20 entries.
-  policyOverlays Json?
-
-  /// Foreign key referencing the Organization. TYPESTRING.SKIP=true
-  organizationId String @db.Uuid
-
-  /// Relation to the Organization that operates this fund. TYPESTRING.SKIP=true GQL.EXCLUDE=['funds']
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  /// Timestamp when the fund was created. TYPESTRING.SKIP=true
-  createdAt DateTime @default(now())
-
-  /// Timestamp when the fund was last updated. TYPESTRING.SKIP=true
-  updatedAt DateTime @updatedAt
-
-  /// Timestamp when the fund was soft-deleted. TYPESTRING.SKIP=true
-  deletedAt DateTime?
-
-  /// List of brokerage accounts connected to this fund. TYPESTRING.SKIP=true GQL.EXCLUDE=['fund']
-  brokerageAccounts BrokerageAccount[]
-
-  /// List of team assignments for this fund. TYPESTRING.SKIP=true GQL.EXCLUDE=['fund']
-  assignments FundAssignment[]
-
-  /// List of investments in this fund. TYPESTRING.SKIP=true GQL.EXCLUDE=['fund']
-  investments Investment[]
-
-  @@unique([organizationId, slug])
-  @@index([organizationId])
-  @@map(name: "funds")
-}
-
-// Represents a user's assignment to a specific fund (including cross-org collaborators).
-model FundAssignment {
-  /// Unique identifier for the assignment. TYPESTRING.SKIP=true
-  id String @id @default(uuid()) @db.Uuid
-
-  /// Foreign key referencing the Fund. TYPESTRING.SKIP=true
-  fundId String @db.Uuid
-
-  /// Relation to the Fund. TYPESTRING.SKIP=true GQL.EXCLUDE=['assignments']
-  fund Fund @relation(fields: [fundId], references: [id], onDelete: Cascade)
-
-  /// Foreign key referencing the User. TYPESTRING.SKIP=true
-  userId String @db.Uuid
-
-  /// Relation to the User. TYPESTRING.SKIP=true GQL.EXCLUDE=['fundAssignments']
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  /// The role assigned to this user within the fund.
-  role FundRole @default(VIEWER)
-
-  /// Fine-grained permission overrides. TYPESTRING.SKIP=true
-  permissions String[] @default([])
-
-  /// Timestamp when the assignment was created. TYPESTRING.SKIP=true
-  createdAt DateTime @default(now())
-
-  /// Timestamp when the assignment was last updated. TYPESTRING.SKIP=true
-  updatedAt DateTime @updatedAt
-
-  @@unique([fundId, userId])
-  @@index([userId])
-  @@map(name: "fund_assignments")
-}
-
-// Represents an investor who may hold units in one or more funds.
-model Investor {
-  /// Unique identifier for the investor. TYPESTRING.SKIP=true
-  id String @id @default(uuid()) @db.Uuid
-
-  /// The name of the investor.
-  name String
-
-  /// The investor's email address.
-  email String?
-
-  /// The type of investor.
-  type InvestorType @default(INDIVIDUAL)
-
-  /// The KYC verification status of the investor.
-  kycStatus KycStatus @default(PENDING)
-
-  /// The investor's blockchain wallet address.
-  walletAddress String?
-
-  /// Optional foreign key to a User for platform access. TYPESTRING.SKIP=true
-  userId String? @unique @db.Uuid
-
-  /// Optional relation to a User for platform access. TYPESTRING.SKIP=true GQL.EXCLUDE=['investorProfile']
-  user User? @relation(fields: [userId], references: [id])
-
-  /// Timestamp when the investor record was created. TYPESTRING.SKIP=true
-  createdAt DateTime @default(now())
-
-  /// Timestamp when the investor record was last updated. TYPESTRING.SKIP=true
-  updatedAt DateTime @updatedAt
-
-  /// Timestamp when the investor was soft-deleted. TYPESTRING.SKIP=true
-  deletedAt DateTime?
-
-  /// List of investments held by this investor. TYPESTRING.SKIP=true GQL.EXCLUDE=['investor']
-  investments Investment[]
-
-  @@index([userId])
-  @@index([email])
-  @@map(name: "investors")
-}
-
-// Represents an investment (tokenized units) held by an investor in a fund.
-model Investment {
-  /// Unique identifier for the investment. TYPESTRING.SKIP=true
-  id String @id @default(uuid()) @db.Uuid
-
-  /// Foreign key referencing the Fund. TYPESTRING.SKIP=true
-  fundId String @db.Uuid
-
-  /// Relation to the Fund. TYPESTRING.SKIP=true GQL.EXCLUDE=['investments']
-  fund Fund @relation(fields: [fundId], references: [id], onDelete: Cascade)
-
-  /// Foreign key referencing the Investor. TYPESTRING.SKIP=true
-  investorId String @db.Uuid
-
-  /// Relation to the Investor. TYPESTRING.SKIP=true GQL.EXCLUDE=['investments']
-  investor Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
-
-  /// Number of tokenized units held.
-  units Float
-
-  /// Timestamp when the investment was made.
-  investedAt DateTime @default(now())
-
-  /// The status of this investment.
-  status InvestmentStatus @default(ACTIVE)
-
-  /// Timestamp when the investment record was created. TYPESTRING.SKIP=true
-  createdAt DateTime @default(now())
-
-  /// Timestamp when the investment record was last updated. TYPESTRING.SKIP=true
-  updatedAt DateTime @updatedAt
-
-  @@unique([fundId, investorId])
-  @@index([fundId])
-  @@index([investorId])
-  @@map(name: "investments")
-}
 
 // Represents a configuration setting in the system.
 model Configuration {
@@ -1285,7 +1211,7 @@ model Configuration {
   /// Optional scope for namespacing the configuration (e.g., symbol, service name).
   scope String? // Optional scope for namespacing (e.g., symbol, service name)
 
-  /// Version of the configuration setting.
+  /// Version of the configuration setting. GQL.SKIP=true
   version String?
 
   /// A one-sentence description of the configuration setting.
@@ -1294,13 +1220,13 @@ model Configuration {
   /// A detailed, multi-paragraph description of the configuration setting, including usage examples and references.
   isActive Boolean @default(true)
 
-  /// Indicates whether the configuration is active or not.
+  /// Indicates whether the configuration is active or not. GQL.SKIP=true
   expiresAt DateTime?
 
-  /// Timestamp when the configuration setting was created. TYPESTRING.SKIP=true
+  /// Timestamp when the configuration setting was created. TYPESTRING.SKIP=true GQL.SKIP=true
   createdAt DateTime @default(now())
 
-  /// Timestamp when the configuration setting was last updated. TYPESTRING.SKIP=true
+  /// Timestamp when the configuration setting was last updated. TYPESTRING.SKIP=true GQL.SKIP=true
   updatedAt DateTime @updatedAt
 
   @@map("configurations")
@@ -1343,7 +1269,7 @@ model Session {
   /// Expiration date and time of the session.
   expires DateTime
 
-  /// Relation to the User model. TYPESTRING.INCLUDE=['id','name','email'] GQL.EXCLUDE=['orgMemberships','fundAssignments']
+  /// Relation to the User model. TYPESTRING.INCLUDE=['id','name','email'] GQL.INCLUDE=['id','name','email','image','emailVerified','role']
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   /// Timestamp when the session was created. TYPESTRING.SKIP=true
@@ -1373,6 +1299,15 @@ model User {
   /// URL to the user's profile image.
   image String?
 
+  /// URL to the user's avatar image used by the OS client (user-uploaded, distinct from the OAuth-sourced image). TYPESTRING.SKIP=true
+  avatarUrl String?
+
+  /// Whether the user has completed the OS-client onboarding flow. TYPESTRING.SKIP=true
+  onboardingComplete Boolean @default(false)
+
+  /// Signup category chosen at onboarding ('investor' | 'fund_operator' | 'family_office' | 'independent_professional'); lowercase String to match the platform contract. TYPESTRING.SKIP=true
+  signupCategory String?
+
   /// Timestamp when the user account was created. TYPESTRING.SKIP=true
   createdAt DateTime @default(now())
 
@@ -1391,32 +1326,29 @@ model User {
   /// The user's job title or position.
   jobTitle String?
 
+  /// The type of Alpaca account the user currently holds.
+  currentAccount AlpacaAccountType @default(PAPER)
+
   /// Relation to the Customer model. TYPESTRING.INCLUDE=['id','name','plan'] GQL.EXCLUDE=['users']
   customer Customer? @relation(fields: [customerId], references: [id])
 
   /// Foreign key referencing the Customer. TYPESTRING.SKIP=true
   customerId Int?
 
-  /// List of accounts associated with the user. TYPESTRING.SKIP=true GQL.EXCLUDE=['user']
+  /// List of accounts associated with the user. TYPESTRING.SKIP=true GQL.SKIP=true
   accounts Account[]
 
-  /// List of sessions associated with the user. TYPESTRING.SKIP=true GQL.EXCLUDE=['user']
+  /// List of sessions associated with the user. TYPESTRING.SKIP=true GQL.SKIP=true
   sessions Session[]
 
-  /// List of authenticators for the user. TYPESTRING.SKIP=true GQL.EXCLUDE=['user']
+  /// List of authenticators for the user. TYPESTRING.SKIP=true GQL.SKIP=true
   authenticators Authenticator[]
 
   /// The subscription plan the user is enrolled in.
   plan SubscriptionPlan?
 
-  /// List of organization memberships. TYPESTRING.SKIP=true GQL.EXCLUDE=['user']
-  orgMemberships OrgMembership[]
-
-  /// List of fund assignments (including cross-org collaborations). TYPESTRING.SKIP=true GQL.EXCLUDE=['user']
-  fundAssignments FundAssignment[]
-
-  /// Optional investor profile linked to this user. TYPESTRING.SKIP=true GQL.EXCLUDE=['user']
-  investorProfile Investor?
+  /// List of Alpaca accounts linked to the user. TYPESTRING.INCLUDE=['id','type'] GQL.EXCLUDE=['user']
+  alpacaAccounts AlpacaAccount[]
 
   /// OpenAI API key for the user.
   openaiAPIKey String?
@@ -1424,63 +1356,109 @@ model User {
   /// OpenAI API Language model selected by the user
   openaiModel OpenaiModel? @default(GPT_5_MINI)
 
-  /// Hashed password for credentials-based login (bcrypt). Null for OAuth-only users. TYPESTRING.SKIP=true
-  passwordHash String?
-
-  /// S3 avatar URL (uploaded from OAuth provider image).
-  avatarUrl String?
-
-  /// Whether the user has completed the post-signup onboarding flow.
-  onboardingComplete Boolean @default(true)
-
-  /// Signup category selected during onboarding (investor, fund_operator, family_office, independent_professional).
-  signupCategory String?
-
   /// List of linked authentication providers. TYPESTRING.INCLUDE=['id','provider','email'] GQL.EXCLUDE=['user']
   linkedProviders LinkedProvider[]
 
   /// List of account linking requests. TYPESTRING.INCLUDE=['id','status','provider','email'] GQL.EXCLUDE=['user']
   accountLinkingRequests AccountLinkingRequest[]
 
-  /// List of waitlist entries reviewed by this user. TYPESTRING.SKIP=true GQL.EXCLUDE=['reviewedBy']
+  /// List of waitlist entries reviewed by this user. TYPESTRING.SKIP=true GQL.SKIP=true
   reviewedWaitlistEntries WaitlistEntry[] @relation("WaitlistReviewer")
 
-  /// Saved dashboard layouts per role. TYPESTRING.SKIP=true GQL.EXCLUDE=['user']
-  dashboardLayouts DashboardLayout[]
-
-  /// Per-user LLM provider configuration (model tiers, API keys, fallback chains). Pivot-neutral port from SR. TYPESTRING.SKIP=true GQL.EXCLUDE=['user']
+  /// Per-user LLM provider and model configuration. TYPESTRING.SKIP=true GQL.SKIP=true
   llmConfiguration LlmConfiguration?
+
+  /// Organization memberships held by this user (org → fund tenancy layer). TYPESTRING.SKIP=true GQL.SKIP=true
+  orgMemberships OrgMembership[]
+
+  /// Fund assignments held by this user (org → fund tenancy layer). TYPESTRING.SKIP=true GQL.SKIP=true
+  fundAssignments FundAssignment[]
+
+  /// Funds this user manages. TYPESTRING.SKIP=true GQL.SKIP=true
+  managedFunds Fund[] @relation("FundManager")
+
+  /// Funds this user operates. TYPESTRING.SKIP=true GQL.SKIP=true
+  operatedFunds Fund[] @relation("FundOperator")
+
+  /// Governance mandates this user owns/stewards. TYPESTRING.SKIP=true GQL.SKIP=true
+  ownedMandates Mandate[] @relation("MandateOwner")
+
+  /// Mandate versions this user authored. TYPESTRING.SKIP=true GQL.SKIP=true
+  authoredMandateVersions MandateVersion[] @relation("MandateVersionAuthor")
+
+  /// Mandate approval decisions recorded by this user (append-only four-eyes trail). TYPESTRING.SKIP=true GQL.SKIP=true
+  mandateApprovalsDecided MandateApproval[] @relation("MandateApprovalDecider")
+
+  /// Investor profiles linked to this user for self-service portal access. TYPESTRING.SKIP=true GQL.SKIP=true
+  investorProfiles Investor[]
+
+  /// Notification deliveries addressed to this user. TYPESTRING.SKIP=true GQL.SKIP=true
+  notificationDeliveries NotificationDelivery[]
+
+  /// Notification preferences set by this user. TYPESTRING.SKIP=true GQL.SKIP=true
+  notificationPreferences NotificationPreference[]
+
+  /// Strategies authored/owned by this user. TYPESTRING.SKIP=true GQL.SKIP=true
+  ownedStrategies Strategy[] @relation("StrategyOwner")
 
   @@index([customerId])
   @@map(name: "users")
 }
 
-// Persisted dashboard layout preferences per user per role
-model DashboardLayout {
-  /// Unique identifier for the dashboard layout. TYPESTRING.SKIP=true
-  id String @id @default(uuid()) @db.Uuid
+/// Per-user LLM provider and model configuration.
+/// Supports default provider + optional per-tier (mini/normal/advanced) overrides
+/// for mixing providers across tiers.
+///
+/// @description Stores the user's chosen LLM provider configuration including
+/// default provider, per-tier provider overrides, per-tier model overrides,
+/// and encrypted API keys for each provider.
+///
+/// TYPESTRING.SKIP=true
+model LlmConfiguration {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
 
-  /// Reference to the user who owns this layout.
-  userId String @db.Uuid
+  /// Relation to the User model. GQL.SKIP=true
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  /// Relation to the User model. TYPESTRING.SKIP=true GQL.EXCLUDE=['dashboardLayouts']
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Default provider used for all tiers unless overridden
+  defaultProvider LlmProvider @default(OPENAI)
 
-  /// The user role this layout applies to (e.g. 'portfolio_manager', 'investor').
-  role String @db.VarChar(50)
+  /// Per-tier provider overrides (null = inherit from defaultProvider)
+  miniProvider     LlmProvider?
+  normalProvider   LlmProvider?
+  advancedProvider LlmProvider?
 
-  /// JSON array of module layout items: [{ id, x, y, w, h, visible }].
-  layout Json
+  /// Per-tier model overrides (null = use provider's default for that tier).
+  /// These are model ID strings. The canonical sets are documented by the per-provider enums
+  /// (OpenaiModel, AnthropicModel, DeepseekModel, KimiModel, QwenModel, XaiModel, GeminiModel,
+  /// DeepinfraModel)
+  /// — e.g. "gpt-5.5", "claude-opus-4-7", "deepseek-v4-pro", "grok-4.3", "gemini-3.1-pro-preview",
+  /// "deepseek-ai/DeepSeek-V4-Pro". The column is free text precisely so a host whose ids carry
+  /// "/" and mixed case needs no schema change to be nameable.
+  miniModel     String?
+  normalModel   String?
+  advancedModel String?
 
-  /// Timestamp when the layout was created. TYPESTRING.SKIP=true
+  /// Provider API keys (encrypted at rest). TYPESTRING.SKIP=true GQL.SKIP=true
+  openaiApiKey    String?
+  /// TYPESTRING.SKIP=true GQL.SKIP=true
+  anthropicApiKey String?
+  /// TYPESTRING.SKIP=true GQL.SKIP=true
+  deepseekApiKey  String?
+  /// TYPESTRING.SKIP=true GQL.SKIP=true
+  kimiApiKey      String?
+  /// TYPESTRING.SKIP=true GQL.SKIP=true
+  qwenApiKey      String?
+  /// TYPESTRING.SKIP=true GQL.SKIP=true
+  xaiApiKey       String?
+  /// TYPESTRING.SKIP=true GQL.SKIP=true
+  geminiApiKey    String?
+  /// TYPESTRING.SKIP=true GQL.SKIP=true
+  deepinfraApiKey String?
+
   createdAt DateTime @default(now())
-
-  /// Timestamp when the layout was last updated. TYPESTRING.SKIP=true
   updatedAt DateTime @updatedAt
-
-  @@unique([userId, role])
-  @@index([userId])
-  @@map("dashboard_layouts")
 }
 
 // Store linked authentication providers for users
@@ -1515,7 +1493,7 @@ model LinkedProvider {
   /// Timestamp when the record was last updated. TYPESTRING.SKIP=true
   updatedAt DateTime @updatedAt
 
-  /// Relation to the User model. TYPESTRING.SKIP=true GQL.EXCLUDE=['linkedProviders']
+  /// Relation to the User model. TYPESTRING.SKIP=true GQL.SKIP=true
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   /// Unique constraints
@@ -1571,7 +1549,7 @@ model AccountLinkingRequest {
   /// When user rejected (optional).
   rejectedAt DateTime?
 
-  /// Relation to the User model. TYPESTRING.SKIP=true GQL.EXCLUDE=['accountLinkingRequests']
+  /// Relation to the User model. TYPESTRING.SKIP=true GQL.INCLUDE=['id']
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   /// Indexes for performance and rate limiting
@@ -1585,24 +1563,21 @@ model AccountLinkingRequest {
   @@map(name: "account_linking_requests")
 }
 
-// Represents a brokerage trading account linked to a fund.
-model BrokerageAccount {
-  /// Unique identifier for the brokerage account. TYPESTRING.SKIP=true
+// Represents an Alpaca trading account linked to a user.
+model AlpacaAccount {
+  /// Unique identifier for the Alpaca account. TYPESTRING.SKIP=true
   id String @id @default(uuid()) @db.Uuid
 
-  /// The brokerage provider for this account.
-  provider BrokerageProvider @default(ALPACA)
+  /// The type of Alpaca account (PAPER or LIVE).
+  type AlpacaAccountType @default(PAPER)
 
-  /// The type of brokerage account (PAPER or LIVE).
-  type BrokerageAccountType @default(PAPER)
+  /// API key for authenticating requests to Alpaca. TYPESTRING.SKIP=true
+  APIKey String
 
-  /// API key for authenticating requests to the broker. TYPESTRING.SKIP=true
-  apiKey String
+  /// API secret for authenticating requests to Alpaca. TYPESTRING.SKIP=true
+  APISecret String
 
-  /// API secret for authenticating requests to the broker. TYPESTRING.SKIP=true
-  apiSecret String
-
-  /// JSON configuration settings for the brokerage account.
+  /// JSON configuration settings for the Alpaca account.
   configuration Json?
 
   /// Opt-in for preparing orders for the next trading day. TYPESTRING.SKIP=true
@@ -1626,6 +1601,9 @@ model BrokerageAccount {
   /// Account-level asset class allocation configuration. TYPESTRING.SKIP=true
   allocation Allocation?
 
+  /// Trading policy governing autonomous decision-making for this account. TYPESTRING.SKIP=true GQL.EXCLUDE=['alpacaAccount','overlays']
+  tradingPolicy TradingPolicy?
+
   /// Whether the system should automatically determine allocation percentages based on market conditions. TYPESTRING.SKIP=true
   autoAllocation Boolean @default(true)
 
@@ -1635,71 +1613,74 @@ model BrokerageAccount {
   /// Volume threshold for a trade signal (minimum volume qualifier to consider an asset for trading). TYPESTRING.SKIP=true
   volumeThreshold Float @default(50000)
 
-  /// Opt-in for enabling the portfolio-level trailing stop service within Adaptic's Realtime Trade Engine. TYPESTRING.SKIP=true
+  /// @deprecated Use TradingPolicy.enablePortfolioTrailingStop instead. Retained for legacy onboarding UI and migration backfill; engine reads from tradingPolicy.enablePortfolioTrailingStop with this field as fallback. TYPESTRING.SKIP=true
   enablePortfolioTrailingStop Boolean @default(false)
 
-  /// The portfolio-level trailing stop percentage used by the Realtime Trade Engine. TYPESTRING.SKIP=true
+  /// @deprecated Use TradingPolicy.portfolioTrailPercent instead. Retained for migration backfill; engine reads from tradingPolicy.portfolioTrailPercent with this field as fallback. TYPESTRING.SKIP=true
   portfolioTrailPercent Float @default(4.0)
 
-  /// The portfolio-level profit threshold percentage used by the Realtime Trade Engine. TYPESTRING.SKIP=true
+  /// @deprecated Use TradingPolicy.portfolioProfitThresholdPercent instead. Retained for migration backfill; engine reads from tradingPolicy.portfolioProfitThresholdPercent with this field as fallback. TYPESTRING.SKIP=true
   portfolioProfitThresholdPercent Float @default(2.0)
 
-  /// The portfolio-level trailing stop percentage for reducing the trailing stop. TYPESTRING.SKIP=true
+  /// @deprecated Use TradingPolicy.reducedPortfolioTrailPercent instead. Retained for migration backfill; engine reads from tradingPolicy.reducedPortfolioTrailPercent with this field as fallback. TYPESTRING.SKIP=true
   reducedPortfolioTrailPercent Float @default(0.5)
 
-  /// The initial trailing stop percentage used by the Position Trailing Stop Service. TYPESTRING.SKIP=true
+  /// @deprecated Use TradingPolicy.defaultTrailingStopPercentage100 instead. Retained for migration backfill; engine reads from tradingPolicy.defaultTrailingStopPercentage100 with this field as fallback. TYPESTRING.SKIP=true
   defaultTrailingStopPercentage100 Float @default(4.0)
 
-  /// The first profit threshold at which to reduce the trailing stop. TYPESTRING.SKIP=true
+  /// @deprecated Use TradingPolicy.firstTrailReductionThreshold100 instead. Retained for migration backfill; engine reads from tradingPolicy.firstTrailReductionThreshold100 with this field as fallback. TYPESTRING.SKIP=true
   firstTrailReductionThreshold100 Float @default(2.0)
 
-  /// The second profit threshold at which to further reduce the trailing stop. TYPESTRING.SKIP=true
+  /// @deprecated Use TradingPolicy.secondTrailReductionThreshold100 instead. Retained for migration backfill; engine reads from tradingPolicy.secondTrailReductionThreshold100 with this field as fallback. TYPESTRING.SKIP=true
   secondTrailReductionThreshold100 Float @default(5.0)
 
-  /// The trailing stop percentage to use when profit exceeds the first threshold. TYPESTRING.SKIP=true
+  /// @deprecated Use TradingPolicy.firstReducedTrailPercentage100 instead. Retained for migration backfill; engine reads from tradingPolicy.firstReducedTrailPercentage100 with this field as fallback. TYPESTRING.SKIP=true
   firstReducedTrailPercentage100 Float @default(1.0)
 
-  /// The trailing stop percentage to use when profit exceeds the second threshold. TYPESTRING.SKIP=true
+  /// @deprecated Use TradingPolicy.secondReducedTrailPercentage100 instead. Retained for migration backfill; engine reads from tradingPolicy.secondReducedTrailPercentage100 with this field as fallback. TYPESTRING.SKIP=true
   secondReducedTrailPercentage100 Float @default(0.5)
 
-  /// The minimum change in trailing stop percent to warrant an adjustment. TYPESTRING.SKIP=true
+  /// @deprecated Use TradingPolicy.minimumPriceChangePercent100 instead. Retained for migration backfill; engine reads from tradingPolicy.minimumPriceChangePercent100 with this field as fallback. TYPESTRING.SKIP=true
   minimumPriceChangePercent100 Float @default(0.5)
 
-  /// Relation to the Fund that owns this brokerage account. TYPESTRING.SKIP=true GQL.EXCLUDE=['brokerageAccounts']
-  fund Fund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  /// Relation to the User model who owns this Alpaca account. TYPESTRING.SKIP=true GQL.EXCLUDE=['alpacaAccounts','customer','accounts','sessions','authenticators','linkedProviders','accountLinkingRequests','reviewedWaitlistEntries','llmConfiguration']
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  /// Foreign key referencing the Fund. TYPESTRING.SKIP=true
-  fundId String @db.Uuid
+  /// Foreign key referencing the User. TYPESTRING.SKIP=true
+  userId String @db.Uuid
 
-  /// Timestamp when the brokerage account was created. TYPESTRING.SKIP=true
+  /// Timestamp when the Alpaca account was created. TYPESTRING.SKIP=true
   createdAt DateTime @default(now())
 
-  /// Timestamp when the brokerage account was last updated. TYPESTRING.SKIP=true
+  /// Timestamp when the Alpaca account was last updated. TYPESTRING.SKIP=true
   updatedAt DateTime @updatedAt
 
-  /// Timestamp when the brokerage account was soft-deleted. Null means the record is active. TYPESTRING.SKIP=true
+  /// Timestamp when the Alpaca account was soft-deleted. Null means the record is active. TYPESTRING.SKIP=true
   deletedAt DateTime?
 
-  /// List of alerts generated for this brokerage account. TYPESTRING.SKIP=true GQL.EXCLUDE=['brokerageAccount']
+  /// List of alerts generated for this Alpaca account. TYPESTRING.SKIP=true GQL.EXCLUDE=['alpacaAccount']
   alerts Alert[]
 
-  /// List of trades executed on this brokerage account. TYPESTRING.SKIP=true GQL.EXCLUDE=['brokerageAccount']
-  trades Trade[]
+  /// Risk metrics snapshot for this Alpaca account (FSM state, HWM, drawdown, P&L windows). TYPESTRING.SKIP=true GQL.SKIP=true
+  accountRiskMetrics AccountRiskMetrics?
 
-  /// List of options positions on this brokerage account. TYPESTRING.SKIP=true GQL.EXCLUDE=['brokerageAccount']
-  optionsPositions OptionsPosition[]
+  /// Per-strategy rolling-window health snapshots for this Alpaca account. TYPESTRING.SKIP=true GQL.SKIP=true
+  strategyHealthSnapshots  StrategyHealthSnapshot[]
 
-  /// List of options trade executions on this brokerage account. TYPESTRING.SKIP=true GQL.EXCLUDE=['brokerageAccount']
-  optionsTradeExecutions OptionsTradeExecution[]
+  /// Risk FSM state-transition audit log for this Alpaca account. TYPESTRING.SKIP=true GQL.SKIP=true
+  riskEscalationEvents     RiskEscalationEvent[]
 
-  /// Trading policy for this brokerage account (one-to-one). Pivot-adapted from SR (was AlpacaAccount → TradingPolicy). TYPESTRING.SKIP=true GQL.EXCLUDE=['brokerageAccount']
-  tradingPolicy TradingPolicy?
+  /// Fund-layer BrokerageAccount bridged to this engine account via BrokerageAccount.engineAccountId (SP2 org → fund tenancy). TYPESTRING.SKIP=true GQL.SKIP=true
+  brokerageAccount BrokerageAccount?
 
-  @@index([fundId])
-  @@map(name: "brokerage_accounts")
+  /// Strategy opt-ins held by this account (Stage-2 multi-strategy). TYPESTRING.SKIP=true GQL.SKIP=true
+  strategySubscriptions StrategySubscription[]
+
+  @@index([userId])
+  @@map(name: "alpaca_accounts")
 }
 
-// Allocation settings for a brokerage account.
+// Allocation settings for the Alpaca account.
 model Allocation {
   /// Unique identifier for the allocation settings. TYPESTRING.SKIP=true
   id String @id @default(uuid()) @db.Uuid
@@ -1728,11 +1709,11 @@ model Allocation {
   /// DEPRECATED: Legacy field for options allocation. Use 'optionsContracts' instead.
   options Float? @default(10)
 
-  /// Reference to the brokerage account associated with the allocation settings. TYPESTRING.SKIP=true
-  brokerageAccountId String @unique @db.Uuid
+  /// Reference to the Alpaca account associated with the allocation settings. TYPESTRING.SKIP=true
+  alpacaAccountId String @unique @db.Uuid
 
-  /// Relation to the BrokerageAccount model. TYPESTRING.SKIP=true GQL.EXCLUDE=['allocation']
-  brokerageAccount BrokerageAccount @relation(fields: [brokerageAccountId], references: [id], onDelete: Cascade)
+  /// Relation to the AlpacaAccount model. TYPESTRING.SKIP=true GQL.SKIP=true
+  alpacaAccount AlpacaAccount @relation(fields: [alpacaAccountId], references: [id], onDelete: Cascade)
 
   /// Timestamp when the allocation settings were created. TYPESTRING.SKIP=true
   createdAt DateTime @default(now())
@@ -1740,7 +1721,7 @@ model Allocation {
   /// Timestamp when the allocation settings were last updated. TYPESTRING.SKIP=true
   updatedAt DateTime @updatedAt
 
-  @@index([brokerageAccountId])
+  @@index([alpacaAccountId])
   @@map(name: "allocations")
 }
 
@@ -1761,7 +1742,7 @@ model Authenticator {
   /// Counter for the number of authentication attempts. TYPESTRING.SKIP=true
   counter Int
 
-  /// Relation to the User model. TYPESTRING.SKIP=true GQL.EXCLUDE=['authenticators']
+  /// Relation to the User model. TYPESTRING.SKIP=true GQL.INCLUDE=['id']
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   /// Timestamp when the authenticator was created. TYPESTRING.SKIP=true
@@ -1818,7 +1799,7 @@ model Account {
   /// Timestamp when the account was last updated. TYPESTRING.SKIP=true
   updatedAt DateTime @updatedAt
 
-  /// Relation to the User model. TYPESTRING.SKIP=true GQL.EXCLUDE=['accounts']
+  /// Relation to the User model. TYPESTRING.SKIP=true GQL.SKIP=true
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
@@ -1870,17 +1851,16 @@ model Customer {
   /// End date of the current billing period in Stripe.
   stripeCurrentPeriodEnd DateTime?
 
-  /// Jurisdiction country code (ISO 3166-1 alpha-2). Captured during
-  /// onboarding KYC for compliance scoping (sub-project 2 spec §4.6).
+  /// KYC jurisdiction for the customer (ISO 3166-1 alpha-2 country code, e.g., "US", "GB"). Used by pre-trade compliance to enforce jurisdiction-restricted asset gates. Null for customers whose KYC has not yet been completed.
   jurisdiction String?
 
-  /// Risk profile category (free-string; validation in app layer).
+  /// KYC risk profile classification for the customer (e.g., "LOW", "MEDIUM", "HIGH"). Used by pre-trade compliance to scale position-size and exposure limits. Null until risk assessment has been performed.
   riskProfile String?
 
-  /// AML compliance status (free-string).
+  /// Anti-money-laundering status for the customer (e.g., "CLEAR", "FLAGGED", "BLOCKED"). Used by pre-trade compliance to gate order entry. Null until AML screening has been performed.
   amlStatus String?
 
-  /// Timestamp of last KYC update.
+  /// Timestamp of the last KYC review or update for this customer. Used by pre-trade compliance to enforce KYC-refresh policy. Null until first KYC review.
   lastKycUpdate DateTime?
 
   /// Timestamp when the customer was created. TYPESTRING.SKIP=true
@@ -1891,6 +1871,9 @@ model Customer {
 
   /// List of users associated with the customer. TYPESTRING.INCLUDE=['id','name','email'] GQL.EXCLUDE=['customer']
   users User[]
+
+  /// Fund investors linked to this customer for KYC/AML reuse. TYPESTRING.SKIP=true GQL.SKIP=true
+  investors Investor[]
 
   @@index([authUserId])
 }
@@ -2074,25 +2057,22 @@ model Asset {
   /// List of news article sentiments related to this asset. TYPESTRING.SKIP=true GQL.SKIP=true
   newsMentions NewsArticleAssetSentiment[]
 
-  /// List of institutional holdings for this asset. TYPESTRING.SKIP=true GQL.EXCLUDE=['asset']
+  /// List of institutional holdings for this asset. TYPESTRING.SKIP=true GQL.SKIP=true
   institutionalHoldings InstitutionalHolding[] @relation("InstitutionalHoldingAsset")
 
-  /// List of institutional flow signals for this asset. TYPESTRING.SKIP=true GQL.EXCLUDE=['asset']
+  /// List of institutional flow signals for this asset. TYPESTRING.SKIP=true GQL.SKIP=true
   institutionalFlowSignals InstitutionalFlowSignal[] @relation("InstitutionalFlowSignalAsset")
 
   @@map(name: "assets")
 }
 
-// Represents a trade executed through a brokerage account.
+// Represents a trade executed through an Alpaca account.
 model Trade {
   /// Unique identifier for the trade. TYPESTRING.SKIP=true
   id String @id @default(uuid()) @db.Uuid
 
-  /// Reference to the brokerage account used for the trade. TYPESTRING.SKIP=true
-  brokerageAccountId String @db.Uuid
-
-  /// Relation to the BrokerageAccount. TYPESTRING.SKIP=true GQL.EXCLUDE=['trades']
-  brokerageAccount BrokerageAccount @relation(fields: [brokerageAccountId], references: [id])
+  /// Reference to the Alpaca account used for the trade. TYPESTRING.SKIP=true
+  alpacaAccountId String @db.Uuid
 
   /// Signal that triggered the trade.
   signal TradeSignal @default(PRICE_ACTION)
@@ -2126,6 +2106,9 @@ model Trade {
 
   /// The symbol of the asset associated with this trade.
   symbol String
+
+  /// Wave F — Derived position direction for this trade's persistent per-name thesis (the NameThesis home). NULL until the thesis is formed/backfilled; nothing reads it yet — consumers switch shadow-first later. Set explicitly at trade creation from the derived directional call — NOT re-derived from Action.type BUY/SELL, which is order-verb-ambiguous (BUY = open-long | cover-short; SELL = close-long | open-short).
+  side TradeSide?
 
   /// List of actions associated with this trade. TYPESTRING.INCLUDE=["id","sequence","type","note","status", "order"] GQL.EXCLUDE=['trade']
   actions Action[]
@@ -2175,50 +2158,49 @@ model Trade {
   /// Thresholds used for this trade as JSON. TYPESTRING.SKIP=true
   thresholdsJson String? @map("thresholds")
 
-  /// Version of the thesis this trade is acting on. Incremented when
-  /// re-underwriting produces a new thesis (sub-project 2 spec §4.5).
+  /// Version number of the trade thesis, incremented on each re-underwriting.
   thesisVersion Int @default(1)
 
-  /// If this trade superseded another via re-underwriting, the prior
-  /// trade's Action id.
-  supersededActionId String? @db.Uuid
+  /// Timestamp of the last re-underwriting evaluation for this trade. TYPESTRING.SKIP=true
+  lastReunderwrittenAt DateTime?
 
-  /// Free-form metadata captured when status is REJECTED_BROKER /
-  /// REJECTED_COMPLIANCE / FAILED. SEC Rule 15c3-5 forensic record
-  /// retained per sub-project 2 spec §4.7.
+  /// If this trade was superseded, references the replacement trade's ID. TYPESTRING.SKIP=true
+  supersededById String? @db.Uuid
+
+  /// Forensic metadata populated when status is REJECTED_BROKER, REJECTED_COMPLIANCE, or FAILED. Carries reason, errorCode, brokerResponse, attemptedAt and any other contextual details required for SEC Rule 15c3-5 audits and FINRA review. Null for trades that did not fail or get rejected.
   rejectionMetadata Json?
 
-  /// Wave 234 — Upstream ensemble signal source that produced this trade.
-  /// One of "ensemble" | "llm_only" | "transformer_only" | "drift_fallback"
-  /// | "manual". Populated at trade creation from
-  /// `TradeSideAndSignal.metadata.signalSource`. Consumed at exit-fill
-  /// time to populate `TradeOutcome.signalSource` for cohort partition
-  /// in the calibration trainer.
+  /// Wave 234 — Upstream ensemble signal source that produced this trade. One of "ensemble" | "llm_only" | "transformer_only" | "drift_fallback" | "manual". Populated at trade creation from `TradeSideAndSignal.metadata.signalSource`. Consumed at exit-fill time to populate `TradeOutcome.signalSource` (replacing the legacy hardcoded "ensemble" default in `order-fill-handler.ts:labelExitOutcomeFromFill`). Calibration trainer joins on this for cohort partition.
   signalSource String?
 
-  /// Wave 234 — Unique signal identifier (UUID/cuid) from the upstream
-  /// TradeSignalEvent. Threaded end-to-end so live-IC computation can
-  /// correlate (signal_score, forward_return) one-to-one. Joins
-  /// `PredictionPair.tradeId` for calibration training. TYPESTRING.SKIP=true
+  /// Wave F — Typed mirror of `signalSource` (dual-write). NULL until backfilled from the paired String by mapping known members (case-normalised); unmappable values stay NULL — unknown stays unknown, never defaulted to a member. Retained alongside the String until a later coordinated change drops the String. TYPESTRING.SKIP=true
+  signalSourceType TradeSignalSource?
+
+  /// Wave 234 — Unique signal identifier (UUID, cuid-style) from the upstream TradeSignalEvent. Threaded end-to-end so live-IC computation can correlate (signal_score, forward_return) on a one-to-one basis. Joined to `PredictionPair.tradeId` (which Wave 213 populated with `signal.signalId`) at calibration training time. TYPESTRING.SKIP=true
   signalId String?
 
-  /// Wave 234 — Decision pathway: ML_ONLY | LLM_ONLY | HYBRID | FALLBACK |
-  /// RULES | UNKNOWN. Carried separately from signalSource because
-  /// signalSource describes the merged-signal producer; pathway describes
-  /// the high-level decision typing. TYPESTRING.SKIP=true
+  /// Wave 234 — Decision pathway as a free-form string (matches the ML system DecisionPathway enum: ML_ONLY | LLM_ONLY | HYBRID | FALLBACK | RULES | UNKNOWN). Carried separately from signalSource to support richer attribution analytics: signalSource describes which producer emitted the merged signal; pathway describes the high-level decision pathway (the typed system enum). TYPESTRING.SKIP=true
   pathway String?
 
-  /// Wave 236 — Exit tier (TIER_A | TIER_B | TIER_C | MANUAL | EOD).
-  /// NULL on open trades. Populated when the exit-framework orchestrator
-  /// initiates the exit (A = volatility/regime breakers, B = internal
-  /// stop logic, C = LLM advisory re-evaluation). Refines TradeOutcome's
-  /// exit-reason with upstream decision tier. TYPESTRING.SKIP=true
+  /// Wave F — Typed mirror of `pathway` (dual-write). NULL until backfilled from the paired String; unmappable values stay NULL. Retained alongside the String until a later coordinated change drops the String. TYPESTRING.SKIP=true
+  pathwayType DecisionPathway?
+
+  /// Wave 236 — Exit tier classification (TIER_A | TIER_B | TIER_C | MANUAL | EOD) for exit trades. NULL on open trades. Populated when the exit is initiated by the exit-framework orchestrator (Tier A = volatility/regime circuit breakers; Tier B = engine-internal stop logic; Tier C = LLM advisory re-evaluation). Refines `TradeOutcome.exitReason` (which is derived from order shape) with the upstream decision tier. TYPESTRING.SKIP=true
   exitTier String?
 
-  @@index([brokerageAccountId])
-  @@index([brokerageAccountId, status])
+  /// Wave F — Typed mirror of `exitTier` (dual-write). NULL on open trades and until backfilled from the paired String; unmappable values stay NULL. Retained alongside the String until a later coordinated change drops the String. TYPESTRING.SKIP=true
+  exitTierType ExitTier?
+
+  /// Stage 2 — Foreign key referencing the owning Strategy entity. NULL means the trade has NOT been attributed to a registered strategy; it is deliberately nullable and deliberately unbackfilled, so no historical row acquires a fabricated owner. Additive alongside the legacy `strategy` enum, which is NOT removed — migrating off `TradeStrategy` is a later stage. TYPESTRING.SKIP=true
+  strategyId String? @db.Uuid
+
+  /// Relation to the owning Strategy. Kept out of the generated selection sets (GQL.SKIP) so adding it does not widen every existing Trade query; consumers join on `strategyId`. TYPESTRING.SKIP=true GQL.SKIP=true
+  strategyRef Strategy? @relation(fields: [strategyId], references: [id], onDelete: Restrict)
+
+  @@index([strategyId])
+  @@index([alpacaAccountId])
+  @@index([alpacaAccountId, status])
   @@index([symbol])
-  @@index([supersededActionId])
   @@index([updatedAt])
   @@index([signalId])
   @@map(name: "trades")
@@ -2262,17 +2244,17 @@ model Action {
   /// alpacaOrderId for the Alpaca order associated with this action. TYPESTRING.SKIP=true
   alpacaOrderId String? @unique @db.Uuid
 
-  /// Version of the thesis this action is acting on. Incremented when
-  /// re-underwriting produces a new thesis (sub-project 2 spec §4.5).
-  thesisVersion Int @default(1)
-
-  /// If this action superseded another via re-underwriting, the prior
-  /// Action id.
+  /// If this action superseded a previous action, references its ID. TYPESTRING.SKIP=true
   supersededActionId String? @db.Uuid
+
+  /// What triggered this action: 'original_signal', 'reunderwriting', or 'reversal'. TYPESTRING.SKIP=true
+  triggerSource String?
+
+  /// Wave F — Typed mirror of `triggerSource` (dual-write). NULL until backfilled from the paired String; unmappable values stay NULL. Retained alongside the String until a later coordinated change drops the String. TYPESTRING.SKIP=true
+  triggerSourceType ActionTriggerSource?
 
   @@index([tradeId])
   @@index([tradeId, status])
-  @@index([supersededActionId])
   @@index([updatedAt])
   @@map(name: "actions")
 }
@@ -2282,8 +2264,8 @@ model Alert {
   /// Unique identifier for the alert. TYPESTRING.SKIP=true
   id String @id @default(uuid()) @db.Uuid
 
-  /// Reference to the brokerage account associated with the alert. TYPESTRING.SKIP=true
-  brokerageAccountId String @db.Uuid
+  /// Reference to the Alpaca account associated with the alert. TYPESTRING.SKIP=true
+  alpacaAccountId String @db.Uuid
 
   /// Title/summary of the alert.
   title String?
@@ -2312,10 +2294,10 @@ model Alert {
   /// Timestamp when the alert was resolved. TYPESTRING.SKIP=true
   resolvedAt DateTime?
 
-  /// Timestamp until which the alert is suppressed. TYPESTRING.SKIP=true
+  /// Timestamp until which the alert is suppressed. TYPESTRING.SKIP=true GQL.SKIP=true
   suppressedUntil DateTime?
 
-  /// Number of retry attempts for alert-related operations.
+  /// Number of retry attempts for alert-related operations. GQL.SKIP=true
   retryCount Int @default(0)
 
   /// Additional metadata for the alert stored as JSON.
@@ -2327,11 +2309,11 @@ model Alert {
   /// Timestamp when the alert was last updated. TYPESTRING.SKIP=true
   updatedAt DateTime @updatedAt
 
-  /// Relation to the BrokerageAccount model. TYPESTRING.SKIP=true GQL.SKIP=true
-  brokerageAccount BrokerageAccount @relation(fields: [brokerageAccountId], references: [id], onDelete: Cascade)
+  /// Relation to the AlpacaAccount model. TYPESTRING.SKIP=true GQL.SKIP=true
+  alpacaAccount AlpacaAccount @relation(fields: [alpacaAccountId], references: [id], onDelete: Cascade)
 
-  @@index([brokerageAccountId])
-  @@index([brokerageAccountId, status])
+  @@index([alpacaAccountId])
+  @@index([alpacaAccountId, status])
   @@index([type])
   @@index([category])
   @@map(name: "alerts")
@@ -2381,16 +2363,26 @@ model NewsArticle {
   /// URL to the logo image of the news source.
   logo String?
 
+  /// Denormalized ticker symbols this article references, used by the news-feed read-path (filtered via `symbols.has`). Complements the per-asset scores on the NewsArticleAssetSentiment relation as a pragmatic feed read-model.
+  symbols String[]
+
+  /// Overall relevance score of the article to the requested symbol scope (typically 0.0–1.0), when computed by the ingesting news provider.
+  relevance Float?
+
+  /// Orderable publication timestamp of the article. Numeric/temporal successor to the legacy string `timePublished`, which cannot be reliably range-filtered or ordered; backfill from `timePublished`.
+  publishedAt DateTime?
+
   /// Timestamp when the news article was added to the database. TYPESTRING.SKIP=true
   createdAt DateTime @default(now())
 
   /// Timestamp when the news article was last updated in the database. TYPESTRING.SKIP=true
   updatedAt DateTime @updatedAt
 
-  /// List of asset sentiments related to this news article. TYPESTRING.SKIP=true GQL.EXCLUDE=['news']
+  /// List of asset sentiments related to this news article. TYPESTRING.SKIP=true GQL.SKIP=true
   assets NewsArticleAssetSentiment[]
 
   @@index([createdAt])
+  @@index([publishedAt])
   @@map(name: "news")
 }
 
@@ -2408,10 +2400,10 @@ model NewsArticleAssetSentiment {
   /// URL of the news article, must be unique.
   url String @unique
 
-  /// Relation to the NewsArticle model. TYPESTRING.SKIP=true GQL.EXCLUDE=['assets']
+  /// Relation to the NewsArticle model. TYPESTRING.SKIP=true GQL.INCLUDE=['id','title','source','url','timePublished','sentiment']
   news NewsArticle @relation(fields: [newsArticleId], references: [id])
 
-  /// Relation to the Asset model. TYPESTRING.INCLUDE=['symbol','name','type'] GQL.EXCLUDE=['newsMentions', 'orders', 'positions']
+  /// Relation to the Asset model. TYPESTRING.INCLUDE=['symbol','name','type'] GQL.INCLUDE=['id','symbol','name','type']
   asset Asset? @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   /// Relevancy score indicating how relevant the news is to the asset.
@@ -2444,12 +2436,34 @@ model EconomicEvent {
   /// Importance level of the event, defined by EventImportance enum.
   importance EventImportance
 
+  /// ISO country or region code the economic event pertains to (e.g., "US", "EU", "JP").
+  country String?
+
+  /// Scheduled release timestamp of the event, distinct from the calendar `date`. Orderable field the market-data feed sorts by; consider consolidating with `date` long-term.
+  eventTime DateTime?
+
+  /// Actual reported value of the economic indicator once released (null until publication).
+  actual Float?
+
+  /// Consensus forecast value for the economic indicator ahead of release.
+  forecast Float?
+
+  /// Previously reported value of the economic indicator for the prior period.
+  previous Float?
+
+  /// Unit of measurement for the actual/forecast/previous values (e.g., "%", "K", "M", "index").
+  unit String?
+
+  /// Data provider or source of the economic event (e.g., "TradingEconomics", "BLS").
+  source String?
+
   /// Timestamp when the economic event was created in the database. TYPESTRING.SKIP=true
   createdAt DateTime @default(now())
 
   /// Timestamp when the economic event was last updated in the database. TYPESTRING.SKIP=true
   updatedAt DateTime @updatedAt
 
+  @@index([eventTime])
   @@map(name: "economic_events")
 }
 
@@ -2597,6 +2611,9 @@ model InstitutionalSentimentAlerts {
 }
 
 // Stores weight analytics data for volatility models and analytics metadata.
+/// FROZEN 2026-04-15 — engine moved to telemetryDb per
+/// engine/docs/superpowers/specs/2026-04-15-engine-local-telemetry-db-design.md
+/// Drop after 14d stable operation.
 model AnalyticsSnapshot {
   /// Unique identifier for the analytics snapshot. TYPESTRING.SKIP=true
   id String @id @default(cuid())
@@ -2731,7 +2748,7 @@ model InstitutionalHolding {
   /// Timestamp when the institutional holding was last updated. TYPESTRING.SKIP=true
   updatedAt DateTime @updatedAt
 
-  /// Relation to the Asset model. TYPESTRING.INCLUDE=['symbol','name','type'] GQL.EXCLUDE=['newsMentions']
+  /// Relation to the Asset model. TYPESTRING.INCLUDE=['symbol','name','type'] GQL.EXCLUDE=['newsMentions','institutionalHoldings','institutionalFlowSignals']
   asset Asset @relation("InstitutionalHoldingAsset", fields: [symbol], references: [symbol])
 
   @@unique([symbol, institutionName, filingDate])
@@ -2771,7 +2788,7 @@ model InstitutionalFlowSignal {
   /// Timestamp when the institutional flow signal was created. TYPESTRING.SKIP=true
   createdAt DateTime @default(now())
 
-  /// Relation to the Asset model. TYPESTRING.INCLUDE=['symbol','name','type'] GQL.EXCLUDE=['newsMentions']
+  /// Relation to the Asset model. TYPESTRING.INCLUDE=['symbol','name','type'] GQL.EXCLUDE=['newsMentions','institutionalHoldings','institutionalFlowSignals']
   asset Asset @relation("InstitutionalFlowSignalAsset", fields: [symbol], references: [symbol])
 
   /// Indexes for performance optimization
@@ -3154,13 +3171,13 @@ model ModelVersion {
   /// Timestamp when the model version was deprecated (optional).
   deprecatedAt DateTime?
 
-  /// List of A/B tests using this version as control. TYPESTRING.SKIP=true GQL.EXCLUDE=['controlVersion']
+  /// List of A/B tests using this version as control. TYPESTRING.SKIP=true GQL.SKIP=true
   abTestsAsControl ABTest[] @relation("ABTestControlVersion")
 
-  /// List of A/B tests using this version as treatment. TYPESTRING.SKIP=true GQL.EXCLUDE=['treatmentVersion']
+  /// List of A/B tests using this version as treatment. TYPESTRING.SKIP=true GQL.SKIP=true
   abTestsAsTreatment ABTest[] @relation("ABTestTreatmentVersion")
 
-  /// List of feature importance analyses for this version. TYPESTRING.SKIP=true GQL.EXCLUDE=['modelVersion']
+  /// List of feature importance analyses for this version. TYPESTRING.SKIP=true GQL.SKIP=true
   featureImportanceAnalyses FeatureImportanceAnalysis[]
 
   /// Indexes for performance optimization
@@ -3550,13 +3567,13 @@ model OptionsContract {
   /// Timestamp when the contract record was last updated. TYPESTRING.SKIP=true
   updatedAt DateTime @updatedAt
 
-  /// List of positions using this contract. TYPESTRING.SKIP=true GQL.EXCLUDE=['contract']
+  /// List of positions using this contract. TYPESTRING.SKIP=true GQL.EXCLUDE=['contract','executions']
   positions OptionsPosition[]
 
-  /// List of Greeks history records for this contract. TYPESTRING.SKIP=true GQL.EXCLUDE=['contract']
+  /// List of Greeks history records for this contract. TYPESTRING.SKIP=true GQL.EXCLUDE=['contract','positions','executions']
   greeksHistory OptionsGreeksHistory[]
 
-  /// List of trade executions for this contract. TYPESTRING.SKIP=true GQL.EXCLUDE=['contract']
+  /// List of trade executions for this contract. TYPESTRING.SKIP=true GQL.EXCLUDE=['contract','position']
   executions OptionsTradeExecution[]
 
   /// Indexes for performance optimization
@@ -3572,16 +3589,13 @@ model OptionsPosition {
   /// Unique identifier for the options position. TYPESTRING.SKIP=true
   id String @id @default(uuid()) @db.Uuid
 
-  /// Reference to the brokerage account. TYPESTRING.SKIP=true
-  brokerageAccountId String @db.Uuid
-
-  /// Relation to BrokerageAccount. TYPESTRING.SKIP=true GQL.EXCLUDE=['optionsPositions']
-  brokerageAccount BrokerageAccount @relation(fields: [brokerageAccountId], references: [id])
+  /// Reference to the Alpaca account
+  alpacaAccountId String @db.Uuid
 
   /// Reference to the options contract
   contractId String @db.Uuid
 
-  /// Relation to OptionsContract. TYPESTRING.INCLUDE=['contractSymbol','symbol','optionType','strikePrice','expirationDate'] GQL.EXCLUDE=['positions']
+  /// Relation to OptionsContract. TYPESTRING.INCLUDE=['contractSymbol','symbol','optionType','strikePrice','expirationDate'] GQL.EXCLUDE=['positions','greeksHistory','executions']
   contract OptionsContract @relation(fields: [contractId], references: [id])
 
   /// Position status
@@ -3657,22 +3671,66 @@ model OptionsPosition {
   /// Additional metadata as JSON
   metadata Json?
 
+  /// Current lifecycle state machine state (e.g., MONITORING, EXIT_TRIGGERED, CLOSING)
+  lifecycleState String?
+
+  /// Per-position exit thresholds (defaults + LLM overrides) stored as JSON
+  exitThresholds Json?
+
+  /// Links rolled positions for P&L continuity (references another OptionsPosition id)
+  linkedRollId String? @db.Uuid
+
   /// Timestamp when the position record was created. TYPESTRING.SKIP=true
   createdAt DateTime @default(now())
 
   /// Timestamp when the position record was last updated. TYPESTRING.SKIP=true
   updatedAt DateTime @updatedAt
 
-  /// List of trade executions for this position. TYPESTRING.SKIP=true GQL.EXCLUDE=['position']
+  /// List of trade executions for this position. TYPESTRING.SKIP=true GQL.EXCLUDE=['position','contract']
   executions OptionsTradeExecution[]
 
+  /// Lifecycle state transition events for audit trail. TYPESTRING.SKIP=true GQL.EXCLUDE=['position']
+  lifecycleEvents OptionsPositionEvent[]
+
   /// Indexes for performance optimization
-  @@index([brokerageAccountId, status])
+  @@index([alpacaAccountId, status])
   @@index([contractId])
   @@index([status])
   @@index([entryTime])
   @@index([tradeId])
+  @@index([lifecycleState])
   @@map("options_positions")
+}
+
+// Tracks every lifecycle state machine transition for audit and observability
+model OptionsPositionEvent {
+  /// Unique identifier for the event. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Reference to the options position this event belongs to
+  positionId String @db.Uuid
+
+  /// Relation to OptionsPosition. TYPESTRING.SKIP=true GQL.EXCLUDE=['lifecycleEvents','executions','contract']
+  position OptionsPosition @relation(fields: [positionId], references: [id], onDelete: Cascade)
+
+  /// State the position occupied before this transition
+  fromState String
+
+  /// State the position occupies after this transition
+  toState String
+
+  /// What caused the transition (e.g., PROFIT_TARGET, ASSIGNMENT_RISK, SYSTEM)
+  trigger String
+
+  /// Additional context about the transition (P&L, Greeks snapshot, reasoning)
+  metadata Json?
+
+  /// Timestamp when the transition occurred. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  @@index([positionId, createdAt])
+  @@index([createdAt])
+  @@map("options_position_events")
 }
 
 // Time-series Greeks data for options contracts
@@ -3683,7 +3741,7 @@ model OptionsGreeksHistory {
   /// Reference to the options contract
   contractId String @db.Uuid
 
-  /// Relation to OptionsContract. TYPESTRING.SKIP=true GQL.EXCLUDE=['greeksHistory']
+  /// Relation to OptionsContract. TYPESTRING.SKIP=true GQL.EXCLUDE=['greeksHistory','positions','executions']
   contract OptionsContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
 
   /// Timestamp of the Greeks snapshot
@@ -3748,6 +3806,9 @@ model OptionsGreeksHistory {
 }
 
 // Portfolio-level Greeks tracking for multi-position analysis
+/// FROZEN 2026-04-15 — engine moved to telemetryDb per
+/// engine/docs/superpowers/specs/2026-04-15-engine-local-telemetry-db-design.md
+/// Drop after 14d stable operation.
 model PortfolioGreeksHistory {
   /// Unique identifier for the portfolio Greeks history record
   id String @id @default(uuid()) @db.Uuid
@@ -3776,46 +3837,46 @@ model PortfolioGreeksHistory {
   rho   Decimal @db.Decimal(8, 6)
 
   // Portfolio-level aggregates
-  /// Total portfolio delta exposure
+  /// Total portfolio delta exposure. GQL.SKIP=true
   totalDelta Decimal? @db.Decimal(10, 6)
 
-  /// Total portfolio gamma exposure
+  /// Total portfolio gamma exposure. GQL.SKIP=true
   totalGamma Decimal? @db.Decimal(10, 6)
 
-  /// Total portfolio theta exposure
+  /// Total portfolio theta exposure. GQL.SKIP=true
   totalTheta Decimal? @db.Decimal(10, 6)
 
-  /// Total portfolio vega exposure
+  /// Total portfolio vega exposure. GQL.SKIP=true
   totalVega Decimal? @db.Decimal(10, 6)
 
-  /// Total portfolio rho exposure
+  /// Total portfolio rho exposure. GQL.SKIP=true
   totalRho Decimal? @db.Decimal(10, 6)
 
   // Portfolio metadata
-  /// Number of positions in portfolio
+  /// Number of positions in portfolio. GQL.SKIP=true
   positionCount Int?
 
-  /// List of underlying symbols in portfolio
+  /// List of underlying symbols in portfolio. GQL.SKIP=true
   underlyingSymbols Json?
 
-  /// List of expiration dates in portfolio
+  /// List of expiration dates in portfolio. GQL.SKIP=true
   expirationDates Json?
 
   // Market context
-  /// Whether recorded during market hours
+  /// Whether recorded during market hours. GQL.SKIP=true
   marketHours Boolean?
 
-  /// VIX level at timestamp
+  /// VIX level at timestamp. GQL.SKIP=true
   vix Decimal? @db.Decimal(8, 4)
 
-  /// SPY price at timestamp
+  /// SPY price at timestamp. GQL.SKIP=true
   spyPrice Decimal? @db.Decimal(10, 4)
 
   // Data provenance
   /// Data source identifier
   source String?
 
-  /// Record creation timestamp
+  /// Record creation timestamp. GQL.SKIP=true
   createdAt DateTime @default(now())
 
   @@unique([accountId, timestamp, contractId])
@@ -3833,20 +3894,17 @@ model OptionsTradeExecution {
   /// Reference to the options position
   positionId String @db.Uuid
 
-  /// Relation to OptionsPosition. TYPESTRING.SKIP=true GQL.EXCLUDE=['executions']
+  /// Relation to OptionsPosition. TYPESTRING.SKIP=true GQL.EXCLUDE=['executions','contract']
   position OptionsPosition @relation(fields: [positionId], references: [id])
 
   /// Reference to the options contract
   contractId String @db.Uuid
 
-  /// Relation to OptionsContract. TYPESTRING.SKIP=true GQL.EXCLUDE=['executions']
+  /// Relation to OptionsContract. TYPESTRING.SKIP=true GQL.EXCLUDE=['executions','positions','greeksHistory']
   contract OptionsContract @relation(fields: [contractId], references: [id])
 
-  /// Reference to the brokerage account. TYPESTRING.SKIP=true
-  brokerageAccountId String @db.Uuid
-
-  /// Relation to BrokerageAccount. TYPESTRING.SKIP=true GQL.EXCLUDE=['optionsTradeExecutions']
-  brokerageAccount BrokerageAccount @relation(fields: [brokerageAccountId], references: [id])
+  /// Reference to the Alpaca account
+  alpacaAccountId String @db.Uuid
 
   /// Broker order ID
   brokerOrderId String?
@@ -3915,7 +3973,7 @@ model OptionsTradeExecution {
   /// Indexes for performance optimization
   @@index([positionId])
   @@index([contractId])
-  @@index([brokerageAccountId, executionTime])
+  @@index([alpacaAccountId, executionTime])
   @@index([executionTime])
   @@index([brokerOrderId])
   @@map("options_trade_executions")
@@ -4267,6 +4325,9 @@ model DeadLetterMessage {
 }
 
 // Sync Event - Track all sync operations between engine and backend
+/// FROZEN 2026-04-15 — engine moved to telemetryDb per
+/// engine/docs/superpowers/specs/2026-04-15-engine-local-telemetry-db-design.md
+/// Drop after 14d stable operation.
 model SyncEvent {
   /// Unique identifier for the sync event. TYPESTRING.SKIP=true
   id String @id @default(uuid()) @db.Uuid
@@ -4308,6 +4369,9 @@ model SyncEvent {
 }
 
 // Conflict Event - Track sync conflicts and their resolution
+/// FROZEN 2026-04-15 — engine moved to telemetryDb per
+/// engine/docs/superpowers/specs/2026-04-15-engine-local-telemetry-db-design.md
+/// Drop after 14d stable operation.
 model ConflictEvent {
   /// Unique identifier for the conflict event. TYPESTRING.SKIP=true
   id String @id @default(uuid()) @db.Uuid
@@ -4315,28 +4379,28 @@ model ConflictEvent {
   /// Timestamp when conflict occurred
   timestamp DateTime @default(now())
 
-  /// Type of entity with conflict
+  /// Type of entity with conflict. GQL.SKIP=true
   entityType String @db.VarChar(100)
 
-  /// ID of the conflicting entity
+  /// ID of the conflicting entity. GQL.SKIP=true
   entityId String @db.VarChar(255)
 
-  /// Server version of the entity
+  /// Server version of the entity. GQL.SKIP=true
   serverVersion Json
 
-  /// Client version of the entity
+  /// Client version of the entity. GQL.SKIP=true
   clientVersion Json
 
-  /// Resolution strategy used
+  /// Resolution strategy used. GQL.SKIP=true
   strategy ConflictResolutionStrategy
 
   /// Whether conflict was resolved
   resolved Boolean
 
-  /// Resolved version of the entity (optional)
+  /// Resolved version of the entity (optional). GQL.SKIP=true
   resolution Json?
 
-  /// Time taken to resolve in milliseconds (optional)
+  /// Time taken to resolve in milliseconds (optional). GQL.SKIP=true
   resolutionTime Int?
 
   /// Indexes for efficient querying
@@ -4468,11 +4532,8 @@ model TradeAuditEvent {
   /// Symbol being traded
   symbol String @db.VarChar(50)
 
-  /// Brokerage account identifier
+  /// Account identifier
   accountId String @db.VarChar(255)
-
-  /// Fund identifier (optional)
-  fundId String? @db.VarChar(36)
 
   /// Trade identifier (optional)
   tradeId String? @db.VarChar(255)
@@ -4749,6 +4810,9 @@ model SignalOutcome {
 }
 
 // Event Storage - Production-grade event persistence for audit trail
+/// FROZEN 2026-04-15 — engine moved to telemetryDb per
+/// engine/docs/superpowers/specs/2026-04-15-engine-local-telemetry-db-design.md
+/// Drop after 14d stable operation.
 model Event {
   /// Unique identifier for the event. TYPESTRING.SKIP=true
   id String @id @default(uuid()) @db.Uuid
@@ -4776,9 +4840,6 @@ model Event {
 
   /// Account identifier (optional)
   accountId String? @db.VarChar(255)
-
-  /// Fund identifier (optional)
-  fundId String? @db.VarChar(36)
 
   /// Trade identifier (optional)
   tradeId String? @db.VarChar(255)
@@ -4852,6 +4913,9 @@ model Event {
 
 // Event Snapshot model for event sourcing optimization
 // Stores point-in-time aggregate state to avoid replaying all events
+/// FROZEN 2026-04-15 — engine moved to telemetryDb per
+/// engine/docs/superpowers/specs/2026-04-15-engine-local-telemetry-db-design.md
+/// Drop after 14d stable operation.
 model EventSnapshot {
   /// Unique identifier for the snapshot. TYPESTRING.SKIP=true
   id String @id @default(uuid()) @db.Uuid
@@ -4886,6 +4950,9 @@ model EventSnapshot {
 
 // Trade Execution History - Persistent execution tracking for deduplication
 // Prevents duplicate trades across service restarts with automatic TTL-based cleanup
+/// FROZEN 2026-04-15 — engine moved to telemetryDb per
+/// engine/docs/superpowers/specs/2026-04-15-engine-local-telemetry-db-design.md
+/// Drop after 14d stable operation.
 model TradeExecutionHistory {
   /// Unique identifier for the execution record
   id String @id @db.VarChar(255)
@@ -4958,7 +5025,7 @@ model WaitlistEntry {
   /// The ID of the user who reviewed the entry. TYPESTRING.SKIP=true
   reviewedById String? @db.Uuid
 
-  /// The user who reviewed the entry. TYPESTRING.SKIP=true GQL.EXCLUDE=['reviewedWaitlistEntries']
+  /// The user who reviewed the entry. TYPESTRING.SKIP=true GQL.SKIP=true
   reviewedBy User? @relation("WaitlistReviewer", fields: [reviewedById], references: [id])
 
   /// The invite token associated with this waitlist entry. TYPESTRING.SKIP=true
@@ -4983,7 +5050,7 @@ model InviteToken {
   /// The ID of the associated waitlist entry (optional). TYPESTRING.SKIP=true
   waitlistEntryId String? @unique @db.Uuid
 
-  /// The associated waitlist entry (optional). TYPESTRING.SKIP=true
+  /// The associated waitlist entry (optional). TYPESTRING.SKIP=true GQL.SKIP=true
   waitlistEntry WaitlistEntry? @relation(fields: [waitlistEntryId], references: [id])
 
   /// Whether the token has been used.
@@ -5057,231 +5124,7 @@ model AuditLog {
   @@map(name: "audit_logs")
 }
 
-model TradingPolicy {
-  id                 String @id @default(uuid()) @db.Uuid
-  brokerageAccountId String @unique @db.Uuid
-
-  /// Relation to BrokerageAccount. GQL.SKIP=true
-  brokerageAccount BrokerageAccount @relation(fields: [brokerageAccountId], references: [id], onDelete: Cascade)
-
-  version        Int      @default(1)
-  lastModifiedBy String?
-  lastModifiedAt DateTime @default(now())
-
-  autonomyMode           AutonomyMode @default(ADVISORY_ONLY)
-  realtimeTradingEnabled Boolean      @default(false)
-  paperTradingOnly       Boolean      @default(false)
-  killSwitchEnabled      Boolean      @default(false)
-  autonomyPrefs          Json?
-
-  equitiesEnabled         Boolean @default(true)
-  etfsEnabled             Boolean @default(true)
-  cryptoEnabled           Boolean @default(true)
-  optionsEnabled          Boolean @default(true)
-  futuresEnabled          Boolean @default(true)
-  forexEnabled            Boolean @default(true)
-  shortingEnabled         Boolean @default(false)
-  marginEnabled           Boolean @default(false)
-  fractionalSharesEnabled Boolean @default(true)
-  assetUniversePrefs      Json?
-
-  maxBuyingPowerUtilPct     Float @default(90)
-  cashFloorPct              Float @default(10)
-  maxGrossExposurePct       Float @default(100)
-  maxNetExposurePct         Float @default(100)
-  maxLeverage               Float @default(1)
-  maxSymbolConcentrationPct Float @default(15)
-  maxSectorConcentrationPct Float @default(30)
-  maxOpenPositions          Int   @default(20)
-  maxOpenOrders             Int   @default(50)
-
-  /// Percentage of account equity (with leverage) allocated per equities trade. Canonical replacement for legacy BrokerageAccount.tradeAllocationPct.
-  perTradeEquityAllocationPct Float @default(5)
-
-  /// Percentage of the crypto allocation slice of account equity allocated per crypto trade. Canonical replacement for legacy BrokerageAccount.cryptoTradeAllocationPct.
-  perTradeCryptoAllocationPct Float @default(5)
-
-  /// Opt-in for enabling the portfolio-level trailing stop service within Adaptic's Realtime Trade Engine. Canonical replacement for legacy BrokerageAccount.enablePortfolioTrailingStop.
-  enablePortfolioTrailingStop Boolean @default(false)
-
-  /// Portfolio-level trailing stop percentage used by the Realtime Trade Engine, if opted into the portfolio-level trailing stop service. Canonical replacement for legacy BrokerageAccount.portfolioTrailPercent.
-  portfolioTrailPercent Float @default(4.0)
-
-  /// Portfolio-level profit threshold percentage used by the Realtime Trade Engine, if opted into the portfolio-level trailing stop service. Canonical replacement for legacy BrokerageAccount.portfolioProfitThresholdPercent.
-  portfolioProfitThresholdPercent Float @default(2.0)
-
-  /// Portfolio-level trailing stop percentage used by the Realtime Trade Engine for reducing the trailing stop once the profit threshold is exceeded. Canonical replacement for legacy BrokerageAccount.reducedPortfolioTrailPercent.
-  reducedPortfolioTrailPercent Float @default(0.5)
-
-  /// Initial trailing stop percentage used by the Position Trailing Stop Service. Canonical replacement for legacy BrokerageAccount.defaultTrailingStopPercentage100.
-  defaultTrailingStopPercentage100 Float @default(4.0)
-
-  /// First profit threshold at which the Position Trailing Stop Service reduces the trailing stop. Canonical replacement for legacy BrokerageAccount.firstTrailReductionThreshold100.
-  firstTrailReductionThreshold100 Float @default(2.0)
-
-  /// Second profit threshold at which the Position Trailing Stop Service further reduces the trailing stop. Canonical replacement for legacy BrokerageAccount.secondTrailReductionThreshold100.
-  secondTrailReductionThreshold100 Float @default(5.0)
-
-  /// Trailing stop percentage to use when profit exceeds the first threshold. Canonical replacement for legacy BrokerageAccount.firstReducedTrailPercentage100.
-  firstReducedTrailPercentage100 Float @default(1.0)
-
-  /// Trailing stop percentage to use when profit exceeds the second threshold. Canonical replacement for legacy BrokerageAccount.secondReducedTrailPercentage100.
-  secondReducedTrailPercentage100 Float @default(0.5)
-
-  /// Minimum change in trailing stop percent to warrant an adjustment. Canonical replacement for legacy BrokerageAccount.minimumPriceChangePercent100.
-  minimumPriceChangePercent100 Float @default(0.5)
-
-  /// Wash-trade cooldown period in milliseconds for equities — minimum elapsed time between opposing-side fills on the same symbol per FINRA Rule 5210. Mirrors the 30s default already enforced for crypto. Default: 30000 (30 seconds).
-  equityWashTradeCooldownMs Int @default(30000)
-
-  /// Minimum intraday liquidity threshold (shares traded in last 5 min). Required for scalping. Default: 10000 (10k shares in last 5 min).
-  minIntradayLiquidityShares Int @default(10000)
-
-  /// Maximum spread in basis points (1/100ths of 1%) to allow entry. Scalping requires tight spreads; use 1-3 bps. Default: 5 (0.05%).
-  maxEntrySpreadBps Int @default(5)
-
-  /// Minimum time between same-symbol same-side entries (ms). FINRA Rule 5210 requires 30s for opposite-side trades; this controls same-side rapid re-entry. Default: 5000 (5 seconds) for scalping; 30000 for normal trading.
-  sameSideReentryDelayMs Int @default(5000)
-
-  /// Volatility filter: only trade if ATR(14) >= minAtrPercentage. Scalping needs moderate volatility; too low = no edge. Default: 0.3 (0.3%).
-  minAtrPercentage Float @default(0.3)
-
-  /// Volatility filter: only trade if ATR(14) <= maxAtrPercentage. Scalping needs moderate volatility; too high = whipsaws. Default: 2.0 (2.0%).
-  maxAtrPercentage Float @default(2.0)
-
-  /// Order book depth requirement: minimum shares at best bid/ask to qualify for entry. Scalping needs guaranteed liquidity. Default: 5000 shares.
-  minBookDepthShares Int @default(5000)
-
-  /// Maximum market order slippage in basis points before flagging as anomaly. Helps detect liquidity crunches. Default: 10 bps.
-  maxAnomalousSlippageBps Int @default(10)
-
-  /// Intraday session windows allowed (JSON array). Format: [{ startMinutesFromOpen, endMinutesFromOpen, active }]. Example: skip first 5 min and last 10 min of RTH.
-  intradayTradingWindows Json?
-
-  /// Hard position exit clock (minutes from entry). 0 = disabled. Forces liquidation regardless of signal. Useful for strict day-trading discipline. Default: 0.
-  hardPositionExitMinutes Int @default(0)
-
-  /// Rapid-fire order-rate limit: max orders within orderWindowSeconds. Default: 10 orders per 5 seconds.
-  maxOrdersPerWindow Int @default(10)
-
-  /// Window size for maxOrdersPerWindow rate limit (seconds). Default: 5.
-  orderWindowSeconds Int @default(5)
-
-  /// Enforce intraday-only trading (auto-close all positions before EOD). Default: false.
-  dayTradeOnly Boolean @default(false)
-
-  riskBudgetPrefs Json?
-
-  signalConsumptionPrefs     Json?
-  executionPrefs             Json?
-  positionManagementPrefs    Json?
-  portfolioConstructionPrefs Json?
-
-  macroOverlayEnabled               Boolean @default(false)
-  sectorOverlayEnabled              Boolean @default(false)
-  volatilityOverlayEnabled          Boolean @default(false)
-  liquidityStressOverlayEnabled     Boolean @default(false)
-  blackSwanProtectionEnabled        Boolean @default(false)
-  drawdownGuardianEnabled           Boolean @default(false)
-  correlationSpikeProtectionEnabled Boolean @default(false)
-  newsEventRiskOverlayEnabled       Boolean @default(false)
-  exchangeHealthOverlayEnabled      Boolean @default(false)
-  dataQualitySentinelEnabled        Boolean @default(false)
-  overlayResponsePrefs              Json?
-
-  miniModelProvider     LlmProvider?
-  miniModelId           String?
-  normalModelProvider   LlmProvider?
-  normalModelId         String?
-  advancedModelProvider LlmProvider?
-  advancedModelId       String?
-  modelPrefs            Json?
-
-  auditNotificationPrefs Json?
-
-  /// List of policy overlays. GQL.SKIP=true
-  overlays PolicyOverlay[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("trading_policies")
-}
-
-model LlmConfiguration {
-  id     String @id @default(uuid()) @db.Uuid
-  userId String @unique @db.Uuid
-
-  /// Relation to the User model. GQL.SKIP=true
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  /// Default provider used for all tiers unless overridden
-  defaultProvider LlmProvider @default(OPENAI)
-
-  /// Per-tier provider overrides (null = inherit from defaultProvider)
-  miniProvider     LlmProvider?
-  normalProvider   LlmProvider?
-  advancedProvider LlmProvider?
-
-  /// Per-tier model overrides (null = use provider's default for that tier).
-  /// These are model ID strings. The canonical sets are documented by the per-provider enums
-  /// (OpenaiModel, AnthropicModel, DeepseekModel, KimiModel, QwenModel, XaiModel, GeminiModel)
-  /// — e.g. "gpt-5.5", "claude-opus-4-7", "deepseek-v4-pro", "grok-4.3", "gemini-3.1-pro-preview".
-  miniModel     String?
-  normalModel   String?
-  advancedModel String?
-
-  /// Provider API keys (encrypted at rest). TYPESTRING.SKIP=true GQL.SKIP=true
-  openaiApiKey    String?
-  /// TYPESTRING.SKIP=true GQL.SKIP=true
-  anthropicApiKey String?
-  /// TYPESTRING.SKIP=true GQL.SKIP=true
-  deepseekApiKey  String?
-  /// TYPESTRING.SKIP=true GQL.SKIP=true
-  kimiApiKey      String?
-  /// TYPESTRING.SKIP=true GQL.SKIP=true
-  qwenApiKey      String?
-  /// TYPESTRING.SKIP=true GQL.SKIP=true
-  xaiApiKey       String?
-  /// TYPESTRING.SKIP=true GQL.SKIP=true
-  geminiApiKey    String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model PolicyOverlay {
-  id              String @id @default(uuid()) @db.Uuid
-  tradingPolicyId String @db.Uuid
-
-  /// Relation to TradingPolicy. GQL.SKIP=true
-  tradingPolicy TradingPolicy @relation(fields: [tradingPolicyId], references: [id], onDelete: Cascade)
-
-  overlayType OverlayType
-  source      String
-  reason      String
-  severity    OverlaySeverity @default(MEDIUM)
-  version     Int             @default(1)
-
-  mutations Json
-
-  status        OverlayStatus @default(ACTIVE)
-  activatedAt   DateTime      @default(now())
-  expiresAt     DateTime?
-  deactivatedAt DateTime?
-  deactivatedBy String?
-
-  correlationId  String?
-  triggerEventId String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([tradingPolicyId, status])
-  @@index([overlayType, status])
-  @@index([expiresAt])
-  @@map("policy_overlays")
-}
+/// ### Trading Policy & Decision Engine
 
 enum AutonomyMode {
   ADVISORY_ONLY
@@ -5318,4 +5161,2315 @@ enum OverlayStatus {
   EXPIRED
   DEACTIVATED
   SUPERSEDED
+}
+
+enum DecisionOutcome {
+  DO_NOTHING
+  OPEN_POSITION
+  ADD_TO_POSITION
+  REDUCE_POSITION
+  CLOSE_POSITION
+  REVERSE_POSITION
+  MODIFY_ORDERS
+  CANCEL_ORDERS
+  REBALANCE
+  MUTATE_POLICY
+  ESCALATE_FOR_APPROVAL
+  SKIP_INELIGIBLE
+}
+
+enum DecisionRecordStatus {
+  PENDING
+  EXECUTING
+  COMPLETED
+  FAILED
+  CANCELLED
+  ESCALATED
+}
+
+enum DecisionMemoryOutcome {
+  PENDING
+  PROFITABLE
+  UNPROFITABLE
+  STOPPED_OUT
+  CANCELLED
+}
+
+model TradingPolicy {
+  id                String   @id @default(uuid()) @db.Uuid
+  alpacaAccountId   String   @unique @db.Uuid
+
+  /// Relation to AlpacaAccount. GQL.SKIP=true
+  alpacaAccount     AlpacaAccount @relation(fields: [alpacaAccountId], references: [id], onDelete: Cascade)
+
+  version           Int      @default(1)
+  lastModifiedBy    String?
+  lastModifiedAt    DateTime @default(now())
+
+  autonomyMode              AutonomyMode @default(ADVISORY_ONLY)
+  realtimeTradingEnabled    Boolean @default(false)
+  paperTradingOnly          Boolean @default(false)
+  killSwitchEnabled         Boolean @default(false)
+  autonomyPrefs             Json?
+
+  equitiesEnabled           Boolean @default(true)
+  etfsEnabled               Boolean @default(true)
+  cryptoEnabled             Boolean @default(true)
+  optionsEnabled            Boolean @default(true)
+  futuresEnabled            Boolean @default(true)
+  forexEnabled              Boolean @default(true)
+  shortingEnabled           Boolean @default(false)
+  marginEnabled             Boolean @default(false)
+  fractionalSharesEnabled   Boolean @default(true)
+  assetUniversePrefs        Json?
+
+  maxBuyingPowerUtilPct     Float   @default(90)
+  cashFloorPct              Float   @default(10)
+  maxGrossExposurePct       Float   @default(100)
+  maxNetExposurePct         Float   @default(100)
+  maxLeverage               Float   @default(1)
+  maxSymbolConcentrationPct Float   @default(15)
+  maxSectorConcentrationPct Float   @default(30)
+  maxOpenPositions          Int     @default(20)
+  maxOpenOrders             Int     @default(50)
+
+  /// Percentage of account equity (with leverage) allocated per equities trade. Canonical replacement for legacy AlpacaAccount.tradeAllocationPct.
+  perTradeEquityAllocationPct Float @default(5)
+
+  /// Percentage of the crypto allocation slice of account equity allocated per crypto trade. Canonical replacement for legacy AlpacaAccount.cryptoTradeAllocationPct.
+  perTradeCryptoAllocationPct Float @default(5)
+
+  /// Opt-in for enabling the portfolio-level trailing stop service within Adaptic's Realtime Trade Engine. Canonical replacement for legacy AlpacaAccount.enablePortfolioTrailingStop.
+  enablePortfolioTrailingStop Boolean @default(false)
+
+  /// Portfolio-level trailing stop percentage used by the Realtime Trade Engine, if opted into the portfolio-level trailing stop service. Canonical replacement for legacy AlpacaAccount.portfolioTrailPercent.
+  portfolioTrailPercent Float @default(4.0)
+
+  /// Portfolio-level profit threshold percentage used by the Realtime Trade Engine, if opted into the portfolio-level trailing stop service. Canonical replacement for legacy AlpacaAccount.portfolioProfitThresholdPercent.
+  portfolioProfitThresholdPercent Float @default(2.0)
+
+  /// Portfolio-level trailing stop percentage used by the Realtime Trade Engine for reducing the trailing stop once the profit threshold is exceeded. Canonical replacement for legacy AlpacaAccount.reducedPortfolioTrailPercent.
+  reducedPortfolioTrailPercent Float @default(0.5)
+
+  /// Whether the portfolio-level daily take-profit circuit breaker is enabled for this account.
+  enablePortfolioTakeProfit          Boolean? @default(false)
+  /// Daily gain target (whole percent, e.g. 1 = 1%) since the 09:30 open that trips the take-profit breaker.
+  portfolioTakeProfitThresholdPercent Float?   @default(1)
+
+  /// Initial trailing stop percentage used by the Position Trailing Stop Service. Canonical replacement for legacy AlpacaAccount.defaultTrailingStopPercentage100.
+  defaultTrailingStopPercentage100 Float @default(4.0)
+
+  /// First profit threshold at which the Position Trailing Stop Service reduces the trailing stop. Canonical replacement for legacy AlpacaAccount.firstTrailReductionThreshold100.
+  firstTrailReductionThreshold100 Float @default(2.0)
+
+  /// Second profit threshold at which the Position Trailing Stop Service further reduces the trailing stop. Canonical replacement for legacy AlpacaAccount.secondTrailReductionThreshold100.
+  secondTrailReductionThreshold100 Float @default(5.0)
+
+  /// Trailing stop percentage to use when profit exceeds the first threshold. Canonical replacement for legacy AlpacaAccount.firstReducedTrailPercentage100.
+  firstReducedTrailPercentage100 Float @default(1.0)
+
+  /// Trailing stop percentage to use when profit exceeds the second threshold. Canonical replacement for legacy AlpacaAccount.secondReducedTrailPercentage100.
+  secondReducedTrailPercentage100 Float @default(0.5)
+
+  /// Minimum change in trailing stop percent to warrant an adjustment. Canonical replacement for legacy AlpacaAccount.minimumPriceChangePercent100.
+  minimumPriceChangePercent100 Float @default(0.5)
+
+  /// Wash-trade cooldown period in milliseconds for equities — minimum elapsed time between opposing-side fills on the same symbol per FINRA Rule 5210. Mirrors the 30s default already enforced for crypto. Default: 30000 (30 seconds).
+  equityWashTradeCooldownMs Int @default(30000)
+
+  /// Minimum intraday liquidity threshold (shares traded in last 5 min). Required for scalping. Default: 10000 (10k shares in last 5 min).
+  minIntradayLiquidityShares    Int      @default(10000)
+
+  /// Maximum spread in basis points (1/100ths of 1%) to allow entry. Scalping requires tight spreads; use 1-3 bps. Default: 5 (0.05%).
+  maxEntrySpreadBps             Int      @default(5)
+
+  /// Minimum time between same-symbol same-side entries (ms). FINRA Rule 5210 requires 30s for opposite-side trades; this controls same-side rapid re-entry. Default: 5000 (5 seconds) for scalping; 30000 for normal trading.
+  sameSideReentryDelayMs        Int      @default(5000)
+
+  /// Volatility filter: only trade if ATR(14) >= minAtrPercentage. Scalping needs moderate volatility; too low = no edge. Default: 0.3 (0.3%).
+  minAtrPercentage              Float    @default(0.3)
+
+  /// Volatility filter: only trade if ATR(14) <= maxAtrPercentage. Scalping needs moderate volatility; too high = whipsaws. Default: 2.0 (2.0%).
+  maxAtrPercentage              Float    @default(2.0)
+
+  /// Order book depth requirement: minimum shares at best bid/ask to qualify for entry. Scalping needs guaranteed liquidity. Default: 5000 shares.
+  minBookDepthShares            Int      @default(5000)
+
+  /// Maximum market order slippage in basis points before flagging as anomaly. Helps detect liquidity crunches. Default: 10 bps.
+  maxAnomalousSlippageBps       Int      @default(10)
+
+  /// Intraday session windows allowed (JSON array). Format: [{ startMinutesFromOpen, endMinutesFromOpen, active }]. Example: skip first 5 min and last 10 min of RTH.
+  intradayTradingWindows        Json?
+
+  /// Hard position exit clock (minutes from entry). 0 = disabled. Forces liquidation regardless of signal. Useful for strict day-trading discipline. Default: 0.
+  hardPositionExitMinutes       Int      @default(0)
+
+  /// Rapid-fire order-rate limit: max orders within orderWindowSeconds. Default: 10 orders per 5 seconds.
+  maxOrdersPerWindow            Int      @default(10)
+
+  /// Window size for maxOrdersPerWindow rate limit (seconds). Default: 5.
+  orderWindowSeconds            Int      @default(5)
+
+  /// Enforce intraday-only trading (auto-close all positions before EOD). Default: false.
+  dayTradeOnly                  Boolean  @default(false)
+
+  riskBudgetPrefs           Json?
+
+  signalConsumptionPrefs    Json?
+  executionPrefs            Json?
+  positionManagementPrefs   Json?
+  portfolioConstructionPrefs Json?
+
+  macroOverlayEnabled                Boolean @default(false)
+  sectorOverlayEnabled               Boolean @default(false)
+  volatilityOverlayEnabled           Boolean @default(false)
+  liquidityStressOverlayEnabled      Boolean @default(false)
+  blackSwanProtectionEnabled         Boolean @default(false)
+  drawdownGuardianEnabled            Boolean @default(false)
+  correlationSpikeProtectionEnabled  Boolean @default(false)
+  newsEventRiskOverlayEnabled        Boolean @default(false)
+  exchangeHealthOverlayEnabled       Boolean @default(false)
+  dataQualitySentinelEnabled         Boolean @default(false)
+  overlayResponsePrefs      Json?
+
+  miniModelProvider         LlmProvider?
+  miniModelId               String?
+  normalModelProvider       LlmProvider?
+  normalModelId             String?
+  advancedModelProvider     LlmProvider?
+  advancedModelId           String?
+  modelPrefs                Json?
+
+  auditNotificationPrefs    Json?
+
+  /// List of policy overlays. GQL.SKIP=true
+  overlays                  PolicyOverlay[]
+
+  // Risk-governance: per-account escalation policy overrides + denormalized FSM state
+  escalationPolicyOverrides Json?
+  currentRiskState          AccountRiskState @default(NORMAL)
+  currentRiskStateAt        DateTime?
+  lastRiskStateChangedBy    String?
+  lastRiskEscalationEventId String?  @db.Uuid
+
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@map("trading_policies")
+}
+
+model PolicyOverlay {
+  id                String   @id @default(uuid()) @db.Uuid
+  tradingPolicyId   String   @db.Uuid
+
+  /// Relation to TradingPolicy. GQL.SKIP=true
+  tradingPolicy     TradingPolicy @relation(fields: [tradingPolicyId], references: [id], onDelete: Cascade)
+
+  overlayType       OverlayType
+  source            String
+  reason            String
+  severity          OverlaySeverity @default(MEDIUM)
+  version           Int      @default(1)
+
+  mutations         Json
+
+  status            OverlayStatus @default(ACTIVE)
+  activatedAt       DateTime @default(now())
+  expiresAt         DateTime?
+  deactivatedAt     DateTime?
+  deactivatedBy     String?
+
+  correlationId     String?
+  triggerEventId    String?
+
+  riskEscalationEventId    String?  @unique @db.Uuid
+  /// The escalation event that caused this overlay to be activated (FK on this side). TYPESTRING.SKIP=true GQL.SKIP=true
+  riskEscalationEvent      RiskEscalationEvent? @relation("PolicyOverlayActivatedBy", fields: [riskEscalationEventId], references: [id])
+  /// Escalation events that were triggered while this overlay was active. TYPESTRING.SKIP=true GQL.SKIP=true
+  triggeredRiskEvents      RiskEscalationEvent[] @relation("PolicyOverlayTriggeredEvents")
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([tradingPolicyId, status])
+  @@index([overlayType, status])
+  @@index([expiresAt])
+  @@map("policy_overlays")
+}
+
+model AccountDecisionRecord {
+  id                  String   @id @default(uuid()) @db.Uuid
+  alpacaAccountId     String   @db.Uuid
+  correlationId       String   @unique
+
+  opportunityId       String
+  symbol              String
+  assetClass          String
+  signalAction        String
+  signalConfidence    Float
+
+  decision            DecisionOutcome
+  decisionRationale   String?
+  decisionConfidence  Float?
+
+  actionIntents       Json?
+  validationResults   Json?
+  executionResults    Json?
+
+  effectivePolicySnapshot Json
+  positionsSnapshot       Json?
+  openOrdersSnapshot      Json?
+  exposureSnapshot        Json?
+  overlaysSnapshot        Json?
+
+  modelProvider       String
+  modelId             String
+  modelTier           String
+  routingReason       String?
+  tokenUsage          Json?
+
+  sessionDurationMs   Int?
+  gatingDurationMs    Int?
+  validationDurationMs Int?
+  executionDurationMs Int?
+
+  status              DecisionRecordStatus @default(PENDING)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([alpacaAccountId, createdAt])
+  @@index([symbol, createdAt])
+  @@index([opportunityId])
+  @@map("account_decision_records")
+}
+
+/// FROZEN 2026-04-15 — engine moved to telemetryDb per
+/// engine/docs/superpowers/specs/2026-04-15-engine-local-telemetry-db-design.md
+/// Drop after 14d stable operation.
+model DecisionMemorySummary {
+  id                String   @id @default(uuid()) @db.Uuid
+  alpacaAccountId   String   @db.Uuid
+  symbol            String?
+  /// GQL.SKIP=true
+  sector            String?
+  /// GQL.SKIP=true
+  assetClass        String?
+
+  summary           String
+  /// GQL.SKIP=true
+  keyFactors        Json?
+  outcome           DecisionMemoryOutcome @default(PENDING)
+  /// GQL.SKIP=true
+  outcomeDetails    Json?
+
+  /// GQL.SKIP=true
+  decisionRecordId  String?
+  /// GQL.SKIP=true
+  correlationId     String?
+
+  /// GQL.SKIP=true
+  relevanceScore    Float    @default(1.0)
+  /// GQL.SKIP=true
+  expiresAt         DateTime?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([alpacaAccountId, symbol, createdAt])
+  @@index([alpacaAccountId, createdAt])
+  @@index([expiresAt])
+  @@map("decision_memory_summaries")
+}
+
+enum EquityBarTimespan {
+  second
+  minute
+  hour
+  day
+}
+
+/// FROZEN 2026-04-15 — engine moved to telemetryDb per
+/// engine/docs/superpowers/specs/2026-04-15-engine-local-telemetry-db-design.md
+/// Drop after 14d stable operation.
+model EquityBar {
+  /// GQL.SKIP=true
+  id        String            @id @default(cuid())
+  symbol    String
+  timeStamp BigInt
+  timespan  EquityBarTimespan
+  open      Float
+  high      Float
+  low       Float
+  close     Float
+  vol       Float
+  vwap      Float?
+  trades    Int?
+  /// GQL.SKIP=true
+  source    String
+  /// GQL.SKIP=true
+  createdAt DateTime          @default(now())
+
+  @@unique([symbol, timeStamp, timespan])
+  @@index([symbol, timespan, timeStamp])
+  @@index([timeStamp])
+}
+
+/// FROZEN 2026-04-15 — engine moved to telemetryDb per
+/// engine/docs/superpowers/specs/2026-04-15-engine-local-telemetry-db-design.md
+/// Drop after 14d stable operation.
+model TradeOutcome {
+  id                       String   @id @default(cuid())
+  tradeId                  String?
+  symbol                   String
+  /// Wave F — Position direction the realized outcome was underwriting. NULL until backfilled/dual-written. Lets realized grossReturnPct/netReturnPct be partitioned by side without re-deriving from price action.
+  side                     TradeSide?
+  assetClass               String
+  accountId                String
+  entryPrice               Float
+  exitPrice                Float
+  entryTimestamp           DateTime
+  exitTimestamp            DateTime
+  holdDurationMinutes      Float
+  exitReason               String
+  grossReturnPct           Float
+  netReturnPct             Float
+  maxAdverseExcursionPct   Float
+  maxFavorableExcursionPct Float
+  signalSource             String
+  /// Wave F — Typed mirror of `signalSource` (dual-write). NULL until backfilled from the paired String; unmappable values stay NULL. Retained alongside the String until a later coordinated change drops the String.
+  signalSourceType         TradeSignalSource?
+  transformerConfidence    Float?
+  llmConfidence            Float?
+  ensembleConfidence       Float
+  ensembleWeight           Float
+  regimeAtEntry            String
+  featureSnapshot          Json?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@index([assetClass, createdAt])
+  @@index([symbol, createdAt])
+  @@index([accountId, createdAt])
+}
+
+/// FROZEN 2026-04-15 — engine moved to telemetryDb per
+/// engine/docs/superpowers/specs/2026-04-15-engine-local-telemetry-db-design.md
+/// Drop after 14d stable operation.
+model MLModelVersion {
+  id               String    @id @default(cuid())
+  assetClass       String
+  slot             String
+  rankIC           Float
+  trainedAt        DateTime
+  promotedAt       DateTime?
+  checkpointPath   String
+  featureCount     Int
+  trainingSymbols  String[]
+  trainingBarCount Int
+  configSnapshot   Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([assetClass, slot])
+  @@index([assetClass, trainedAt])
+}
+
+// ---------------------------------------------------------------------------
+// Risk-governance enums (Phase B — P0 institutional-risk-protection)
+// ---------------------------------------------------------------------------
+
+/// Operational state of a trading account from the risk-governance perspective.
+enum AccountRiskState {
+  NORMAL
+  WARN
+  THROTTLE
+  PAUSED
+  FLATTEN
+  HALT
+}
+
+/// Operational state of an individual trading strategy from the risk-governance perspective.
+enum StrategyState {
+  ACTIVE
+  WARN
+  THROTTLE
+  PAUSED
+  DISABLED
+}
+
+/// Reason codes that trigger a risk escalation event.
+enum RiskEscalationReason {
+  // Drawdown
+  DRAWDOWN_WARN
+  DRAWDOWN_THROTTLE
+  DRAWDOWN_PAUSE
+  // Loss windows
+  DAILY_LOSS_BREACH
+  WEEKLY_LOSS_BREACH
+  MONTHLY_LOSS_BREACH
+  PEAK_TO_TROUGH_BREACH
+  // Broker
+  BROKER_FAILURE_RATE
+  BROKER_LATENCY_SPIKE
+  BROKER_OUTAGE
+  // Data
+  DATA_QUALITY_STALE
+  DATA_QUALITY_MISSING
+  DATA_QUALITY_FEED_FAIL
+  // Concentration
+  CONCENTRATION_POSITION
+  CONCENTRATION_SECTOR
+  CONCENTRATION_FACTOR
+  // Volatility / regime
+  VOLATILITY_SPIKE
+  REGIME_CRISIS
+  REGIME_UNCERTAIN
+  // Strategy / model
+  STRATEGY_DRAWDOWN
+  STRATEGY_EXPECTANCY_DEGRADATION
+  STRATEGY_HIT_RATE_DEGRADATION
+  LIVE_VS_BACKTEST_DIVERGENCE
+  MODEL_CONFIDENCE_COLLAPSE
+  MODEL_DRIFT_DETECTED
+  // Operator / manual
+  OPERATOR_OVERRIDE
+  OPERATOR_RECOVERY
+  OPERATOR_CLEAR
+  // System
+  SCHEDULED_MAINTENANCE
+  EMERGENCY_HALT
+  /// System-driven auto-recovery from a halted/throttled FSM state once the
+  /// cooldown window has elapsed AND the consecutive-clear-sample threshold
+  /// has been observed. Distinguished from `OPERATOR_RECOVERY` (operator
+  /// manually un-halted a scope) for audit-trail / regulatory clarity:
+  /// regulators differentiate between human-discretionary recoveries and
+  /// machine-deterministic recoveries.
+  /// Emitted by `engine/src/services/risk/governance/recovery-coordinator.ts`
+  /// `_fireRecovery()` / `_fireAiEvaluatedRecovery()`.
+  AUTOMATED_RECOVERY
+}
+
+/// Actor that initiated a risk escalation event.
+enum RiskEscalationActor {
+  SYSTEM_OBSERVER
+  OPERATOR
+  COMPLIANCE_OFFICER
+  AUTOMATED_RECOVERY
+}
+
+/// Per-account risk metrics snapshot: FSM state, high-water mark, drawdown, and D/W/M P&L windows.
+model AccountRiskMetrics {
+  id                       String   @id @default(uuid()) @db.Uuid
+  alpacaAccountId          String   @unique @db.Uuid
+  alpacaAccount            AlpacaAccount @relation(fields: [alpacaAccountId], references: [id], onDelete: Cascade)
+
+  currentRiskState         AccountRiskState @default(NORMAL)
+  currentScopeState        Json?    // map of scope (asset_class, strategy, symbol) -> state
+  riskStateChangedAt       DateTime?
+  riskStateChangedBy       String?
+  riskStateChangeReason    String?
+
+  accountHighWaterMark     Decimal? @db.Decimal(20, 2)
+  accountHighWaterMarkAt   DateTime?
+  currentEquity            Decimal? @db.Decimal(20, 2)
+  currentDrawdownPct       Decimal? @db.Decimal(10, 6)
+  intradayDrawdownPct      Decimal? @db.Decimal(10, 6)
+  maxDrawdownPctLifetime   Decimal? @db.Decimal(10, 6)
+
+  dailyPnlAmount           Decimal? @db.Decimal(20, 2)
+  dailyPnlPct              Decimal? @db.Decimal(10, 6)
+  weeklyPnlAmount          Decimal? @db.Decimal(20, 2)
+  weeklyPnlPct             Decimal? @db.Decimal(10, 6)
+  monthlyPnlAmount         Decimal? @db.Decimal(20, 2)
+  monthlyPnlPct            Decimal? @db.Decimal(10, 6)
+  peakToTroughAmount       Decimal? @db.Decimal(20, 2)
+  peakToTroughPct          Decimal? @db.Decimal(10, 6)
+
+  nextRecoveryEligibleAt   DateTime?
+  lastSyncedAt             DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@index([alpacaAccountId])
+  @@index([currentRiskState, riskStateChangedAt])
+}
+
+/// Per-strategy rolling-window health snapshot: FSM state, rolling stats, backtest divergence, and confidence trend.
+model StrategyHealthSnapshot {
+  id                       String   @id @default(uuid()) @db.Uuid
+  alpacaAccountId          String   @db.Uuid
+  alpacaAccount            AlpacaAccount @relation(fields: [alpacaAccountId], references: [id], onDelete: Cascade)
+  /// Registered strategy KEY — the same value space as `Strategy.key` and the
+  /// engine Tier A `StrategyRegistryEntry.key` (e.g. "core-equity-llm-v1").
+  ///
+  /// Stage 2 repoints this column. Rows written before Stage 2 carry an
+  /// upstream ENSEMBLE SIGNAL SOURCE ("ensemble" | "llm_only" | "manual" |
+  /// "transformer_only" | "drift_fallback") — a description of which producer
+  /// emitted the signal, which is NOT a strategy. Those rows are left in place
+  /// rather than rewritten (nothing can establish which strategy they belonged
+  /// to), so a consumer that needs "strategies" must reject keys that are not
+  /// registered `Strategy.key` values rather than assume every distinct value
+  /// here names one.
+  strategyName             String
+
+  currentState             StrategyState @default(ACTIVE)
+  stateChangedAt           DateTime?
+  stateChangedReason       String?
+
+  windowSize               Int      @default(20)
+  windowTradeCount         Int      @default(0)
+  windowHitRate            Decimal? @db.Decimal(10, 6)
+  windowExpectancy         Decimal? @db.Decimal(20, 6)
+  windowProfitFactor       Decimal? @db.Decimal(20, 6)
+  windowSortino            Decimal? @db.Decimal(20, 6)
+  windowMaxDrawdownPct     Decimal? @db.Decimal(10, 6)
+  windowCumulativePnlAmt   Decimal? @db.Decimal(20, 2)
+
+  backtestExpectancy       Decimal? @db.Decimal(20, 6)
+  backtestHitRate          Float?
+  backtestHitRateStdDev    Float?
+  backtestExpectancyStdDev Float?
+  divergenceZScore         Decimal? @db.Decimal(10, 6)
+  divergenceAlertActive    Boolean  @default(false)
+
+  averageConfidence        Decimal? @db.Decimal(10, 6)
+  confidenceTrend          Decimal? @db.Decimal(10, 6)
+
+  lastUpdatedAt            DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@unique([alpacaAccountId, strategyName])
+  @@index([currentState])
+  @@index([alpacaAccountId, currentState])
+}
+
+/// Immutable audit record of every risk FSM state transition, operator intervention, and automated recovery event.
+model RiskEscalationEvent {
+  id                       String   @id @default(uuid()) @db.Uuid
+  alpacaAccountId          String?  @db.Uuid
+  /// TYPESTRING.SKIP=true GQL.SKIP=true
+  alpacaAccount            AlpacaAccount? @relation(fields: [alpacaAccountId], references: [id], onDelete: SetNull)
+
+  scopeKind                String
+  scopeValue               String?
+
+  fromState                String
+  toState                  String
+  reason                   RiskEscalationReason
+  severity                 OverlaySeverity
+
+  triggeringObserver       String?
+  observedValue            Decimal? @db.Decimal(20, 6)
+  breachedThreshold        Decimal? @db.Decimal(20, 6)
+  breachedThresholdKey     String?
+
+  correlationId            String?
+  triggeringEventId        String?
+  actor                    RiskEscalationActor
+  actorUserId              String?
+  rationale                String?
+
+  /// Back-reference: the overlay this event activated (FK owned by PolicyOverlay.riskEscalationEventId). TYPESTRING.SKIP=true GQL.SKIP=true
+  activatedPolicyOverlay      PolicyOverlay? @relation("PolicyOverlayActivatedBy")
+
+  triggeredByPolicyOverlayId  String?  @db.Uuid
+  /// TYPESTRING.SKIP=true GQL.SKIP=true
+  triggeredByPolicyOverlay    PolicyOverlay? @relation("PolicyOverlayTriggeredEvents", fields: [triggeredByPolicyOverlayId], references: [id])
+
+  createdAt                DateTime @default(now())
+
+  @@index([alpacaAccountId, createdAt])
+  @@index([scopeKind, scopeValue, createdAt])
+  @@index([reason, severity, createdAt])
+  @@index([correlationId])
+  @@index([triggeredByPolicyOverlayId])
+}
+
+// ============================================================================
+// Organization → Fund → BrokerageAccount tenancy layer (SP2-A, 2026-07-02).
+// Strictly additive over the canonical User → AlpacaAccount ownership chain:
+// AlpacaAccount and TradingPolicy remain untouched and canonical, and the
+// engine keeps consuming them unchanged via adaptic.* on the 0.0.x lineage.
+// BrokerageAccount bridges to the engine via engineAccountId; for ALPACA
+// accounts the backfill invariant is id = engineAccountId = alpaca_accounts.id.
+// ============================================================================
+
+// Brokerage provider backing a fund-owned BrokerageAccount.
+enum BrokerageProvider {
+  /// Alpaca Markets — the only provider bridged to the engine today.
+  ALPACA
+
+  /// Interactive Brokers — reserved for engine multi-broker support.
+  IBKR
+
+  /// Coinbase — reserved for engine multi-broker crypto support.
+  COINBASE
+}
+
+// Environment type of a brokerage account (value-compatible with AlpacaAccountType).
+enum BrokerageAccountType {
+  /// A simulated trading account for testing strategies without real money.
+  PAPER
+
+  /// A live trading account with real funds.
+  LIVE
+}
+
+// Lifecycle status of a Fund. Values mirror the platform FundStatus contract
+// (platform packages/database/src/types/fund.ts); operative traffic filters on ACTIVE.
+enum FundStatus {
+  /// Initial setup phase.
+  DRAFT
+
+  /// Awaiting regulatory approval.
+  PENDING_APPROVAL
+
+  /// Approved and active.
+  ACTIVE
+
+  /// Temporarily suspended.
+  SUSPENDED
+
+  /// In liquidation process.
+  LIQUIDATING
+
+  /// Fully liquidated and closed.
+  CLOSED
+}
+
+// Role a user holds within an Organization. The platform's org-level RBAC
+// lives here (OrgMembership.role), NOT in UserRole — do not extend UserRole.
+enum OrgRole {
+  /// Full control of the organization, including deletion and billing.
+  OWNER
+
+  /// Administrative control short of ownership transfer/deletion.
+  ADMIN
+
+  /// Manages portfolios and trading for the organization's funds.
+  PORTFOLIO_MANAGER
+
+  /// Oversees regulatory compliance for the organization.
+  COMPLIANCE_OFFICER
+
+  /// Handles KYC/AML verification workflows.
+  KYC_AML_OFFICER
+
+  /// Read-only audit access across the organization.
+  AUDITOR
+
+  /// Baseline membership with no elevated permissions.
+  MEMBER
+}
+
+// Role a user holds within a specific Fund (FundAssignment.role). Superset of
+// the platform FundRole contract and the 2026-03-10 fund-centric design roles.
+enum FundRole {
+  /// Full control over the fund: trading, configuration, investor management.
+  MANAGER
+
+  /// Executes trades within the fund's policy limits.
+  TRADER
+
+  /// Read-only access to fund data, positions, and analytics.
+  ANALYST
+
+  /// Compliance oversight scoped to this fund.
+  COMPLIANCE
+
+  /// Read-only audit access scoped to this fund.
+  AUDITOR
+
+  /// Read-only access to fund summary and NAV.
+  VIEWER
+
+  /// Investor-facing access: holdings, NAV, documents.
+  INVESTOR
+}
+
+// Top-level tenancy unit that owns funds. Users belong to organizations via OrgMembership.
+model Organization {
+  /// Unique identifier for the organization. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Organization display name.
+  name String
+
+  /// URL-safe unique slug identifying the organization.
+  slug String @unique
+
+  /// URL of the organization's logo image. TYPESTRING.SKIP=true
+  logoUrl String?
+
+  /// The organization's website URL. TYPESTRING.SKIP=true
+  website String?
+
+  /// Business structure ('fund_operator' | 'family_office'); lowercase String to match the platform contract.
+  businessType String?
+
+  /// Email domains associated with this organization for domain-based member matching. TYPESTRING.SKIP=true
+  emailDomains String[] @default([])
+
+  /// Jurisdiction country code (ISO 3166-1 alpha-2).
+  jurisdiction String?
+
+  /// Regulatory registration status ('registered' | 'exempt' | 'pending_registration' | 'not_applicable'); lowercase String to match the platform contract.
+  regulatoryStatus String?
+
+  /// Brief description of the organization.
+  description String?
+
+  /// Default trading settings applied to all funds in this organization (JSON; per-fund overrides live in Fund.tradingOverrides). TYPESTRING.SKIP=true
+  tradingDefaults Json?
+
+  /// Memberships linking users to this organization. TYPESTRING.SKIP=true GQL.EXCLUDE=['organization']
+  members OrgMembership[]
+
+  /// Funds owned by this organization. TYPESTRING.SKIP=true GQL.EXCLUDE=['organization']
+  funds Fund[]
+
+  /// Investors belonging to this organization. TYPESTRING.SKIP=true GQL.SKIP=true
+  investors Investor[]
+
+  /// Investor-relations documents scoped to this organization. TYPESTRING.SKIP=true GQL.SKIP=true
+  investorDocuments InvestorDocument[]
+
+  /// Investor tax documents scoped to this organization. TYPESTRING.SKIP=true GQL.SKIP=true
+  taxDocuments TaxDocument[]
+
+  /// Notification events scoped to this organization. TYPESTRING.SKIP=true GQL.SKIP=true
+  notificationEvents NotificationEvent[]
+
+  /// Governance mandates owned by this organization (org-scoped mandates plus the roll-up of its fund-scoped mandates); read via adaptic.mandate.* rather than through the org to avoid pulling the version/rules tree on every org read. TYPESTRING.SKIP=true GQL.SKIP=true
+  mandates Mandate[]
+
+  /// Timestamp when the organization was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the organization was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  /// Timestamp when the organization was soft-deleted. Null means the record is active. TYPESTRING.SKIP=true
+  deletedAt DateTime?
+
+  @@map(name: "organizations")
+}
+
+// Links a user to an organization with an org-level role and granular permissions.
+model OrgMembership {
+  /// Unique identifier for the membership. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the Organization. TYPESTRING.SKIP=true
+  organizationId String @db.Uuid
+
+  /// Relation to the Organization model. TYPESTRING.INCLUDE=['id','name','slug'] GQL.EXCLUDE=['members','funds']
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the User. TYPESTRING.SKIP=true
+  userId String @db.Uuid
+
+  /// Relation to the User model. TYPESTRING.INCLUDE=['id','name','email'] GQL.INCLUDE=['id','name','email','image']
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Role the user holds within the organization.
+  role OrgRole @default(MEMBER)
+
+  /// Granular permissions granted to this member. TYPESTRING.SKIP=true
+  permissions String[] @default([])
+
+  /// Timestamp when the membership was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the membership was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@map(name: "org_memberships")
+}
+
+// A fund owned by an organization. Owns brokerage accounts and carries the
+// per-fund trading overrides merged over Organization.tradingDefaults.
+model Fund {
+  /// Unique identifier for the fund. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Fund display name.
+  name String
+
+  /// URL-safe slug, unique within the owning organization.
+  slug String
+
+  /// Brief description of the fund.
+  description String?
+
+  /// Lifecycle status of the fund.
+  status FundStatus @default(DRAFT)
+
+  /// Base currency of the fund (ISO 4217 code).
+  currency String @default("USD")
+
+  /// Foreign key referencing the owning Organization. TYPESTRING.SKIP=true
+  organizationId String @db.Uuid
+
+  /// Relation to the owning Organization. TYPESTRING.INCLUDE=['id','name','slug'] GQL.INCLUDE=['id','name','slug']
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the managing User. TYPESTRING.SKIP=true
+  managerId String? @db.Uuid
+
+  /// Relation to the User who manages this fund. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','email']
+  manager User? @relation("FundManager", fields: [managerId], references: [id], onDelete: SetNull)
+
+  /// Foreign key referencing the operating User. TYPESTRING.SKIP=true
+  operatorId String? @db.Uuid
+
+  /// Relation to the User who operates this fund. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','email']
+  operator User? @relation("FundOperator", fields: [operatorId], references: [id], onDelete: SetNull)
+
+  /// Date the fund began operations.
+  inceptionDate DateTime?
+
+  /// Assets under management in the fund's base currency.
+  aum Float @default(0)
+
+  /// Net asset value per share/unit.
+  navPerShare Float @default(1)
+
+  /// Total shares/units outstanding.
+  sharesOutstanding Float @default(0)
+
+  /// High-water-mark NAV used for performance-fee calculation.
+  highWaterMarkNav Float?
+
+  /// Fee structure (management/performance fees; JSON). TYPESTRING.SKIP=true
+  fees Json?
+
+  /// Fund terms (lockup, redemption windows, minimums; JSON). TYPESTRING.SKIP=true
+  terms Json?
+
+  /// Regulatory metadata (jurisdiction, exemptions, sharia compliance; JSON). TYPESTRING.SKIP=true
+  regulatory Json?
+
+  /// Service providers (administrator, custodian, auditor; JSON). TYPESTRING.SKIP=true
+  serviceProviders Json?
+
+  /// Per-fund overrides of Organization.tradingDefaults (JSON). TYPESTRING.SKIP=true
+  tradingOverrides Json?
+
+  /// Brokerage accounts owned by this fund. TYPESTRING.SKIP=true GQL.EXCLUDE=['fund']
+  brokerageAccounts BrokerageAccount[]
+
+  /// User assignments for this fund. TYPESTRING.SKIP=true GQL.SKIP=true
+  assignments FundAssignment[]
+
+  /// Per-investor holdings (capital accounts) in this fund. TYPESTRING.SKIP=true GQL.SKIP=true
+  holdings Holding[]
+
+  /// Investor capital-ledger transactions for this fund. TYPESTRING.SKIP=true GQL.SKIP=true
+  investorTransactions InvestorTransaction[]
+
+  /// Investor-relations documents scoped to this fund. TYPESTRING.SKIP=true GQL.SKIP=true
+  investorDocuments InvestorDocument[]
+
+  /// Investor tax documents scoped to this fund. TYPESTRING.SKIP=true GQL.SKIP=true
+  taxDocuments TaxDocument[]
+
+  /// Notification events scoped to this fund. TYPESTRING.SKIP=true GQL.SKIP=true
+  notificationEvents NotificationEvent[]
+
+  /// Governance mandates scoped to this fund; read via adaptic.mandate.* rather than through the fund to avoid pulling the version/rules tree on every fund read. TYPESTRING.SKIP=true GQL.SKIP=true
+  mandates Mandate[]
+
+  /// Timestamp when the fund was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the fund was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  /// Timestamp when the fund was soft-deleted. Null means the record is active. TYPESTRING.SKIP=true
+  deletedAt DateTime?
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([status])
+  @@map(name: "funds")
+}
+
+// Links a user to a fund with a fund-level role and granular permissions.
+model FundAssignment {
+  /// Unique identifier for the assignment. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the Fund. TYPESTRING.SKIP=true
+  fundId String @db.Uuid
+
+  /// Relation to the Fund model. TYPESTRING.INCLUDE=['id','name','slug'] GQL.INCLUDE=['id','name','slug','status','organizationId']
+  fund Fund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the User. TYPESTRING.SKIP=true
+  userId String @db.Uuid
+
+  /// Relation to the User model. TYPESTRING.INCLUDE=['id','name','email'] GQL.INCLUDE=['id','name','email','image']
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Role the user holds within this fund.
+  role FundRole @default(VIEWER)
+
+  /// Granular permissions granted for this fund. TYPESTRING.SKIP=true
+  permissions String[] @default([])
+
+  /// Timestamp when the assignment was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the assignment was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  @@unique([fundId, userId])
+  @@index([userId])
+  @@map(name: "fund_assignments")
+}
+
+// Fund-owned brokerage account: the platform-facing account entity. For
+// ALPACA accounts it bridges 1:1 to the engine-canonical AlpacaAccount via
+// engineAccountId (backfill invariant: id = engineAccountId). The policy
+// columns mirror AlpacaAccount defaults for the platform policy editor;
+// TradingPolicy remains canonical for the engine during the SP2 transition.
+model BrokerageAccount {
+  /// Unique identifier. For ALPACA accounts this equals engineAccountId (= alpaca_accounts.id) by the backfill invariant. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Brokerage provider backing this account.
+  provider BrokerageProvider @default(ALPACA)
+
+  /// Account environment (paper or live).
+  type BrokerageAccountType @default(PAPER)
+
+  /// Human-friendly display label for the account.
+  label String?
+
+  /// Foreign key referencing the owning Fund. TYPESTRING.SKIP=true
+  fundId String @db.Uuid
+
+  /// Relation to the owning Fund. TYPESTRING.INCLUDE=['id','name','slug'] GQL.INCLUDE=['id','name','slug','organizationId']
+  fund Fund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  /// Engine-side AlpacaAccount id this account is bridged to (the WS-scoping id). Null for non-ALPACA providers until engine multi-broker support lands. TYPESTRING.SKIP=true
+  engineAccountId String? @unique @db.Uuid
+
+  /// Relation to the engine-canonical AlpacaAccount. Never exposed through generated selection sets. TYPESTRING.SKIP=true GQL.SKIP=true
+  engineAccount AlpacaAccount? @relation(fields: [engineAccountId], references: [id], onDelete: SetNull)
+
+  /// Provider API key. Never exposed through generated selection sets. TYPESTRING.SKIP=true GQL.SKIP=true
+  apiKey String?
+
+  /// Provider API secret. Never exposed through generated selection sets. TYPESTRING.SKIP=true GQL.SKIP=true
+  apiSecret String?
+
+  /// Provider-specific configuration (JSON). TYPESTRING.SKIP=true
+  configuration Json?
+
+  /// Opt-in for preparing orders for the next trading day. TYPESTRING.SKIP=true
+  marketOpen Boolean @default(false)
+
+  /// Opt-in for connecting to real-time monitoring and trading. TYPESTRING.SKIP=true
+  realTime Boolean @default(false)
+
+  /// Whether the system should automatically determine allocation percentages based on market conditions. TYPESTRING.SKIP=true
+  autoAllocation Boolean @default(true)
+
+  /// Minimum percentage change (from intraday high/low) to consider for a trade signal. TYPESTRING.SKIP=true
+  minPercentageChange Float @default(0.5)
+
+  /// Volume threshold for a trade signal (minimum volume qualifier to consider an asset for trading). TYPESTRING.SKIP=true
+  volumeThreshold Float @default(50000)
+
+  /// List of crypto trading pairs available for the account. TYPESTRING.SKIP=true
+  cryptoTradingPairs String[] @default([])
+
+  /// Opt-in for the portfolio-level trailing stop service. Platform-facing mirror; engine reads TradingPolicy.enablePortfolioTrailingStop. TYPESTRING.SKIP=true
+  enablePortfolioTrailingStop Boolean @default(false)
+
+  /// Portfolio-level trailing stop percentage. Platform-facing mirror; engine reads TradingPolicy.portfolioTrailPercent. TYPESTRING.SKIP=true
+  portfolioTrailPercent Float @default(4.0)
+
+  /// Portfolio-level profit threshold percentage. Platform-facing mirror; engine reads TradingPolicy.portfolioProfitThresholdPercent. TYPESTRING.SKIP=true
+  portfolioProfitThresholdPercent Float @default(2.0)
+
+  /// Reduced portfolio trailing stop percentage once the profit threshold is exceeded. Platform-facing mirror; engine reads TradingPolicy.reducedPortfolioTrailPercent. TYPESTRING.SKIP=true
+  reducedPortfolioTrailPercent Float @default(0.5)
+
+  /// Initial position trailing stop percentage. Platform-facing mirror; engine reads TradingPolicy.defaultTrailingStopPercentage100. TYPESTRING.SKIP=true
+  defaultTrailingStopPercentage100 Float @default(4.0)
+
+  /// First profit threshold at which the position trailing stop is reduced. Platform-facing mirror; engine reads TradingPolicy.firstTrailReductionThreshold100. TYPESTRING.SKIP=true
+  firstTrailReductionThreshold100 Float @default(2.0)
+
+  /// Second profit threshold at which the position trailing stop is further reduced. Platform-facing mirror; engine reads TradingPolicy.secondTrailReductionThreshold100. TYPESTRING.SKIP=true
+  secondTrailReductionThreshold100 Float @default(5.0)
+
+  /// Trailing stop percentage used beyond the first threshold. Platform-facing mirror; engine reads TradingPolicy.firstReducedTrailPercentage100. TYPESTRING.SKIP=true
+  firstReducedTrailPercentage100 Float @default(1.0)
+
+  /// Trailing stop percentage used beyond the second threshold. Platform-facing mirror; engine reads TradingPolicy.secondReducedTrailPercentage100. TYPESTRING.SKIP=true
+  secondReducedTrailPercentage100 Float @default(0.5)
+
+  /// Minimum change in trailing stop percent to warrant an adjustment. Platform-facing mirror; engine reads TradingPolicy.minimumPriceChangePercent100. TYPESTRING.SKIP=true
+  minimumPriceChangePercent100 Float @default(0.5)
+
+  /// Timestamp when the brokerage account was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the brokerage account was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  /// Timestamp when the brokerage account was soft-deleted. Null means the record is active. TYPESTRING.SKIP=true
+  deletedAt DateTime?
+
+  @@index([fundId])
+  @@map(name: "brokerage_accounts")
+}
+
+// ============================================================================
+// Notification pipeline (SP3 W4-N, 2026-07-02).
+// System-of-record models for the triggered email/push/in-app pipeline:
+// trigger source → durable NotificationEvent → platform dispatcher
+// (audience resolution + NotificationPreference) → renderer/provider adapter →
+// NotificationDelivery audit rows. Strictly additive. Catalog channel defaults
+// and `always:true` locks are resolved in the dispatcher service layer at
+// dispatch time from the 88-entry notification catalog — they are intentionally
+// NOT materialised as preference rows here.
+// ============================================================================
+
+// Delivery channel for a notification (mirrors the catalog's email/push/inapp channel set).
+enum NotificationChannel {
+  /// Rendered email sent through the platform provider adapter (Resend primary).
+  EMAIL
+
+  /// Native/web push notification.
+  PUSH
+
+  /// In-app notification-feed entry (bell / Notification Center).
+  IN_APP
+}
+
+// Lifecycle status of a single recipient×channel notification delivery.
+enum NotificationDeliveryStatus {
+  /// Fan-out row created; not yet handed to a provider.
+  PENDING
+
+  /// Accepted by the provider (or written to the in-app feed).
+  SENT
+
+  /// Provider confirmed delivery (e.g. Resend/SES delivery webhook).
+  DELIVERED
+
+  /// Provider reported a hard bounce.
+  BOUNCED
+
+  /// Dispatcher or provider failed permanently after retries.
+  FAILED
+
+  /// Suppressed before send (preference opt-out, suppression list, or policy).
+  SUPPRESSED
+}
+
+// Durable, idempotent record of a notification-worthy domain event. Written by
+// trigger sources (engine via adaptic.*, platform actions, schedulers, billing
+// webhooks); consumed by the platform dispatcher, which fans out one
+// NotificationDelivery per recipient×channel. Rows are append-only.
+model NotificationEvent {
+  /// Unique identifier for the notification event. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Notification-catalog event id this event instantiates (e.g. 'risk_limit_breach'). Not a foreign key — the 88-entry catalog lives in platform code.
+  eventId String
+
+  /// Foreign key referencing the scoping Organization, when the event is org-scoped. TYPESTRING.SKIP=true
+  orgId String? @db.Uuid
+
+  /// Relation to the scoping Organization. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','slug']
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+
+  /// Foreign key referencing the scoping Fund, when the event is fund-scoped. TYPESTRING.SKIP=true
+  fundId String? @db.Uuid
+
+  /// Relation to the scoping Fund. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','slug']
+  fund Fund? @relation(fields: [fundId], references: [id], onDelete: SetNull)
+
+  /// ID of the user whose action produced the event, when user-initiated. Plain scalar (no relation) per the AuditLog.userId convention so event rows survive user deletion. TYPESTRING.SKIP=true
+  actorUserId String? @db.Uuid
+
+  /// Template payload for the catalog event (typed per eventId in the platform spec registry; JSON).
+  payload Json
+
+  /// Producer-supplied idempotency key; the UNIQUE constraint makes event writes exactly-once under trigger retries. TYPESTRING.SKIP=true
+  idempotencyKey String @unique
+
+  /// Trigger source that produced the event ('engine' | 'platform' | 'scheduler' | 'billing'); lowercase String to match the platform contract.
+  source String
+
+  /// Deliveries fanned out from this event. TYPESTRING.SKIP=true GQL.SKIP=true
+  deliveries NotificationDelivery[]
+
+  /// Timestamp when the event was recorded. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  @@index([eventId, createdAt])
+  @@index([orgId])
+  @@index([fundId])
+  @@map(name: "notification_events")
+}
+
+// SOC2 delivery-audit record: one row per recipient×channel fan-out of a
+// NotificationEvent, updated by the dispatcher and provider delivery webhooks
+// (delivered/bounced/complained). Together with AuditLog this is the evidence
+// trail proving what was sent, to whom, with which template version.
+model NotificationDelivery {
+  /// Unique identifier for the delivery. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the NotificationEvent this delivery fans out from. TYPESTRING.SKIP=true
+  eventId String @db.Uuid
+
+  /// Relation to the source NotificationEvent. TYPESTRING.INCLUDE=['id','eventId','source'] GQL.INCLUDE=['id','eventId','payload','source','createdAt']
+  event NotificationEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the recipient User. TYPESTRING.SKIP=true
+  recipientUserId String @db.Uuid
+
+  /// Relation to the recipient User. Cascade keeps erasure complete when a user row is hard-deleted (users are soft-deleted in normal operation). TYPESTRING.INCLUDE=['id','name','email'] GQL.INCLUDE=['id','name','email']
+  recipient User @relation(fields: [recipientUserId], references: [id], onDelete: Cascade)
+
+  /// Channel this delivery targets.
+  channel NotificationChannel
+
+  /// Template id used to render the notification (catalog id; equals event.eventId unless a variant was selected).
+  templateId String
+
+  /// Version of the template at render time (SOC2: proves exactly what was rendered and sent).
+  templateVersion String
+
+  /// Delivery provider selected by the dispatcher ('resend' | 'ses' | 'apns' | 'fcm' | 'inapp'); lowercase String, null until dispatch.
+  provider String?
+
+  /// Provider-side message id used to correlate delivery/bounce webhooks. TYPESTRING.SKIP=true
+  providerMessageId String?
+
+  /// Lifecycle status of the delivery.
+  status NotificationDeliveryStatus @default(PENDING)
+
+  /// Human-readable detail for the current status (bounce reason, suppression cause, provider error). TYPESTRING.SKIP=true
+  statusDetail String?
+
+  /// Timestamp when the provider accepted the message. TYPESTRING.SKIP=true
+  sentAt DateTime?
+
+  /// Timestamp when the provider confirmed delivery. TYPESTRING.SKIP=true
+  deliveredAt DateTime?
+
+  /// Timestamp when the recipient read the notification (IN_APP feed read-state; null = unread). Dedicated column so read-state is not overloaded onto the DELIVERED delivery status; the platform feed adopts this later. TYPESTRING.SKIP=true
+  readAt DateTime?
+
+  /// Timestamp when the delivery row was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the delivery row was last updated (status transitions from dispatcher/webhooks). TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, recipientUserId, channel])
+  @@index([recipientUserId, createdAt])
+  @@index([status])
+  @@index([providerMessageId])
+  @@map(name: "notification_deliveries")
+}
+
+// Per-user notification preference: one row per user×catalog-event×channel
+// override. Absence of a row means the catalog channel default applies;
+// `always:true` catalog locks (required/security emails) are enforced in the
+// dispatcher service layer — a row here can never disable them.
+model NotificationPreference {
+  /// Unique identifier for the preference. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the User. TYPESTRING.SKIP=true
+  userId String @db.Uuid
+
+  /// Relation to the User model. TYPESTRING.INCLUDE=['id','name','email'] GQL.INCLUDE=['id','name','email']
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Notification-catalog event id this preference applies to (e.g. 'risk_limit_breach').
+  eventId String
+
+  /// Channel this preference applies to.
+  channel NotificationChannel
+
+  /// Whether the user has this event×channel enabled.
+  enabled Boolean
+
+  /// Timestamp when the preference was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the preference was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, eventId, channel])
+  @@map(name: "notification_preferences")
+}
+
+// ============================================================================
+// Investor Relations (IR) domain
+// Investor capital accounts, per-fund holdings, capital-ledger transactions,
+// and IR / tax documents. Consumed by the engine IR REST layer and the
+// platform investor-relations surfaces.
+// ============================================================================
+
+enum InvestorType {
+  /// A single natural person.
+  INDIVIDUAL
+
+  /// A jointly-held individual account.
+  JOINT
+
+  /// A legal entity (LLC, corporation, partnership).
+  ENTITY
+
+  /// An institutional allocator (pension, endowment, fund-of-funds).
+  INSTITUTION
+
+  /// A trust vehicle.
+  TRUST
+
+  /// A tax-advantaged retirement account (IRA, 401k).
+  RETIREMENT_ACCOUNT
+}
+
+enum InvestorKycStatus {
+  /// KYC not yet started or awaiting documents.
+  PENDING
+
+  /// KYC submitted and under review.
+  REVIEW
+
+  /// KYC approved; the investor may transact.
+  APPROVED
+
+  /// KYC rejected; the investor is blocked from transacting.
+  REJECTED
+}
+
+enum InvestorStatus {
+  /// Identified but not yet onboarding.
+  PROSPECT
+
+  /// In the onboarding / subscription-agreement process.
+  ONBOARDING
+
+  /// Active investor with (or eligible for) holdings.
+  ACTIVE
+
+  /// Temporarily inactive (no active holdings, relationship retained).
+  INACTIVE
+
+  /// Fully redeemed and closed.
+  CLOSED
+}
+
+enum HoldingStatus {
+  /// The investor currently holds units in the fund.
+  ACTIVE
+
+  /// The position has been fully redeemed and closed.
+  CLOSED
+}
+
+enum InvestorTransactionType {
+  /// Capital into the fund (units issued).
+  SUBSCRIPTION
+
+  /// Capital out of the fund (units redeemed).
+  REDEMPTION
+
+  /// A drawdown notice against a committed amount.
+  CAPITAL_CALL
+
+  /// A cash distribution paid to the investor.
+  DISTRIBUTION
+
+  /// A transfer of units between investors.
+  TRANSFER
+
+  /// A fee charged to the investor (management/performance).
+  FEE
+}
+
+enum InvestorTransactionStatus {
+  /// Requested; awaiting operator review.
+  PENDING
+
+  /// Under operator review.
+  REVIEWING
+
+  /// Approved; awaiting execution at the next NAV strike.
+  APPROVED
+
+  /// Execution in progress.
+  PROCESSING
+
+  /// Executed at NAV; units issued/redeemed.
+  COMPLETED
+
+  /// Cash settled with the investor.
+  SETTLED
+
+  /// Rejected by the operator (see rejectionReason).
+  REJECTED
+
+  /// Cancelled by the investor or operator before execution.
+  CANCELLED
+
+  /// Execution failed after approval.
+  FAILED
+}
+
+enum InvestorDocumentType {
+  /// Periodic capital-account statement.
+  STATEMENT
+
+  /// Periodic investor report (quarterly/annual letter).
+  REPORT
+
+  /// Subscription agreement.
+  SUBSCRIPTION_AGREEMENT
+
+  /// Offering memorandum / private-placement memorandum.
+  OFFERING_MEMORANDUM
+
+  /// Capital-call notice.
+  CAPITAL_CALL_NOTICE
+
+  /// Distribution notice.
+  DISTRIBUTION_NOTICE
+
+  /// KYC/AML documentation.
+  KYC
+
+  /// Tax-related document (see TaxDocument for structured tax forms).
+  TAX
+
+  /// Any other investor-relations document.
+  OTHER
+}
+
+enum InvestorDocumentStatus {
+  /// Drafted but not yet published to investors.
+  DRAFT
+
+  /// Published and available to the investor.
+  AVAILABLE
+
+  /// Archived / superseded.
+  ARCHIVED
+}
+
+enum TaxDocumentType {
+  /// Schedule K-1 (partnership).
+  K1
+
+  /// Form 1099 series.
+  FORM_1099
+
+  /// Form 1042-S (foreign persons' US-source income).
+  FORM_1042S
+
+  /// Form 8949 (sales and dispositions of capital assets).
+  FORM_8949
+
+  /// Consolidated annual tax summary.
+  ANNUAL_SUMMARY
+
+  /// Any other tax document.
+  OTHER
+}
+
+enum TaxDocumentStatus {
+  /// Not yet issued (in preparation).
+  PENDING
+
+  /// Issued and available to the investor.
+  AVAILABLE
+
+  /// Amended after original issuance.
+  AMENDED
+
+  /// Superseded by a later version.
+  SUPERSEDED
+}
+
+model Investor {
+  /// Unique identifier for the investor. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the owning Organization. TYPESTRING.SKIP=true
+  organizationId String @db.Uuid
+
+  /// Relation to the owning Organization. TYPESTRING.INCLUDE=['id','name','slug'] GQL.INCLUDE=['id','name','slug']
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing a platform User for self-service access (optional). TYPESTRING.SKIP=true
+  userId String? @db.Uuid
+
+  /// Relation to the linked platform User, if the investor has portal access. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','email','image']
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  /// Foreign key referencing the KYC/AML + billing Customer (optional). TYPESTRING.SKIP=true
+  customerId Int?
+
+  /// Relation to the linked Customer for KYC/AML reuse. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','amlStatus','riskProfile','jurisdiction']
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  /// Investor legal / display name.
+  name String
+
+  /// Primary contact email.
+  email String?
+
+  /// Classification of the investor.
+  type InvestorType @default(INDIVIDUAL)
+
+  /// Lifecycle status of the investor relationship.
+  status InvestorStatus @default(ACTIVE)
+
+  /// KYC/AML verification state.
+  kycStatus InvestorKycStatus @default(PENDING)
+
+  /// Jurisdiction country code (ISO 3166-1 alpha-2).
+  jurisdiction String?
+
+  /// Date the investor was onboarded / first subscribed.
+  joinedAt DateTime?
+
+  /// External LP-register reference id (administrator/transfer-agent). TYPESTRING.SKIP=true
+  externalRef String?
+
+  /// Free-form operator notes. TYPESTRING.SKIP=true
+  notes String?
+
+  /// Per-fund holdings for this investor. TYPESTRING.SKIP=true GQL.EXCLUDE=['investor']
+  holdings Holding[]
+
+  /// Capital-ledger transactions for this investor. TYPESTRING.SKIP=true GQL.SKIP=true
+  transactions InvestorTransaction[]
+
+  /// Investor-relations documents for this investor. TYPESTRING.SKIP=true GQL.SKIP=true
+  documents InvestorDocument[]
+
+  /// Tax documents for this investor. TYPESTRING.SKIP=true GQL.SKIP=true
+  taxDocuments TaxDocument[]
+
+  /// Timestamp when the investor was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the investor was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  /// Timestamp when the investor was soft-deleted. Null means active. TYPESTRING.SKIP=true
+  deletedAt DateTime?
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([customerId])
+  @@index([status])
+  @@map(name: "investors")
+}
+
+model Holding {
+  /// Unique identifier for the holding. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the Investor. TYPESTRING.SKIP=true
+  investorId String @db.Uuid
+
+  /// Relation to the owning Investor. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','type']
+  investor Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the Fund. TYPESTRING.SKIP=true
+  fundId String @db.Uuid
+
+  /// Relation to the Fund. TYPESTRING.INCLUDE=['id','name','currency'] GQL.INCLUDE=['id','name','slug','currency','navPerShare','status']
+  fund Fund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  /// Units (shares) currently held.
+  units Decimal @db.Decimal(24, 10) @default(0)
+
+  /// Cumulative net cost basis (total contributed, net of redemptions).
+  costBasis Decimal @db.Decimal(18, 6) @default(0)
+
+  /// Cumulative realized P/L from completed redemptions.
+  realizedPL Decimal @db.Decimal(18, 6) @default(0)
+
+  /// Cumulative distributions paid to the investor for this holding.
+  distributionsPaid Decimal @db.Decimal(18, 6) @default(0)
+
+  /// Base currency of the holding (ISO 4217).
+  currency String @default("USD")
+
+  /// Lifecycle status of the holding.
+  status HoldingStatus @default(ACTIVE)
+
+  /// Date of the first subscription into this holding.
+  firstInvestedAt DateTime?
+
+  /// Date of the most recent transaction affecting this holding.
+  lastTransactionAt DateTime?
+
+  /// Capital-ledger transactions affecting this holding. TYPESTRING.SKIP=true GQL.SKIP=true
+  transactions InvestorTransaction[]
+
+  /// Timestamp when the holding was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the holding was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  /// Timestamp when the holding was soft-deleted. Null means active. TYPESTRING.SKIP=true
+  deletedAt DateTime?
+
+  @@unique([investorId, fundId])
+  @@index([fundId])
+  @@index([investorId])
+  @@map(name: "holdings")
+}
+
+model InvestorTransaction {
+  /// Unique identifier for the transaction. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the Investor. TYPESTRING.SKIP=true
+  investorId String @db.Uuid
+
+  /// Relation to the Investor. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','type']
+  investor Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the Fund. TYPESTRING.SKIP=true
+  fundId String @db.Uuid
+
+  /// Relation to the Fund. TYPESTRING.INCLUDE=['id','name','currency'] GQL.INCLUDE=['id','name','currency']
+  fund Fund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the affected Holding (optional). TYPESTRING.SKIP=true
+  holdingId String? @db.Uuid
+
+  /// Relation to the affected Holding. TYPESTRING.SKIP=true GQL.SKIP=true
+  holding Holding? @relation(fields: [holdingId], references: [id], onDelete: SetNull)
+
+  /// Type of capital transaction.
+  type InvestorTransactionType
+
+  /// Processing status of the transaction.
+  status InvestorTransactionStatus @default(PENDING)
+
+  /// Gross cash amount of the transaction.
+  amount Decimal? @db.Decimal(18, 6)
+
+  /// Units (shares) requested.
+  units Decimal? @db.Decimal(24, 10)
+
+  /// NAV per unit at the time of request.
+  requestNav Decimal? @db.Decimal(18, 8)
+
+  /// NAV per unit at execution.
+  executionNav Decimal? @db.Decimal(18, 8)
+
+  /// Units (shares) actually executed.
+  executedUnits Decimal? @db.Decimal(24, 10)
+
+  /// Fees applied to the transaction.
+  fees Decimal? @db.Decimal(18, 6)
+
+  /// Net cash amount after fees.
+  netAmount Decimal? @db.Decimal(18, 6)
+
+  /// Base currency of the transaction (ISO 4217).
+  currency String @default("USD")
+
+  /// Timestamp when the transaction was requested.
+  requestedAt DateTime?
+
+  /// Timestamp when the transaction was reviewed.
+  reviewedAt DateTime?
+
+  /// Timestamp when the transaction was executed.
+  executedAt DateTime?
+
+  /// Timestamp when the transaction settled.
+  settledAt DateTime?
+
+  /// Reason the transaction was rejected, if applicable.
+  rejectionReason String?
+
+  /// Free-form notes on the transaction. TYPESTRING.SKIP=true
+  notes String?
+
+  /// External reference id (administrator/custodian). TYPESTRING.SKIP=true
+  externalRef String?
+
+  /// Timestamp when the record was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the record was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  @@index([investorId])
+  @@index([fundId])
+  @@index([holdingId])
+  @@index([status])
+  @@index([type])
+  @@map(name: "investor_transactions")
+}
+
+model InvestorDocument {
+  /// Unique identifier for the document. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the owning Organization. TYPESTRING.SKIP=true
+  organizationId String @db.Uuid
+
+  /// Relation to the owning Organization. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','slug']
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the Fund this document belongs to (optional). TYPESTRING.SKIP=true
+  fundId String? @db.Uuid
+
+  /// Relation to the Fund. TYPESTRING.INCLUDE=['id','name'] GQL.INCLUDE=['id','name','slug']
+  fund Fund? @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the Investor this document targets (optional; null = fund-wide). TYPESTRING.SKIP=true
+  investorId String? @db.Uuid
+
+  /// Relation to the targeted Investor. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name']
+  investor Investor? @relation(fields: [investorId], references: [id], onDelete: Cascade)
+
+  /// Category of the document.
+  type InvestorDocumentType
+
+  /// Availability state of the document.
+  status InvestorDocumentStatus @default(AVAILABLE)
+
+  /// Document title.
+  title String
+
+  /// Brief description of the document. TYPESTRING.SKIP=true
+  description String?
+
+  /// Publicly resolvable URL for the document (may be a signed URL).
+  url String?
+
+  /// Internal object-storage key. TYPESTRING.SKIP=true GQL.SKIP=true
+  storageKey String?
+
+  /// Document version label.
+  version String @default("1")
+
+  /// Start of the period the document covers.
+  periodStart DateTime?
+
+  /// End of the period the document covers.
+  periodEnd DateTime?
+
+  /// Effective date of the document.
+  effectiveDate DateTime?
+
+  /// Whether the investor must acknowledge this document.
+  requiresAcknowledgment Boolean @default(false)
+
+  /// Whether the document is visible to all fund investors.
+  isPublic Boolean @default(false)
+
+  /// Timestamp when the document was published.
+  publishedAt DateTime?
+
+  /// Timestamp when the document was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the document was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  /// Timestamp when the document was soft-deleted. Null means active. TYPESTRING.SKIP=true
+  deletedAt DateTime?
+
+  @@index([organizationId])
+  @@index([fundId])
+  @@index([investorId])
+  @@index([type])
+  @@map(name: "investor_documents")
+}
+
+model TaxDocument {
+  /// Unique identifier for the tax document. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the owning Organization. TYPESTRING.SKIP=true
+  organizationId String @db.Uuid
+
+  /// Relation to the owning Organization. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','slug']
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the Investor. TYPESTRING.SKIP=true
+  investorId String @db.Uuid
+
+  /// Relation to the Investor. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name']
+  investor Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the Fund (optional). TYPESTRING.SKIP=true
+  fundId String? @db.Uuid
+
+  /// Relation to the Fund. TYPESTRING.INCLUDE=['id','name'] GQL.INCLUDE=['id','name']
+  fund Fund? @relation(fields: [fundId], references: [id], onDelete: SetNull)
+
+  /// Tax year the document covers.
+  taxYear Int
+
+  /// Category of the tax form.
+  formType TaxDocumentType
+
+  /// Availability state of the tax document.
+  status TaxDocumentStatus @default(PENDING)
+
+  /// Publicly resolvable URL for the document (may be a signed URL).
+  url String?
+
+  /// Internal object-storage key. TYPESTRING.SKIP=true GQL.SKIP=true
+  storageKey String?
+
+  /// Timestamp when the document was issued to the investor.
+  issuedAt DateTime?
+
+  /// Timestamp when the record was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the record was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  /// Timestamp when the record was soft-deleted. Null means active. TYPESTRING.SKIP=true
+  deletedAt DateTime?
+
+  @@index([organizationId])
+  @@index([investorId])
+  @@index([fundId])
+  @@index([taxYear])
+  @@map(name: "tax_documents")
+}
+
+
+/// ### Governance Mandate Store (intent/authoring layer above TradingPolicy)
+//
+// The Mandate store is the Tier-B, org/fund-scoped, authored INTENT layer for governance:
+// mandates/charters/policies are drafted, versioned, and approved here. It sits ABOVE the
+// per-account TradingPolicy (schema.prisma:5008) — the engine's canonical *enforceable*
+// operating envelope. On approval, a MandateVersion's MandateRules PROJECT down into
+// TradingPolicy (see the projection note on MandateRule); the engine reads TradingPolicy
+// only, never a Mandate. Authoring/approval lives here; enforcement lives in TradingPolicy —
+// one rail, one source of truth, projected in one direction.
+
+// Whether a Mandate applies to an entire Organization or to a single Fund within it.
+enum MandateScopeKind {
+  /// Applies across the whole organization (all of its funds).
+  ORGANIZATION
+
+  /// Applies to a single fund within the organization.
+  FUND
+}
+
+// Category of governance mandate — the kind of authored charter/policy document.
+enum MandateClass {
+  /// Strategy charter: the trading mandate's objective, universe, and style rails.
+  STRATEGY_CHARTER
+
+  /// Firm ethos: values, conduct, and qualitative operating principles.
+  FIRM_ETHOS
+
+  /// Approval matrix: who may authorize what, and the four-eyes thresholds.
+  APPROVAL_MATRIX
+
+  /// Risk policy: quantitative risk limits (exposure, concentration, drawdown).
+  RISK_POLICY
+
+  /// Standard operating procedure: a repeatable operational runbook.
+  SOP
+}
+
+// Lifecycle state of a MandateVersion as it moves through propose → approve → supersede.
+enum MandateStatus {
+  /// Work-in-progress draft, not yet submitted for approval.
+  DRAFTED
+
+  /// Submitted and awaiting four-eyes approval.
+  PROPOSED
+
+  /// Approved and in force (its rules are projected into the enforceable TradingPolicy layer).
+  APPROVED
+
+  /// Replaced by a newer approved version; retained for audit.
+  SUPERSEDED
+
+  /// Retired from use; retained for audit.
+  ARCHIVED
+}
+
+// Control gate a MandateRule imposes — how much human involvement an action requires.
+// Mirrors the platform GovActType contract (auto | notify | approval | propose | human).
+enum MandateControlGate {
+  /// Fully automated: the engine may act without human involvement.
+  AUTO
+
+  /// Automated, but a human is notified after the fact.
+  NOTIFY
+
+  /// Requires explicit human approval before acting.
+  APPROVAL
+
+  /// The system may only propose the action; a human must enact it.
+  PROPOSE
+
+  /// Human-only: no automated action is permitted.
+  HUMAN
+}
+
+// Direction/nature of a MandateRule's numeric threshold.
+enum MandateLimitKind {
+  /// An upper bound the measured quantity must not exceed.
+  MAX
+
+  /// A lower bound the measured quantity must not fall below.
+  MIN
+
+  /// A target the measured quantity should track toward.
+  TARGET
+
+  /// A trigger level at which the rule's control gate fires.
+  TRIGGER
+}
+
+// A Mandate is the org/fund-scoped, authored governance charter — the INTENT layer that sits
+// ABOVE the per-account TradingPolicy the engine enforces. It holds identity + tenancy scope +
+// owner + persona scope + a pointer to the currently-active MandateVersion. The versioned
+// propose→approve content lives in MandateVersion, its enforceable clauses in MandateRule, and
+// its four-eyes trail in MandateApproval.
+//
+// PROJECTION: on approval, the active MandateVersion's MandateRules project into the per-account
+// TradingPolicy (schema.prisma:5008), the engine's canonical enforceable envelope. The Mandate is
+// authoring/intent; TradingPolicy is enforcement — do NOT treat both as sources of truth for the
+// same rail. Mandates are authored and approved here, then projected down; the engine reads only
+// TradingPolicy.
+model Mandate {
+  /// Unique identifier for the mandate. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Whether this mandate is scoped to the whole organization or to a single fund.
+  scopeKind MandateScopeKind @default(ORGANIZATION)
+
+  /// Category of the mandate (strategy charter, firm ethos, approval matrix, risk policy, SOP).
+  klass MandateClass
+
+  /// Human-readable mandate name.
+  name String
+
+  /// Persona this mandate primarily applies to ('portfolio_manager' | 'fund_operator' | 'compliance_officer' | …); lowercase String to match the platform contract. Null = firm-wide / all personas.
+  personaScope String?
+
+  /// Foreign key referencing the owning Organization (tenancy root; always set). TYPESTRING.SKIP=true
+  organizationId String @db.Uuid
+
+  /// Relation to the owning Organization. TYPESTRING.INCLUDE=['id','name','slug'] GQL.INCLUDE=['id','name','slug']
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the Fund when scopeKind = FUND (null for organization-scoped mandates). TYPESTRING.SKIP=true
+  fundId String? @db.Uuid
+
+  /// Relation to the scoped Fund (present only when scopeKind = FUND). TYPESTRING.INCLUDE=['id','name','slug'] GQL.INCLUDE=['id','name','slug','status']
+  fund Fund? @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the User who owns/stewards this mandate. TYPESTRING.SKIP=true
+  ownerId String? @db.Uuid
+
+  /// Relation to the owning User. TYPESTRING.INCLUDE=['id','name','email'] GQL.INCLUDE=['id','name','email','image']
+  owner User? @relation("MandateOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  /// Foreign key referencing the currently-active MandateVersion (the version whose rules are in force). TYPESTRING.SKIP=true
+  activeVersionId String? @unique @db.Uuid
+
+  /// Relation to the currently-active MandateVersion. TYPESTRING.SKIP=true GQL.EXCLUDE=['mandate','activeFor']
+  activeVersion MandateVersion? @relation("MandateActiveVersion", fields: [activeVersionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  /// All versions of this mandate — immutable propose→approve snapshots ordered by versionSeq. TYPESTRING.SKIP=true GQL.EXCLUDE=['mandate']
+  versions MandateVersion[] @relation("MandateHistory")
+
+  /// Timestamp when the mandate was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the mandate was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  /// Timestamp when the mandate was soft-deleted. Null means the record is active. TYPESTRING.SKIP=true
+  deletedAt DateTime?
+
+  @@index([organizationId])
+  @@index([fundId])
+  @@index([klass])
+  @@index([scopeKind])
+  @@map(name: "mandates")
+}
+
+// An immutable propose→approve unit for a Mandate. The authored content (charterBody, rules) is
+// frozen once PROPOSED; status advances through the MandateStatus lifecycle. The active version
+// is pointed to by Mandate.activeVersionId.
+model MandateVersion {
+  /// Unique identifier for the mandate version. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the parent Mandate. TYPESTRING.SKIP=true
+  mandateId String @db.Uuid
+
+  /// Relation to the parent Mandate. TYPESTRING.INCLUDE=['id','name','klass'] GQL.EXCLUDE=['versions','activeVersion']
+  mandate Mandate @relation("MandateHistory", fields: [mandateId], references: [id], onDelete: Cascade)
+
+  /// Human-readable version label (e.g. 'v1', 'v2.1', '2026-Q3').
+  versionLabel String
+
+  /// Monotonic version sequence within the mandate (1, 2, 3, …); orders the version history.
+  versionSeq Int
+
+  /// Lifecycle state of this version.
+  status MandateStatus @default(DRAFTED)
+
+  /// Short human summary of what this version establishes or changes.
+  summary String?
+
+  /// Full authored charter body — the structured rule pack / document payload (JSON). TYPESTRING.SKIP=true
+  charterBody Json?
+
+  /// Foreign key referencing the User who authored this version. TYPESTRING.SKIP=true
+  authoredById String? @db.Uuid
+
+  /// Relation to the authoring User. TYPESTRING.INCLUDE=['id','name','email'] GQL.INCLUDE=['id','name','email','image']
+  authoredBy User? @relation("MandateVersionAuthor", fields: [authoredById], references: [id], onDelete: SetNull)
+
+  /// Normalized, enforceable clauses belonging to this version. TYPESTRING.SKIP=true GQL.EXCLUDE=['mandateVersion']
+  rules MandateRule[]
+
+  /// Append-only four-eyes approval trail for this version. TYPESTRING.SKIP=true GQL.EXCLUDE=['mandateVersion']
+  approvals MandateApproval[]
+
+  /// Back-relation: the Mandate for which this version is currently active, if any. TYPESTRING.SKIP=true GQL.SKIP=true
+  activeFor Mandate? @relation("MandateActiveVersion")
+
+  /// Timestamp when the version was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the version was last updated (status transitions). TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  @@unique([mandateId, versionSeq])
+  @@unique([mandateId, versionLabel])
+  @@index([mandateId])
+  @@index([status])
+  @@map(name: "mandate_versions")
+}
+
+// A single normalized, enforceable clause extracted from a MandateVersion's charter — the
+// machine-actionable unit. On approval these PROJECT into the per-account TradingPolicy
+// (schema.prisma:5008): e.g. { limitKind: MAX, unit: '%', threshold: 15, label: 'single-name
+// concentration' } maps to TradingPolicy.maxSymbolConcentrationPct. Mirrors the platform
+// MandateRule contract { label, detail, control, threshold, unit, limitKind }.
+model MandateRule {
+  /// Unique identifier for the rule. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the parent MandateVersion. TYPESTRING.SKIP=true
+  mandateVersionId String @db.Uuid
+
+  /// Relation to the parent MandateVersion. TYPESTRING.INCLUDE=['id','versionLabel'] GQL.EXCLUDE=['rules','approvals','mandate','activeFor']
+  mandateVersion MandateVersion @relation(fields: [mandateVersionId], references: [id], onDelete: Cascade)
+
+  /// Optional charter section grouping this rule (e.g. 'risk', 'concentration', 'conduct').
+  sectionId String?
+
+  /// Short label identifying the clause (platform MandateRule.label).
+  label String
+
+  /// Human-readable clause text (platform MandateRule.detail).
+  detail String
+
+  /// Control gate this clause imposes (platform MandateRule.control / GovActType).
+  control MandateControlGate @default(APPROVAL)
+
+  /// Numeric threshold for the clause, if quantitative (platform MandateRule.threshold). Null for qualitative clauses.
+  threshold Float?
+
+  /// Unit of the threshold (e.g. '%', 'bps', 'USD', 'positions'); platform MandateRule.unit.
+  unit String?
+
+  /// Direction/nature of the threshold (MAX/MIN/TARGET/TRIGGER); platform MandateRule.limitKind. Null for qualitative clauses.
+  limitKind MandateLimitKind?
+
+  /// Ordering index of this rule within its version (ascending). TYPESTRING.SKIP=true
+  orderIdx Int @default(0)
+
+  /// Timestamp when the rule was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the rule was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  @@index([mandateVersionId])
+  @@index([mandateVersionId, orderIdx])
+  @@map(name: "mandate_rules")
+}
+
+// An append-only entry in a MandateVersion's four-eyes governance trail: who decided what, under
+// which role, and why. Never mutated after write (it is the audit record) — mirrors the engine's
+// Tier-A GovernanceInterventionDecision ledger, but for this INTENT/authoring layer.
+model MandateApproval {
+  /// Unique identifier for the approval entry. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the MandateVersion this decision applies to. TYPESTRING.SKIP=true
+  mandateVersionId String @db.Uuid
+
+  /// Relation to the MandateVersion. TYPESTRING.INCLUDE=['id','versionLabel','status'] GQL.EXCLUDE=['rules','approvals','mandate','activeFor']
+  mandateVersion MandateVersion @relation(fields: [mandateVersionId], references: [id], onDelete: Cascade)
+
+  /// Governance action taken ('propose' | 'approve' | 'reject' | 'escalate' | 'supersede' | 'archive'); lowercase String matching the platform/engine decision contract. Kept as String, not an enum, per the five-enum mandate-store spec.
+  action String
+
+  /// Foreign key referencing the deciding User. TYPESTRING.SKIP=true
+  decidedByUserId String? @db.Uuid
+
+  /// Relation to the deciding User. TYPESTRING.INCLUDE=['id','name','email'] GQL.INCLUDE=['id','name','email','image']
+  decidedBy User? @relation("MandateApprovalDecider", fields: [decidedByUserId], references: [id], onDelete: SetNull)
+
+  /// Role under which the decision was made ('compliance_officer' | 'fund_operator' | …); lowercase String to match the platform contract.
+  decidedByRole String?
+
+  /// Free-text rationale for the decision.
+  rationale String?
+
+  /// Correlation id linking this decision to the originating request / engine event, if any. TYPESTRING.SKIP=true
+  correlationId String?
+
+  /// Timestamp when the decision was recorded (append-only trail; never updated). TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  @@index([mandateVersionId])
+  @@index([mandateVersionId, createdAt])
+  @@index([decidedByUserId])
+  @@map(name: "mandate_approvals")
+}
+
+/// ### Multi-strategy identity (Stage 2)
+///
+/// Before this block a "strategy" was an enum label: `Trade.strategy` is a
+/// `TradeStrategy` value with a `TECHNICAL_ANALYSIS` default, so a strategy
+/// had no row, no owner, no capital, no opt-in relation and no lifecycle, and
+/// could not be created at runtime. `Strategy` + `StrategySubscription` give
+/// it all five. `TradeStrategy` is deliberately NOT removed — `Trade.strategy`
+/// and `Trade.strategyId` coexist, and migrating off the enum is a later
+/// stage.
+///
+/// SCOPE: this is IDENTITY only. Nothing routes capital, gates an order, or
+/// changes an engine decision by any column below — no consumer reads
+/// `lifecycleState`, `status` or `targetAllocationPct` yet. They are the
+/// substrate a later stage acts on, and the comments below say what each
+/// column RECORDS rather than what something enforces.
+
+/// Lifecycle stage recorded for a {@link Strategy}.
+enum StrategyLifecycleState {
+  /// Defined, with no manifest bound to it.
+  DRAFT
+
+  /// Registered for observation only — the state a newly registered strategy
+  /// is seeded in, and the one that asserts nothing about capital.
+  SHADOW
+
+  /// Declared live.
+  ACTIVE
+
+  /// Declared temporarily suspended.
+  PAUSED
+
+  /// Declared permanently withdrawn. The row is retained rather than deleted
+  /// so historical attribution on `Trade.strategyId` keeps resolving.
+  RETIRED
+}
+
+/// Provenance of a {@link Strategy} definition.
+enum StrategyOrigin {
+  /// Transcribed from what the engine already runs; owned by the platform,
+  /// not by any single user.
+  SYSTEM
+
+  /// Authored by a user through the platform.
+  USER
+
+  /// Produced by the strategy-generation pipeline.
+  AI_GENERATED
+}
+
+/// Lifecycle status recorded for one account's opt-in to a strategy.
+enum StrategySubscriptionStatus {
+  /// Opted in.
+  ACTIVE
+
+  /// Opted in, then suspended by the account owner.
+  PAUSED
+
+  /// Opted out. The row is retained rather than deleted so `realizedPL` and
+  /// `costBasis` survive as an auditable record of the closed sleeve.
+  CLOSED
+}
+
+/// A trading strategy as a first-class ENTITY: a row with an identity, an
+/// owner, a lifecycle and an opt-in relation.
+///
+/// `key` is the join to the engine's Tier A ledger — it holds exactly the
+/// same value space as `StrategyRegistryEntry.key` in
+/// `engine/prisma/engine/schema.prisma` (`String @unique @db.VarChar(64)`,
+/// e.g. `"core-equity-llm-v1"`), so Tier A telemetry and Tier B ownership
+/// join on it without coercion. There is deliberately no second identifier.
+model Strategy {
+  /// Unique identifier for the strategy. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Stable machine key, e.g. "core-equity-llm-v1". Matches the engine Tier A
+  /// `StrategyRegistryEntry.key` column type exactly.
+  key String @unique @db.VarChar(64)
+
+  /// Operator/user-facing name.
+  displayName String @db.VarChar(128)
+
+  /// Human-readable description of what the strategy does.
+  description String?
+
+  /// Where the definition came from.
+  origin StrategyOrigin @default(SYSTEM)
+
+  /// Lifecycle stage. New rows default to DRAFT so a strategy is never
+  /// recorded as live merely by virtue of existing.
+  lifecycleState StrategyLifecycleState @default(DRAFT)
+
+  /// SHA-256 (hex) of the canonical JSON manifest describing what this
+  /// strategy runs (prompt id, feature view, exit tiers). NULL means no
+  /// manifest is bound yet — it is genuinely unknown, never a placeholder.
+  manifestHash String? @db.VarChar(64)
+
+  /// Foreign key referencing the owning User. NULL for SYSTEM strategies,
+  /// which the platform owns rather than any individual. TYPESTRING.SKIP=true
+  ownerUserId String? @db.Uuid
+
+  /// Relation to the owning User. Kept OUT of the generated selection set: User
+  /// is a wide model and nesting it would pull its whole selection into every
+  /// Strategy query. Consumers resolve the owner from `ownerUserId`.
+  /// TYPESTRING.SKIP=true GQL.SKIP=true
+  owner User? @relation("StrategyOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+
+  /// Per-account opt-ins into this strategy. TYPESTRING.SKIP=true GQL.SKIP=true
+  subscriptions StrategySubscription[]
+
+  /// Trades attributed to this strategy. TYPESTRING.SKIP=true GQL.SKIP=true
+  trades Trade[]
+
+  /// Timestamp when the strategy was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the strategy was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  /// Timestamp when the strategy was soft-deleted. Null means active. TYPESTRING.SKIP=true
+  deletedAt DateTime?
+
+  @@index([lifecycleState])
+  @@index([ownerUserId])
+  @@map(name: "strategies")
+}
+
+/// One account's opt-in to one strategy, plus the capital that opt-in carries.
+///
+/// Modelled on {@link Holding}, NOT on {@link Allocation}:
+/// `Allocation.alpacaAccountId` is `String @unique`, so an account can have
+/// exactly ONE allocation row by construction. An account opting into N
+/// strategies needs N rows, which makes `Allocation` structurally the wrong
+/// template. `Holding` already carries the exact shape — `units`,
+/// `costBasis`, `realizedPL` typed as `Decimal` rather than `Float`, keyed by
+/// a two-column `@@unique`.
+///
+/// `@@unique([accountId, strategyId])` is what makes "opted in twice"
+/// unrepresentable rather than merely unlikely.
+model StrategySubscription {
+  /// Unique identifier for the subscription. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the subscribing AlpacaAccount. TYPESTRING.SKIP=true
+  accountId String @db.Uuid
+
+  /// Relation to the subscribing AlpacaAccount. TYPESTRING.SKIP=true GQL.SKIP=true
+  account AlpacaAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the subscribed Strategy. TYPESTRING.SKIP=true
+  strategyId String @db.Uuid
+
+  /// Relation to the subscribed Strategy, nested in the generated selection set
+  /// so a subscription can be rendered without a second round-trip. The nested
+  /// block is Strategy's scalars only — every Strategy relation is GQL.SKIP, so
+  /// it cannot recurse. Deleting a strategy that still has subscriptions is
+  /// REFUSED rather than cascaded, because the capital columns below are an
+  /// auditable record. TYPESTRING.SKIP=true
+  strategy Strategy @relation(fields: [strategyId], references: [id], onDelete: Restrict)
+
+  /// Lifecycle status of the opt-in.
+  status StrategySubscriptionStatus @default(ACTIVE)
+
+  /// Units (sleeve shares) currently held under this subscription. A fresh
+  /// subscription genuinely holds zero, so `0` here is a true measurement and
+  /// not a stand-in for "unknown".
+  units Decimal @default(0) @db.Decimal(24, 10)
+
+  /// Cumulative net capital contributed to this sleeve, net of withdrawals.
+  costBasis Decimal @default(0) @db.Decimal(18, 6)
+
+  /// Cumulative realized P/L booked out of this sleeve.
+  realizedPL Decimal @default(0) @db.Decimal(18, 6)
+
+  /// Target share of account equity allocated to this strategy, as a 0..1
+  /// fraction. NULL means NO ALLOCATION HAS BEEN DECIDED — deliberately
+  /// nullable with NO default so that "unallocated" can never be read as a
+  /// 0% target. Consumers must render absence as absence; the platform
+  /// Strategies grid renders it as an em-dash.
+  targetAllocationPct Decimal? @db.Decimal(9, 6)
+
+  /// Base currency of the capital columns (ISO 4217).
+  currency String @default("USD")
+
+  /// When the account first opted in.
+  subscribedAt DateTime?
+
+  /// When a rebalance toward `targetAllocationPct` was last recorded against
+  /// this sleeve. NULL means none has been.
+  lastRebalancedAt DateTime?
+
+  /// Timestamp when the subscription was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the subscription was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  /// Timestamp when the subscription was soft-deleted. Null means active. TYPESTRING.SKIP=true
+  deletedAt DateTime?
+
+  @@unique([accountId, strategyId])
+  @@index([accountId])
+  @@index([strategyId])
+  @@index([status])
+  @@map(name: "strategy_subscriptions")
 }

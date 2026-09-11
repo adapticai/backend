@@ -1,0 +1,3 @@
+# Graphify ignore — keep graph on first-party source
+prisma/migrations/
+graphify-out/

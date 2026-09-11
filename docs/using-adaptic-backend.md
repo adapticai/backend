@@ -1,6 +1,90 @@
-# Using Adaptic Backend
+# Using `@adaptic/backend-legacy`
 
-This guide explains how to effectively use the @adaptic/backend-legacy package in your applications, covering both server-side and client-side integration scenarios.
+This is the canonical consumer-facing usage guide for the `@adaptic/backend-legacy`
+NPM package. It covers Apollo Client setup, the typed CRUD API exposed under the
+`adaptic` default export, the `types`/`enums`/`typeStrings` namespaces, and the
+operational rules every consumer must observe (schema-ownership boundary, real
+import patterns, error handling).
+
+**Counts and status (verify before relying on these numbers):**
+
+| Quantity        | Authoritative source                                      | Refresh recipe                                 |
+| --------------- | --------------------------------------------------------- | ---------------------------------------------- |
+| Models          | `prisma/schema.prisma`                                    | `grep -c '^model ' prisma/schema.prisma` -> 67 |
+| Enums           | `prisma/schema.prisma`                                    | `grep -c '^enum ' prisma/schema.prisma` -> 73  |
+| Migrations      | `prisma/migrations/`                                      | `ls prisma/migrations/ | wc -l` -> 165         |
+| Published version | `npm view @adaptic/backend-legacy version`              | latest channel currently `0.0.984`             |
+
+(Snapshot date: 2026-05-22. If you are reading this much later, regenerate the
+counts before quoting them.)
+
+---
+
+## Where to look first
+
+For a richer cross-monorepo map of which package owns what and where to start
+reading when investigating a feature, see
+[`~/adapticai/docs/AGENT_STARTING_POINTS.yml`](../../docs/AGENT_STARTING_POINTS.yml)
+at the workspace root.
+
+The most useful in-package references:
+
+| Document                                                  | Purpose                                                    |
+| --------------------------------------------------------- | ---------------------------------------------------------- |
+| [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md)               | System overview, codegen pipeline, observability           |
+| [`docs/REPO_MAP.md`](./REPO_MAP.md)                       | Directory layout                                           |
+| [`docs/CONVENTIONS.md`](./CONVENTIONS.md)                 | Code conventions and inline GQL/TYPESTRING directives      |
+| [`docs/AGENT_RULES.md`](./AGENT_RULES.md)                 | Rules for modifying the schema / generated code            |
+| [`docs/ENVIRONMENT_SETUP.md`](./ENVIRONMENT_SETUP.md)     | Env-var reference (DATABASE_URL, OTEL_*, APQ_*, etc.)      |
+| [`CLAUDE.md`](../CLAUDE.md)                               | Claude Code instructions                                   |
+| `prisma/schema.prisma`                                    | Authoritative model and enum catalogue                     |
+
+---
+
+## Schema-ownership boundary (Tier A vs Tier B)
+
+The Adaptic monorepo splits database tables across **two** PostgreSQL
+instances. Understanding this boundary is required before adding any model or
+choosing where to write data.
+
+### Tier B — Adaptic-domain data (this package owns it)
+
+All identity, audit, trade-lifecycle, and system-of-record data — `User`,
+`Session`, `Account`, `AlpacaAccount`, `Customer`, `Trade`, `Action`, `Alert`,
+`Asset`, `TradingPolicy`, `Allocation`, `NewsArticle`, `AuditLog`,
+`Configuration`, `TradeAuditEvent`, `PolicyOverlay`, `AccountRiskMetrics`,
+`RiskEscalationEvent`, etc. — lives in the **backend-legacy Postgres**
+(production: AlloyDB; dev: shared via Prisma Accelerate). Access is **only**
+through this package via `adaptic.<model>.<crud>()`. No consumer package may
+instantiate a `PrismaClient` against this database.
+
+When you need a new domain model:
+
+1. Add it to `backend-legacy/prisma/schema.prisma`.
+2. Run `npm run build` (full codegen pipeline).
+3. Push to `main` (or `stable-release`) — CI publishes the npm package.
+4. Bump the dependency version in consumers and update their callsites.
+
+### Tier A — Engine-system telemetry / governance (engine owns it)
+
+Engine-system telemetry, cache, event-sourcing, decision memory, and ML-governance
+data live in a **separate engine-local Postgres** (Railway `adaptic-os/stable`,
+internal hostname `postgres-nxbe.railway.internal`) accessed via `telemetryDb`
+— the PrismaClient singleton at `engine/src/db/engine-prisma.ts`. The
+authoritative Tier A model list lives in `engine/prisma/schema.prisma` and is
+enforced by ESLint (`@typescript-eslint/no-restricted-imports`).
+
+If you are reading code in the engine and see a `telemetryDb.<model>.<op>()`
+call, it is hitting a different database than `adaptic.<model>.<op>()`. See
+[`engine/docs/superpowers/specs/2026-04-15-engine-local-telemetry-db-design.md`](../../engine/docs/superpowers/specs/2026-04-15-engine-local-telemetry-db-design.md)
+for the design rationale and the classification rule.
+
+**Rule of thumb:** if a feature is system-of-record for identity / audit /
+trade lifecycle, it is Tier B (backend-legacy). If it is engine-internal
+telemetry, observability, governance, or cache, it is Tier A
+(engine `telemetryDb`).
+
+---
 
 ## Installation
 
@@ -8,822 +92,423 @@ This guide explains how to effectively use the @adaptic/backend-legacy package i
 npm install @adaptic/backend-legacy
 ```
 
-## Apollo Client Setup (Improved Connection Pooling)
+### Environment variables (consumer)
 
-The @adaptic/backend-legacy package provides a singleton Apollo Client with **connection pooling** that automatically detects your environment (server or client) and configures itself appropriately. The connection pool helps prevent database connection overload and handles errors with automatic retries.
+The package reads the following at runtime:
 
-### Best Practices for Client Usage
+| Variable                             | Purpose                                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------------ |
+| `BACKEND_HTTPS_URL`                  | GraphQL HTTPS endpoint (e.g. `https://stable-api.adaptic.ai/graphql`)                |
+| `BACKEND_WS_URL`                     | GraphQL WebSocket endpoint (subscriptions)                                           |
+| `NEXT_PUBLIC_BACKEND_HTTPS_URL`      | Browser-side override for the HTTPS endpoint (preferred in `platform/apps/web`)      |
+| `SERVER_AUTH_TOKEN` / `NEXT_PUBLIC_SERVER_AUTH_TOKEN` | Server-to-server auth token used when no per-request token is provided |
+| `NODE_ENV`                           | `production` enables stricter Apollo error handling                                  |
 
-```typescript
-import { getApolloClient } from '@adaptic/backend-legacy';
+If you run the server itself (this package as a dev dependency), see
+[`docs/ENVIRONMENT_SETUP.md`](./ENVIRONMENT_SETUP.md) for the full server-side
+list including `DATABASE_URL`, `JWT_SECRET`, `GOOGLE_OAUTH_CLIENT_IDS`,
+`ALLOWED_ORIGINS`, and the observability toggles (`OTEL_TRACING_ENABLED`,
+`PROMETHEUS_METRICS_ENABLED`, `APQ_ENABLED`,
+`GRAPHQL_COMPLEXITY_ENABLED`).
 
-// Create ONE Apollo Client instance at the app level and reuse it
-// IMPORTANT: Maintaining a single instance prevents connection overload
-const client = await getApolloClient();
+---
 
-// The client is now ready to use for GraphQL operations
-// All operations will be managed by the connection pool
-```
+## Public API surface
 
-### Configuring the Connection Pool (Optional)
+The package's default export is the typed `adaptic` CRUD namespace; the named
+exports cover Apollo Client configuration and the type/enum/string namespaces.
 
-You can customize the connection pool settings to match your specific needs:
+### Real import patterns (verified against current consumers)
 
-```typescript
-import {
-  configureConnectionPool,
-  getApolloClient,
-} from '@adaptic/backend-legacy';
-
-// Optional: Configure connection pool before getting the client
-configureConnectionPool({
-  maxConcurrentOperations: 100, // Limit concurrent database operations
-  retryAttempts: 5, // Number of automatic retry attempts
-  retryDelay: 500, // Base delay between retries (ms)
-  connectionTimeout: 15000, // Connection timeout (ms)
-});
-
-// Get the configured client
-const client = await getApolloClient();
-```
-
-### Server-Side Integration
-
-When running in a server environment (Node.js), the package uses CommonJS-based Apollo modules with connection pooling:
-
-```typescript
-// Next.js API route or server-side code
-import { getApolloClient, getApolloModules } from '@adaptic/backend-legacy';
-
-// IMPORTANT: Create a single client for your entire application
-let apolloClient = null;
-
-export async function handler(req, res) {
-  // Initialize the client once and reuse it across requests
-  if (!apolloClient) {
-    apolloClient = await getApolloClient();
-  }
-
-  // You can also access the modules directly if needed
-  const { gql, ApolloError } = await getApolloModules();
-
-  // Use client for GraphQL operations - the connection pool will manage concurrency
-  const response = await apolloClient.query({...});
-
-  return res.status(200).json(response.data);
-}
-```
-
-### Client-Side Integration
-
-For browser environments, the package uses ESM-based Apollo modules with the same connection pooling benefits:
-
-```typescript
-// React component or client-side code
-import { useEffect, useState, useContext } from 'react';
-import { getApolloClient } from '@adaptic/backend-legacy';
-
-// Create a context to share the client across your app
-const ApolloClientContext = React.createContext(null);
-
-// Provider component to initialize the client once
-function ApolloClientProvider({ children }) {
-  const [client, setClient] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function initClient() {
-      const apolloClient = await getApolloClient();
-      setClient(apolloClient);
-      setLoading(false);
-    }
-    initClient();
-  }, []);
-
-  if (loading) return <div>Loading...</div>;
-  return (
-    <ApolloClientContext.Provider value={client}>
-      {children}
-    </ApolloClientContext.Provider>
-  );
-}
-
-// Example component using the shared client
-function MyComponent() {
-  const client = useContext(ApolloClientContext);
-  const [data, setData] = useState(null);
-
-  useEffect(() => {
-    async function fetchData() {
-      // Use the shared client instance
-      const response = await client.query({...});
-      setData(response.data);
-    }
-
-    if (client) {
-      fetchData();
-    }
-  }, [client]);
-
-  return <div>{/* Render your data */}</div>;
-}
-```
-
-## Using Content Models (With Connection Pooling)
-
-The @adaptic/backend-legacy package provides typed CRUD operations for all content models with built-in connection pooling. All CRUD functions automatically handle the transformation of your content model objects into the appropriate GraphQL input formats.
-
-### Available CRUD Functions
-
-Every content model provides these 9 standardized CRUD operations:
-
-| Function                                | Purpose                   | Returns               |
-| --------------------------------------- | ------------------------- | --------------------- |
-| `create(props, client?)`                | Create a single record    | `ModelType`           |
-| `createMany(props[], client?)`          | Create multiple records   | `{ count: number }`   |
-| `update(props, client?)`                | Update an existing record | `ModelType`           |
-| `updateMany(props[], client?)`          | Update multiple records   | `{ count: number }`   |
-| `upsert(props, client?)`                | Create or update a record | `ModelType`           |
-| `delete(props, client?)`                | Delete a single record    | `ModelType`           |
-| `get(props, client?, whereInput?)`      | Get a single record       | `ModelType \| null`   |
-| `getAll(client?)`                       | Get all records           | `ModelType[] \| null` |
-| `findMany(props, client?, whereInput?)` | Find multiple records     | `ModelType[] \| null` |
-
-### Complete Model List
-
-Access all 34 content models through the `adaptic` object:
+The engine and utils packages import via:
 
 ```typescript
 import adaptic from '@adaptic/backend-legacy';
-
-// Core Trading Models
-adaptic.user; // User management
-adaptic.alpacaAccount; // Trading accounts
-adaptic.allocation; // Asset allocation settings
-adaptic.asset; // Financial instruments
-adaptic.trade; // Executed trades
-adaptic.action; // Trade actions
-adaptic.alert; // System notifications
-
-// Authentication & Sessions
-adaptic.session; // User sessions
-adaptic.account; // External auth accounts
-adaptic.authenticator; // MFA devices
-adaptic.verificationToken; // Verification tokens
-adaptic.customer; // Customer entities
-
-// News & Market Data
-adaptic.newsArticle; // Financial news
-adaptic.newsArticleAssetSentiment; // News sentiment
-adaptic.marketSentiment; // Market sentiment
-adaptic.economicEvent; // Economic events
-
-// Institutional Data
-adaptic.institutionalHolding; // SEC holdings
-adaptic.institutionalFlowSignal; // Flow analysis
-adaptic.institutionalSentimentHistory; // Historical sentiment
-adaptic.institutionalSentimentMetrics; // Processing metrics
-adaptic.institutionalSentimentErrors; // Error tracking
-adaptic.institutionalSentimentAlerts; // Data quality alerts
-
-// Analytics & ML
-adaptic.analyticsSnapshot; // Analytics metadata
-adaptic.analyticsConfiguration; // Analytics config
-adaptic.mLTrainingData; // Training data
-adaptic.modelArtifact; // ML artifacts
-adaptic.modelVersion; // Model versions
-adaptic.modelVersionArtifact; // Model-artifact links
-adaptic.aBTest; // A/B testing
-adaptic.featureImportanceAnalysis; // Model interpretability
-
-// System Management
-adaptic.configuration; // System config
-adaptic.systemAlert; // System alerts
-adaptic.connectionHealthSnapshot; // Health monitoring
-adaptic.scheduledOptionOrder; // Scheduled orders
+import {
+  getApolloClient,
+  configureConnectionPool,
+  setTokenProvider,
+  stopClient,
+  getPoolStats,
+  type ApolloClientType,
+  type NormalizedCacheObject,
+  type TokenProvider,
+  type PoolStats,
+} from '@adaptic/backend-legacy';
+import type { types, enums } from '@adaptic/backend-legacy';
 ```
 
-### Importing Types
+There is **no** named `{ adaptic }` export — `adaptic` is the default. Patterns
+like `import { adaptic } from '@adaptic/backend-legacy'` will not type-check.
+
+### What's exported
+
+| Export                                                                  | Description                                                                              |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `default` (`adaptic`)                                                   | CRUD namespace keyed by model (lowercase first letter)                                   |
+| `types` namespace                                                       | All Prisma model TypeScript types (67 models as of 2026-05-22)                            |
+| `enums` namespace                                                       | All Prisma enums (73 as of 2026-05-22)                                                    |
+| `typeStrings`                                                           | Stringified type definitions for LLM context injection                                   |
+| `getApolloClient()`                                                     | Singleton Apollo Client factory (server + browser auto-detect)                           |
+| `getApolloModules()`                                                    | Lazy module loader (returns `{ gql, ApolloError, ... }`)                                 |
+| `configureConnectionPool(config)`                                       | Tunes the connection-pool admission limits, retries, queue depth                         |
+| `setTokenProvider(provider)`                                            | Registers a custom auth-token resolver (e.g. NextAuth session callback)                  |
+| `stopClient()`                                                          | Disposes the singleton on process shutdown                                               |
+| `getPoolStats()`                                                        | Returns live pool counters (in-flight, queued, retried) for observability                |
+| `OptionsGreeksHistoryCustomResolver`                                    | Custom GraphQL resolver re-export (server-side use only)                                 |
+| Apollo type aliases (`ApolloClientType`, `InMemoryCacheType`, ...)      | Re-exports for type-only imports (avoids forcing consumers to depend on `@apollo/client` |
+
+> **Note on internal modules.** The published `dist/` also contains
+> `dist/middleware/`, `dist/auth/`, `dist/plugins/`, `dist/utils/`, and
+> `dist/validators/`. These are **not** re-exported through `src/index.ts`.
+> They are reachable via deep imports (e.g.
+> `import { softDeleteRecord } from '@adaptic/backend-legacy/middleware'`) but
+> are not part of the documented public API. Treat them as server-side
+> internals — consumers that depend on them are coupling to an unstable
+> surface.
+
+---
+
+## Apollo Client setup
+
+The package provides a singleton Apollo Client with connection pooling and
+in-flight query coalescing. Create one instance per process and reuse it; the
+internal pool keeps the backend within configured concurrency limits.
+
+### Minimum setup
 
 ```typescript
-// Import specific model types
-import { types } from '@adaptic/backend-legacy';
+import adaptic, { getApolloClient } from '@adaptic/backend-legacy';
 
-// Use the imported types
-const user: types.User = {
-  name: 'John Doe',
-  email: 'john@example.com',
-  role: 'USER',
+const client = await getApolloClient();
+
+// Subsequent CRUD calls reuse the singleton:
+const trade = await adaptic.trade.get({ id: 'trade-abc' }, client);
+```
+
+### Configuring the connection pool
+
+```typescript
+import { configureConnectionPool, getApolloClient } from '@adaptic/backend-legacy';
+
+configureConnectionPool({
+  maxConcurrentOperations: 50,    // hard cap on parallel ops (default: 50)
+  retryAttempts: 5,
+  retryDelay: 500,                // base ms; client uses exponential backoff
+  connectionTimeout: 15_000,
+  maxQueueDepth: 200,             // load-shedding threshold
+  queueWaitTimeoutMs: 30_000,
+  coalesceInFlightQueries: true,  // dedup identical in-flight queries
+});
+
+const client = await getApolloClient();
+```
+
+`configureConnectionPool` must be called **before** `getApolloClient()`.
+
+### Custom token provider (auth)
+
+Server consumers typically register a token provider that pulls a session JWT
+from their auth system (NextAuth, custom JWT, etc.):
+
+```typescript
+import { setTokenProvider } from '@adaptic/backend-legacy';
+
+setTokenProvider(async () => {
+  return await resolveSessionJwt(); // your auth lookup
+});
+```
+
+The provider runs on every GraphQL operation; cache the resolved token if
+your auth lookup is expensive.
+
+---
+
+## Typed CRUD operations
+
+Every model gets the same nine operations. Each accepts a model-shaped object
+and the shared Apollo Client. The library transforms the input into the
+appropriate GraphQL `where` and `data` shapes automatically.
+
+| Operation                              | Returns               | When to use                                          |
+| -------------------------------------- | --------------------- | ---------------------------------------------------- |
+| `create(props, client?)`               | `ModelType`           | New record, confirmed not to exist                   |
+| `createMany(props[], client?)`         | `{ count: number }`   | Batch create                                         |
+| `update(props, client?)`               | `ModelType`           | Modify an existing record by ID                      |
+| `updateMany(props[], client?)`         | `{ count: number }`   | Apply same update to a list                          |
+| `upsert(props, client?)`               | `ModelType`           | Create-or-update (slightly slower than `update`)     |
+| `delete(props, client?)`               | `ModelType`           | Remove a record (or soft-delete; see soft-delete)    |
+| `get(props, client?, whereInput?)`     | `ModelType \| null`   | Fetch one record by unique field                     |
+| `getAll(client?)`                      | `ModelType[] \| null` | Fetch everything (use sparingly)                     |
+| `findMany(props, client?, whereInput?)` | `ModelType[] \| null` | Filtered list with optional explicit `where`          |
+
+### Examples (current models)
+
+```typescript
+import adaptic, { getApolloClient, types, enums } from '@adaptic/backend-legacy';
+
+const client = await getApolloClient();
+
+// Create a user
+const user = await adaptic.user.create({
+  name: 'Jane Doe',
+  email: 'jane@example.com',
+  role: enums.UserRole.ADMIN,
+}, client);
+
+// Update an Alpaca brokerage account
+const account = await adaptic.alpacaAccount.update({
+  id: 'aa-123',
+  cryptoTradingEnabled: false,
+}, client);
+
+// Fetch a trade by ID, asserting its type
+const trade = (await adaptic.trade.get(
+  { id: 'trade-456' },
+  client,
+)) as types.Trade | null;
+
+// Open trades for a specific account, last 24h
+const recent = await adaptic.trade.findMany({}, client, {
+  alpacaAccountId: 'aa-123',
+  status: { in: [enums.TradeStatus.OPEN, enums.TradeStatus.PARTIAL] },
+  createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+});
+
+// Trading-policy lookup (institutional governance model)
+const policy = await adaptic.tradingPolicy.get(
+  { alpacaAccountId: 'aa-123' },
+  client,
+);
+if (policy?.autonomyMode === enums.AutonomyMode.FULLY_AUTONOMOUS) {
+  // ...
+}
+
+// Risk-overlay enumeration
+const overlays = await adaptic.policyOverlay.findMany({}, client, {
+  tradingPolicy: { alpacaAccountId: 'aa-123' },
+  status: enums.OverlayStatus.ACTIVE,
+});
+
+// Audit-event persistence (Tier B — SEC 15c3-5 / FINRA target)
+await adaptic.tradeAuditEvent.create({
+  alpacaAccountId: 'aa-123',
+  tradeId: 'trade-456',
+  eventType: 'order_submitted',
+  eventData: { /* JSON */ },
+}, client);
+```
+
+### `where` filter operators
+
+`findMany` (and `get` via the optional third argument) accepts the standard
+Prisma operator set inside any field:
+
+`equals`, `not`, `in`, `notIn`, `lt`, `lte`, `gt`, `gte`, `contains`,
+`startsWith`, `endsWith`, plus logical combinators `AND`, `OR`, `NOT`, and
+relational `some` / `every` / `none`.
+
+```typescript
+const adminsFromCorp = await adaptic.user.findMany({}, client, {
+  AND: [
+    { role: enums.UserRole.ADMIN },
+    { email: { endsWith: '@adaptic.ai' } },
+  ],
+});
+
+const accountsWithRecentTrades = await adaptic.alpacaAccount.findMany(
+  {},
+  client,
+  {
+    trades: {
+      some: {
+        createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) },
+      },
+    },
+  },
+);
+```
+
+---
+
+## Types namespace
+
+```typescript
+import { types, enums } from '@adaptic/backend-legacy';
+
+const trade: types.Trade = {
+  id: 'trade-abc',
+  symbol: 'AAPL',
+  qty: 100,
+  status: enums.TradeStatus.OPEN,
+  // ...
 };
 ```
 
-### Reusing a Shared Apollo Client (RECOMMENDED)
+Each model has an associated TypeScript interface mirroring its Prisma shape
+(scalars, nullable fields, and relation arrays). The `types` namespace is
+re-exported from the generated TypeGraphQL output and is the authoritative
+type surface for the entire monorepo.
 
-For best performance and to prevent connection overload, initialize a single Apollo client and pass it to all operations:
+---
+
+## Enums namespace
 
 ```typescript
-import adaptic from '@adaptic/backend-legacy';
-import { getApolloClient } from '@adaptic/backend-legacy';
+import { enums } from '@adaptic/backend-legacy';
 
-// Initialize the Apollo client ONCE in your application
-const client = await getApolloClient();
-
-// Pass the shared client to all operations
-const user = await adaptic.user.get({ id: '1234' }, client);
-const asset = await adaptic.asset.get({ symbol: 'AAPL' }, client);
-const trades = await adaptic.trade.findMany({ symbol: 'AAPL' }, client);
+const role: enums.UserRole = enums.UserRole.ADMIN;
+const exitReason: enums.TradeExitReason = enums.TradeExitReason.STOP_LOSS;
+const autonomy: enums.AutonomyMode = enums.AutonomyMode.SEMI_AUTONOMOUS;
 ```
 
-## Content Models
+Every enum in `prisma/schema.prisma` is exposed here. Notable
+governance/decision enums added in the trading-policy expansion:
+`AutonomyMode`, `OverlayType`, `OverlaySeverity`, `OverlayStatus`,
+`AccountRiskState`, `DecisionOutcome`, `DecisionRecordStatus`,
+`DecisionMemoryOutcome`, `RiskEscalationActor`, `RiskEscalationReason`.
 
-The @adaptic/backend-legacy package provides access to 34 content models representing various aspects of financial trading, analytics, and system management:
+---
 
-### Core Trading Models
+## TypeStrings namespace (for LLM context)
 
-- **User** - Trading platform users with roles and permissions
-- **AlpacaAccount** - Trading accounts with configuration and allocation settings
-- **Allocation** - Asset class allocation settings (stocks, crypto, options, ETFs)
-- **Asset** - Financial instruments (stocks, ETFs, crypto, options, etc.)
-- **Trade** - Executed trades with signals, strategies, and outcomes
-- **Action** - Individual trade actions within a trade (buy, sell, etc.)
-- **Alert** - System notifications and warnings
-
-### Authentication & Sessions
-
-- **Session** - User authentication sessions
-- **Account** - External authentication accounts (OAuth providers)
-- **Authenticator** - Multi-factor authentication devices
-- **VerificationToken** - Token-based verification system
-- **Customer** - Customer entities with subscription plans
-
-### News & Market Data
-
-- **NewsArticle** - Financial news articles with sentiment analysis
-- **NewsArticleAssetSentiment** - Asset-specific sentiment from news
-- **MarketSentiment** - Overall market sentiment analysis
-- **EconomicEvent** - Economic events affecting markets
-
-### Institutional Data
-
-- **InstitutionalHolding** - SEC EDGAR institutional holding data
-- **InstitutionalFlowSignal** - Institutional trading flow analysis
-- **InstitutionalSentimentHistory** - Historical institutional sentiment
-- **InstitutionalSentimentMetrics** - Processing metrics for monitoring
-- **InstitutionalSentimentErrors** - Error tracking for data processing
-- **InstitutionalSentimentAlerts** - Data quality alerts
-
-### Analytics & ML
-
-- **AnalyticsSnapshot** - Volatility models and analytics metadata
-- **AnalyticsConfiguration** - Analytics parameter configuration
-- **MLTrainingData** - Training data for model retraining
-- **ModelArtifact** - ML model artifacts and metadata
-- **ModelVersion** - ML model versions with performance metrics
-- **ModelVersionArtifact** - Junction table for model-artifact relationships
-- **ABTest** - A/B testing for model deployments
-- **FeatureImportanceAnalysis** - Model interpretability analysis
-
-### System Management
-
-- **Configuration** - System configuration settings
-- **SystemAlert** - System alerts and notifications
-- **ConnectionHealthSnapshot** - Connection health monitoring
-- **ScheduledOptionOrder** - Scheduled option orders for execution
-
-## Enums
-
-The system includes 27 enums for type safety and consistency:
-
-### Trading & Market Enums
-
-- **TradeSignal** - 35 signal types (GOLDEN_CROSS, RSI_OVERBOUGHT, MACD_CROSSOVER, etc.)
-- **TradeStrategy** - 12 trading strategies (TECHNICAL_ANALYSIS, MOMENTUM_STRATEGY, etc.)
-- **AssetType** - 20 asset types (STOCK, ETF, CRYPTOCURRENCY, OPTION, etc.)
-- **ActionType** - 6 action types (BUY, SELL, BUY_OPTION, EXERCISE_OPTION, etc.)
-- **ActionStatus** - 5 status levels (STAGED, PENDING, EXECUTED, COMPLETED, CANCELED)
-- **TradeStatus** - 5 trade states (PENDING, OPEN, PARTIAL, COMPLETED, CANCELED)
-- **AlpacaAccountType** - 2 account types (PAPER, LIVE)
-- **ScheduledOptionOrderStatus** - 3 order statuses (PENDING, EXECUTED, CANCELED)
-
-### Market Analysis Enums
-
-- **MarketSentimentLevel** - 7 sentiment levels (VERY_BEARISH to VERY_BULLISH)
-- **TradeExitReason** - 9 exit reasons (STOP_LOSS, TAKE_PROFIT, TRAILING_STOP, etc.)
-- **TradeOutcomeQuality** - 5 quality levels (EXCELLENT, GOOD, FAIR, POOR, VERY_POOR)
-- **MarketRegime** - 7 regime types (BULL, BEAR, SIDEWAYS, HIGH_VOLATILITY, etc.)
-- **VolatilityLevel** - 5 volatility levels (VERY_LOW to VERY_HIGH)
-- **MarketSentimentContext** - 5 sentiment contexts (VERY_BEARISH to VERY_BULLISH)
-- **VolumeLevel** - 5 volume levels (VERY_LOW to VERY_HIGH)
-- **MarketCondition** - 8 market conditions (NORMAL, VOLATILE, PRE_MARKET, etc.)
-
-### System & Configuration Enums
-
-- **UserRole** - 3 user roles (OWNER, ADMIN, USER)
-- **SubscriptionPlan** - 3 plans (FREE, PRO, INSTITUTION)
-- **AlertType** - 4 alert types (SUCCESS, WARNING, ERROR, INFO)
-- **AlertSeverity** - 4 severity levels (LOW, MEDIUM, HIGH, CRITICAL)
-- **SystemAlertType** - 6 system alert types (PERFORMANCE_DEGRADATION, TRAINING_FAILURE, etc.)
-- **SystemAlertStatus** - 4 status types (ACTIVE, ACKNOWLEDGED, RESOLVED, SUPPRESSED)
-- **EventImportance** - 3 importance levels (LOW, MEDIUM, HIGH)
-- **ConfigType** - 5 configuration types (ANALYTICS, RISK_MANAGEMENT, TRADING, etc.)
-
-### ML & Analytics Enums
-
-- **OpenaiModel** - 6 OpenAI models (GPT_4O, GPT_4O_MINI, O1, O1_MINI, etc.)
-- **ModelVersionStatus** - 5 model statuses (TRAINING, VALIDATION, DEPLOYED, etc.)
-- **DeploymentEnvironment** - 3 environments (DEVELOPMENT, STAGING, PRODUCTION)
-- **RolloutStrategy** - 4 rollout strategies (IMMEDIATE, GRADUAL, CANARY, BLUE_GREEN)
-- **ArtifactType** - 5 artifact types (WEIGHTS, MODEL_FILE, PREPROCESSOR, etc.)
-- **StorageProvider** - 4 storage providers (AWS_S3, GCP_STORAGE, AZURE_BLOB, LOCAL)
-- **ABTestStatus** - 4 test statuses (DRAFT, RUNNING, COMPLETED, CANCELLED)
-- **ABTestRecommendation** - 3 recommendations (PROMOTE_TREATMENT, KEEP_CONTROL, INCONCLUSIVE)
-- **FeatureImportanceAnalysisType** - 5 analysis types (SHAP, PERMUTATION, LIME, etc.)
-
-## CRUD Operations Guide
-
-Each content model in @adaptic/backend-legacy provides a comprehensive set of CRUD (Create, Read, Update, Delete) operations through generated resolvers. This section explains when and how to use each operation.
-
-> **IMPORTANT**: One of the key advantages of the @adaptic/backend-legacy CRUD functions is that they handle all the GraphQL input transformation automatically. You simply pass a valid instance of your content model type object, and the library handles converting it to the appropriate GraphQL input format, including constructing where objects and input structures. You don't need to manually structure complex GraphQL inputs.
->
-> For create, update, and upsert functions, you only need to pass a valid instance of the content model type that the CRUD function is for. You don't need to pass a where object or structure the GraphQL input yourself - the function will convert your content model object into the relevant input for the CRUD GraphQL operation automatically.
-
-### Creating Records
-
-The system provides different creation methods based on your needs. You simply provide the data object with the fields you want to set, and the library handles converting it to the correct GraphQL input format:
-
-#### `create`: Create a Single Record
-
-Use when: You want to create a new record and you're sure it doesn't already exist.
-
-**Function Signature:**
+`typeStrings` exports each model as a stringified TypeScript-style type
+definition (including nested relations and enums), intended to be embedded
+in LLM prompts where the model wants the LLM to return data matching a
+specific shape.
 
 ```typescript
-async create(props: ModelType, globalClient?: ApolloClientType): Promise<ModelType>
-```
+import { typeStrings } from '@adaptic/backend-legacy';
 
-```typescript
-import adaptic from '@adaptic/backend-legacy';
-import { getApolloClient } from '@adaptic/backend-legacy';
+const prompt = `
+Return a JSON object that matches this TypeScript type:
 
-const client = await getApolloClient();
+${typeStrings.Trade}
 
-// Create a new user
-const newUser = await adaptic.user.create(
-  {
-    name: 'John Doe',
-    email: 'john@example.com',
-    role: 'USER',
-  },
-  client
-);
-
-// Create an asset with a relation (using an ID reference)
-const newAsset = await adaptic.asset.create(
-  {
-    symbol: 'AAPL',
-    name: 'Apple Inc.',
-    type: 'STOCK',
-  },
-  client
-);
-
-// Create a trade with nested action creation
-const newTrade = await adaptic.trade.create(
-  {
-    symbol: 'AAPL',
-    signal: 'GOLDEN_CROSS',
-    strategy: 'TECHNICAL_ANALYSIS',
-    analysis: 'Golden cross pattern detected...',
-    summary: 'Long position on AAPL',
-    confidence: 0.85,
-    alpacaAccountId: 'account123',
-  },
-  client
-);
-```
-
-#### `createMany`: Create Multiple Records in a Batch
-
-Use when: You need to create multiple records of the same type efficiently.
-
-**Function Signature:**
-
-```typescript
-async createMany(props: ModelType[], globalClient?: ApolloClientType): Promise<{ count: number } | null>
-```
-
-```typescript
-// Create multiple assets in a single operation
-const result = await adaptic.asset.createMany(
-  [
-    { symbol: 'AAPL', name: 'Apple Inc.', type: 'STOCK' },
-    { symbol: 'MSFT', name: 'Microsoft Corporation', type: 'STOCK' },
-    { symbol: 'GOOGL', name: 'Alphabet Inc.', type: 'STOCK' },
-  ],
-  client
-);
-
-console.log(`Created ${result.count} assets`);
-```
-
-### Updating Records
-
-Choose the appropriate update method based on your scenario. For all update methods, you simply pass your model object, and the library automatically extracts the identifier and update fields, converting them to the appropriate GraphQL format:
-
-#### `update`: Update an Existing Record
-
-Use when: You know the record exists and have its unique identifier.
-
-**Function Signature:**
-
-```typescript
-async update(props: ModelType, globalClient?: ApolloClientType): Promise<ModelType>
-```
-
-```typescript
-// Update a user by ID - just pass a user object with the ID and fields to update
-// The library handles converting this to the proper GraphQL where/data input format
-const updatedUser = await adaptic.user.update(
-  {
-    id: 'user123',
-    name: 'John Smith', // Updated field
-    bio: 'Software engineer', // Add new field value
-  },
-  client
-);
-
-// Update a trade by ID
-const updatedTrade = await adaptic.trade.update(
-  {
-    id: 'trade456',
-    summary: 'Updated trade summary',
-    status: 'COMPLETED',
-  },
-  client
-);
-```
-
-#### `upsert`: Create or Update a Record
-
-Use when: You're not sure if the record exists and want to either create it or update it if it does.
-
-**Function Signature:**
-
-```typescript
-async upsert(props: ModelType, globalClient?: ApolloClientType): Promise<ModelType>
-```
-
-```typescript
-// Create a user if not exists, or update if exists
-// The library automatically extracts the unique identifier and other fields
-const user = await adaptic.user.upsert(
-  {
-    email: 'john@example.com', // Unique identifier to find the record
-    name: 'John Doe', // Data for create/update
-    jobTitle: 'Developer', // Data for create/update
-  },
-  client
-);
-
-// Upsert an asset by symbol
-const asset = await adaptic.asset.upsert(
-  {
-    symbol: 'AAPL', // Unique identifier
-    name: 'Apple Inc.', // Updated name if exists
-    type: 'STOCK', // Type will be set for new or updated record
-  },
-  client
-);
-```
-
-> **When to use update vs. upsert:**
->
-> - Use `update` when you're certain the record exists and only want to modify it
-> - Use `upsert` when you want to create a record if it doesn't exist or update it if it does
-> - `upsert` is more forgiving but slightly less efficient than a direct `update` or `create`
-
-#### `updateMany`: Update Multiple Records
-
-Use when: You need to apply the same update to multiple records that match certain criteria.
-
-**Function Signature:**
-
-```typescript
-async updateMany(props: ModelType[], globalClient?: ApolloClientType): Promise<{ count: number } | null>
-```
-
-```typescript
-// Update status of multiple trades (each with unique ID)
-const result = await adaptic.trade.updateMany(
-  [
-    { id: 'trade1', status: 'COMPLETED' },
-    { id: 'trade2', status: 'COMPLETED' },
-    { id: 'trade3', status: 'CANCELED' },
-  ],
-  client
-);
-
-console.log(`Updated ${result.count} trades`);
-```
-
-### Reading Records
-
-Different methods for retrieving data. For the basic operations (`get`, `getAll`), you can simply pass an object with the needed unique identifier fields, and the library will automatically construct the correct GraphQL query format:
-
-#### `get`: Retrieve a Single Record by Unique Identifier
-
-Use when: You need to fetch a specific record using a unique field.
-
-**Function Signature:**
-
-```typescript
-async get(props: ModelType, globalClient?: ApolloClientType, whereInput?: any): Promise<ModelType | null>
-```
-
-```typescript
-// Get a user by ID
-const user = await adaptic.user.get({ id: 'user123' }, client);
-
-// Get a user by email (unique field)
-const userByEmail = await adaptic.user.get(
-  { email: 'john@example.com' },
-  client
-);
-
-// Get an asset by symbol (unique field)
-const asset = await adaptic.asset.get({ symbol: 'AAPL' }, client);
-
-// Using explicit whereInput parameter (third parameter)
-const trade = await adaptic.trade.get({}, client, { id: 'trade-abc-123' });
-```
-
-#### `getAll`: Retrieve All Records of a Type
-
-Use when: You need a complete list of records of a certain type.
-
-**Function Signature:**
-
-```typescript
-async getAll(globalClient?: ApolloClientType): Promise<ModelType[] | null>
-```
-
-```typescript
-// Get all users
-const allUsers = await adaptic.user.getAll(client);
-
-// Get all assets
-const allAssets = await adaptic.asset.getAll(client);
-
-// Get all trades
-const allTrades = await adaptic.trade.getAll(client);
-```
-
-#### `findMany`: Retrieve Multiple Records Based on Criteria
-
-Use when: You need to find records matching specific conditions.
-
-**Function Signature:**
-
-```typescript
-async findMany(props: ModelType, globalClient?: ApolloClientType, whereInput?: any): Promise<ModelType[] | null>
-```
-
-```typescript
-// Find trades for a specific symbol (using props parameter)
-const appleTrades = await adaptic.trade.findMany({ symbol: 'AAPL' }, client);
-
-// Find users with a specific role (using props parameter)
-const adminUsers = await adaptic.user.findMany({ role: 'ADMIN' }, client);
-
-// Using explicit whereInput for complex filtering (third parameter)
-const recentTrades = await adaptic.trade.findMany({}, client, {
-  createdAt: {
-    gte: new Date(Date.now() - 86400000), // Trades from last 24 hours
-  },
-  status: 'COMPLETED',
-});
-
-// Using array conditions and logical operators
-const specificAssets = await adaptic.asset.findMany({}, client, {
-  OR: [{ symbol: 'AAPL' }, { symbol: 'MSFT' }],
-  type: 'STOCK',
-});
-
-// Find records with nested relation conditions
-const usersWithCompletedTrades = await adaptic.user.findMany({}, client, {
-  alpacaAccounts: {
-    some: {
-      realTime: true,
-    },
-  },
-});
-```
-
-### Structuring WhereInput for Queries
-
-For more complex queries using `findMany`, you can either:
-
-1. Pass a simple object with field values (the library will convert it to the appropriate `where` format)
-2. Use the optional third parameter to provide complex filter criteria directly
-
-The following examples show how to structure the `whereInput` object when using the explicit third parameter:
-
-#### Simple Field Equality
-
-```typescript
-// Find assets with symbol="AAPL"
-const assets = await adaptic.asset.findMany({}, client, {
-  symbol: 'AAPL',
-});
-```
-
-#### Comparison Operators
-
-```typescript
-// Find trades with price >= 100
-const trades = await adaptic.trade.findMany({}, client, {
-  price: {
-    gte: 100, // greater than or equal
-  },
-});
-```
-
-Available comparison operators:
-
-- `equals`: Exact match
-- `not`: Not equal
-- `in`: Value in array
-- `notIn`: Value not in array
-- `lt`: Less than
-- `lte`: Less than or equal
-- `gt`: Greater than
-- `gte`: Greater than or equal
-- `contains`: String contains
-- `startsWith`: String starts with
-- `endsWith`: String ends with
-
-#### Logical Operators
-
-```typescript
-// Find assets that are STOCK OR CRYPTO
-const assets = await adaptic.asset.findMany({}, client, {
-  OR: [{ type: 'STOCK' }, { type: 'CRYPTO' }],
-});
-
-// Find users who are ADMIN AND have a specific email domain
-const users = await adaptic.user.findMany({}, client, {
-  AND: [{ role: 'ADMIN' }, { email: { endsWith: '@company.com' } }],
-});
-
-// Find users who are NOT basic users
-const nonBasicUsers = await adaptic.user.findMany({}, client, {
-  NOT: { role: 'USER' },
-});
-```
-
-#### Filtering on Relations
-
-```typescript
-// Find assets that have at least one related news article
-const assetsWithNews = await adaptic.asset.findMany({}, client, {
-  newsArticles: {
-    some: {}, // Any news article
-  },
-});
-
-// Find users with completed trades
-const usersWithCompletedTrades = await adaptic.user.findMany({}, client, {
-  trades: {
-    some: {
-      status: 'COMPLETED',
-    },
-  },
-});
-
-// Find assets with no related news
-const assetsWithoutNews = await adaptic.asset.findMany({}, client, {
-  newsArticles: {
-    none: {},
-  },
-});
-
-// Find users where ALL trades are completed
-const usersWithAllCompletedTrades = await adaptic.user.findMany({}, client, {
-  trades: {
-    every: {
-      status: 'COMPLETED',
-    },
-  },
-});
-```
-
-### Deleting Records
-
-#### `delete`: Delete a Single Record
-
-Use when: You want to remove a specific record.
-
-**Function Signature:**
-
-```typescript
-async delete(props: ModelType, globalClient?: ApolloClientType): Promise<ModelType>
-```
-
-```typescript
-// Delete a user by ID
-const deletedUser = await adaptic.user.delete({ id: 'user123' }, client);
-
-// Delete a trade by ID
-const deletedTrade = await adaptic.trade.delete({ id: 'trade456' }, client);
-
-// Delete an asset by symbol
-const deletedAsset = await adaptic.asset.delete({ symbol: 'AAPL' }, client);
-```
-
-### Batch Operations for Efficiency
-
-To further reduce database load, consider batching related operations together:
-
-```typescript
-// Instead of multiple separate queries:
-const user = await adaptic.user.get({ id: '1234' }, client);
-const trades = await adaptic.trade.findMany({ userId: user.id }, client);
-
-// Use a more efficient query that includes related data:
-const { gql } = await getApolloModules();
-const COMBINED_QUERY = gql`
-  query GetUserWithTrades($id: ID!) {
-    user: getUser(id: $id) {
-      id
-      name
-      email
-      trades {
-        id
-        symbol
-        price
-        qty
-      }
-    }
-  }
+Use the provided market data to populate the fields.
 `;
-
-const result = await client.query({
-  query: COMBINED_QUERY,
-  variables: { id: '1234' },
-});
 ```
 
-### Error Handling with Retries
+The selection-set composability and the GQL/TYPESTRING inline-directive
+system that controls what each typeString includes are documented in
+[`CLAUDE.md`](../CLAUDE.md) under "GQL Inline Comment System".
 
-The connection pool automatically retries database connection errors with exponential backoff:
+---
+
+## Selection sets (deep-import surface)
+
+Each model has a generated GraphQL selection-set string used by the CRUD
+functions internally. Consumers occasionally need to compose a custom query
+using these:
 
 ```typescript
-import adaptic from '@adaptic/backend-legacy';
-import { getApolloClient, getApolloModules } from '@adaptic/backend-legacy';
+import { selectionSets } from '@adaptic/backend-legacy/generated/selectionSets';
 
-async function fetchData() {
-  const client = await getApolloClient();
-  try {
-    const { ApolloError } = await getApolloModules();
+const fields = selectionSets.Trade; // multi-line string
+```
 
-    // The connection pool will automatically retry if database connection errors occur
-    const user = await adaptic.user.get({ id: '1234' }, client);
+The nesting depth and per-field inclusion rules are controlled by the
+`/// GQL.*` directives on the schema fields — see
+[`CLAUDE.md`](../CLAUDE.md) for the directive language.
 
-    if (!user) {
-      console.log('User not found');
-      return;
-    }
+---
 
-    console.log(user);
-  } catch (error) {
-    // This will only be triggered after all retry attempts have failed
-    if (error instanceof ApolloError) {
-      console.error('GraphQL error after all retries:', error.message);
-    } else {
-      console.error('Unexpected error:', error);
-    }
+## Error handling
+
+The connection pool retries connection-level errors with exponential backoff
+before surfacing the failure. Wrap CRUD calls in standard try/catch and
+inspect Apollo errors for diagnostics:
+
+```typescript
+import adaptic, {
+  getApolloClient,
+  getApolloModules,
+} from '@adaptic/backend-legacy';
+
+const client = await getApolloClient();
+const { ApolloError } = await getApolloModules();
+
+try {
+  const user = await adaptic.user.get({ id: 'user-123' }, client);
+  if (!user) {
+    // Distinguish "not found" from "errored"
+  }
+} catch (err) {
+  if (err instanceof ApolloError) {
+    // Inspect err.graphQLErrors / err.networkError for root cause
+  } else {
+    // Pool exhaustion / queue-wait / load-shedding errors are plain Error
   }
 }
 ```
 
-## Environment Variables
+Server-side, the Apollo Server surfaces `UNAUTHENTICATED` errors with an
+`extensions.reason` enum (one of `malformed | expired | bad_signature |
+bad_audience | opaque_access_token_rejected | misconfigured`) and HTTP status
+401. Consumers should treat any 401 as a session-refresh trigger.
 
-The package uses these environment variables:
+---
 
-- `NODE_ENV`: Determines production vs. development settings
-- `NEXT_PUBLIC_BACKEND_HTTPS_URL` or `BACKEND_HTTPS_URL`: GraphQL endpoint URL
-- `NEXT_PUBLIC_SERVER_AUTH_TOKEN` or `SERVER_AUTH_TOKEN`: Authentication token
-- `DATABASE_URL`: Required for the backend to connect to your database
-- `DIRECT_DATABASE_URL`: Optional direct database connection for certain operations
+## Migrations & schema evolution
 
-## Troubleshooting Connection Issues
+Migrations are managed by the package owner via Prisma:
 
-If you encounter database connection errors (like "Accelerate was not able to connect" or "error code: 1016"), consider:
+```bash
+npm run migrate         # production: prisma migrate deploy
+npm run migrate:dev     # local: prisma migrate dev + deploy
+npm run validate:schema # validate + drift check
+```
 
-1. **Check Environment Variables**: Ensure `DATABASE_URL` is correctly set
-2. **Reduce Concurrency**: Lower `maxConcurrentOperations` in the connection pool config
-3. **Implement Client-Side Caching**: Cache repetitive queries on the client side
-4. **Batch Related Queries**: Combine multiple queries into one where possible
-5. **Review Usage Patterns**: Look for loops or repeated calls creating many connections
+Consumers do not run migrations. If you need a new field on a Tier B model,
+file a schema change against this repo, wait for the npm publish, and bump
+your dependency.
 
-This documentation provides the essential information you need to effectively use the @adaptic/backend-legacy package in your applications. For more specific use cases, refer to the API reference or examples in the codebase.
+---
+
+## Troubleshooting
+
+| Symptom                                                | Likely cause                                                                                  | Resolution                                                                                            |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `Accelerate was not able to connect`                   | `DATABASE_URL` misconfigured or Accelerate proxy down                                         | Verify env var; check Prisma Accelerate dashboard                                                     |
+| `LOAD_SHEDDING` error from CRUD calls                  | Connection pool queue exceeded `maxQueueDepth`                                                | Reduce concurrent issuance, raise `maxQueueDepth`, or back off load                                   |
+| `QUEUE_WAIT_TIMEOUT`                                   | Operation sat in queue longer than `queueWaitTimeoutMs`                                       | Backend is overloaded — investigate upstream rather than just raising the timeout                     |
+| `UNAUTHENTICATED` with `reason: misconfigured`         | Server hasn't been started with `GOOGLE_OAUTH_CLIENT_IDS` (or the wrong audiences)            | Set `GOOGLE_OAUTH_CLIENT_IDS` on the server before restart                                            |
+| `Cannot read properties of undefined (reading 'write')` | Old Apollo Client version mismatched with backend response shape                              | Pin to `@apollo/client@^3.11.0` (current peer dep)                                                    |
+| Type-check fails after schema change                   | Consumer is on an older `@adaptic/backend-legacy` version                                     | Bump consumer dep version; rebuild                                                                    |
+| Stale enum values after schema change                  | Consumer hasn't reinstalled `@adaptic/backend-legacy` after publish                           | `npm install` / `yarn install` in the consumer; rebuild                                               |
+
+For deeper failure modes (Prisma generation errors, codegen drift, audit-plugin
+issues), see [`docs/DEBUGGING_PLAYBOOK.md`](./DEBUGGING_PLAYBOOK.md).
+
+---
+
+## Versioning
+
+The package is published on every push to `main` (npm dist-tag `latest`) and
+`stable-release` (dist-tag `stable`). CI bumps the patch version and runs
+`npm publish`. Consumers track the channel that matches their stability
+posture:
+
+| Channel              | Use when                                                                  |
+| -------------------- | ------------------------------------------------------------------------- |
+| `@adaptic/backend-legacy@latest` | Active development; tracks `main`                            |
+| `@adaptic/backend-legacy@stable` | Production deploys; tracks the `stable-release` branch        |
+
+The current `latest` version is `0.0.984` (2026-05-22). Re-verify with
+`npm view @adaptic/backend-legacy version` rather than trusting this number
+in older copies of the doc.
+
+---
+
+## Where to make schema changes
+
+`backend-legacy` is the only place to add Tier B models (User, Trade, Policy,
+AuditLog, etc.). Tier A telemetry models go in `engine/prisma/schema.prisma`.
+If in doubt about which tier a new feature belongs to, ask:
+
+- Does it record identity, audit, regulatory, or trade-lifecycle state? -> Tier B.
+- Is it an engine-internal counter, cache, event-source row, decision-memory
+  entry, or ML-governance row? -> Tier A.
+
+See the [Schema-ownership boundary](#schema-ownership-boundary-tier-a-vs-tier-b)
+section above for the canonical statement of the rule.

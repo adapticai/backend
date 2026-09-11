@@ -37,6 +37,7 @@ describe('Error Sanitizer', () => {
 
   describe('production mode', () => {
     it('should sanitize internal errors', () => {
+      const originalMessage = 'Cannot read property "x" of undefined';
       const sanitizedMessage = 'Internal server error';
 
       expect(sanitizedMessage).toBe('Internal server error');
