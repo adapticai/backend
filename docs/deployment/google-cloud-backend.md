@@ -1,4 +1,15 @@
-# adaptic-backend on Google Cloud Run
+# adaptic-backend on Google Cloud Run — HISTORICAL, DECOMMISSIONED
+
+> **This deployment no longer exists.** The `adaptic-438004` GCP project is suspended and
+> decommissioned, all compute is off, and the billing account is closed. `adaptic-backend`
+> now runs on **Railway** (project `adaptic-os`, environment `stable`), deployed from the
+> **`main`** branch, serving `stable-api.adaptic.ai`.
+>
+> Nothing below is executable. Every branch, trigger, project, and hostname in this document
+> is retained verbatim as a record of how the GCP deployment was configured — including its
+> `stable-release` branch trigger, which described the branch layout in force at the time.
+> Do not use this page to configure anything; see
+> `docs/security/2026-08-23-graphql-auth-enforcement-runbook.md` §9 for the live mechanism.
 
 Deployment guide for running `@adaptic/backend-legacy` (the Apollo / Prisma /
 TypeGraphQL API gateway) on Google Cloud Run, fronting AlloyDB over Private

@@ -15,8 +15,9 @@ the `platform` frontend monorepo).
 - **Visibility:** private GitHub repo, public on NPM
 - **Branches:** `main` — the production branch (npm dist-tag `stable`); `platform-alignment` (dist-tag `alignment`)
 - **Publish workflow:** GitHub Actions auto-bumps version and runs
-  `npm publish` on push to either branch; **no manual version bumps are
-  required** in PRs.
+  `npm publish` on push to a mapped branch; **no manual version bumps are
+  required** in PRs. A branch with no channel mapped fails the workflow
+  rather than publishing to a default tag.
 
 For consumer-facing usage instructions install the NPM package:
 
