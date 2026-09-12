@@ -34,6 +34,7 @@ import jwt, { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
 import { OAuth2Client, type LoginTicket } from 'google-auth-library';
 import { jwtSecret } from '../config/jwtConfig';
 import { logger } from '../utils/logger';
+import { verifyServiceToken } from './service-token';
 
 // -----------------------------------------------------------------------------
 // Public types
@@ -286,6 +287,8 @@ function classifyJwtError(error: unknown): AuthErrorReason {
  *
  *  - Empty or whitespace-only -> `malformed`.
  *  - Exact match with `SERVER_AUTH_TOKEN` -> `{ kind: "server" }`.
+ *  - HS256 JWT signed with `BACKEND_SERVICE_JWT_SECRET`, issuer `adaptic-service`,
+ *    audience `adaptic-backend` -> `{ kind: "server" }`. See `./service-token`.
  *  - Single segment (no dots) -> `opaque_access_token_rejected`. This is the
  *    structural catch for OAuth access tokens, which cannot be verified offline.
  *  - Exactly 3 dot-separated segments -> attempt local JWT verify, then Google
@@ -340,6 +343,17 @@ export async function verifyBackendToken(
       segmentCount: segments.length,
     });
     throw new AuthError('invalid_token', 'malformed');
+  }
+
+  // ---- path 1b: dedicated service credential -------------------------------
+  // Checked before the app-JWT path because a service credential is signed
+  // with a DIFFERENT secret: reaching path 2 first would classify it as
+  // `bad_signature` and report an unprovisioned-service outage as a forgery.
+  // Returns null when the path is unprovisioned or the signature is not ours,
+  // which leaves every existing token's behaviour byte-identical.
+  const servicePrincipal = verifyServiceToken(token);
+  if (servicePrincipal !== null) {
+    return servicePrincipal;
   }
 
   // ---- path 2: app-issued JWT ----------------------------------------------

@@ -318,18 +318,40 @@ function isValidJwtFormat(token: string): boolean {
 async function getAuthToken(): Promise<string> {
   let token = '';
 
-  // First, try the custom token provider if set
+  // A caller that installed a token provider has declared that this process
+  // authenticates. Honouring that declaration means a provider failure must
+  // surface as a failed operation, never as an anonymous one: the environment
+  // fallback below exists for processes that never configured a provider, and
+  // reaching it after a provider failure would silently downgrade an
+  // authenticated service to the anonymous caller it was configured to stop
+  // being. That downgrade is invisible at the call site and shows up only as
+  // an authorization outage once the server starts enforcing.
   if (customTokenProvider) {
+    let provided: string;
     try {
-      token = await Promise.resolve(customTokenProvider());
+      provided = await Promise.resolve(customTokenProvider());
     } catch (error) {
-      logger.error('[Apollo Client] Error getting token from custom provider', {
+      logger.error('[Apollo Client] Token provider failed; refusing to send an unauthenticated request', {
         error: String(error),
       });
+      throw error instanceof Error
+        ? error
+        : new Error(`Token provider failed: ${String(error)}`);
     }
+    if (!provided) {
+      logger.error(
+        '[Apollo Client] Token provider returned no token; refusing to send an unauthenticated request'
+      );
+      throw new Error(
+        'Apollo token provider returned an empty token. A configured provider must yield a credential; ' +
+          'falling back to an anonymous request would silently drop this process\'s identity.'
+      );
+    }
+    token = provided;
   }
 
-  // Fall back to environment variables
+  // Fall back to environment variables. Reached only when no provider was
+  // configured, so the historical behaviour of unconfigured callers is intact.
   if (!token) {
     token =
       process.env.NEXT_PUBLIC_SERVER_AUTH_TOKEN ||
@@ -350,15 +372,27 @@ async function getAuthToken(): Promise<string> {
           'rejected by the backend. Use a backend-issued JWT or SERVER_AUTH_TOKEN ' +
           'instead.'
       );
-      return '';
+      token = '';
+    } else {
+      logger.warn(
+        '[Apollo Client] Token does not appear to be a valid JWT format. ' +
+          'Expected format: header.payload.signature (three base64url-encoded parts). ' +
+          'Token will not be sent. Please check your NEXT_PUBLIC_SERVER_AUTH_TOKEN or SERVER_AUTH_TOKEN environment variable.'
+      );
+      token = '';
     }
+  }
 
-    logger.warn(
-      '[Apollo Client] Token does not appear to be a valid JWT format. ' +
-        'Expected format: header.payload.signature (three base64url-encoded parts). ' +
-        'Token will not be sent. Please check your NEXT_PUBLIC_SERVER_AUTH_TOKEN or SERVER_AUTH_TOKEN environment variable.'
+  // Final fail-closed gate for provider-configured processes: every path that
+  // zeroes the token above (malformed shape, opaque OAuth token) would
+  // otherwise emit an anonymous request from a process that declared an
+  // identity. Rejecting a malformed credential is correct; sending no
+  // credential in its place is not.
+  if (customTokenProvider && !token) {
+    throw new Error(
+      'Apollo token provider yielded a credential that failed local validation. ' +
+        'Refusing to fall back to an unauthenticated request.'
     );
-    return '';
   }
 
   return token;
