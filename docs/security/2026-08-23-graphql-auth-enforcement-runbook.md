@@ -228,14 +228,16 @@ is env-gated and read fresh per request, rollback is immediate and requires no r
 
 ## 9. Deploy mechanism note
 
-A push to `stable-release` triggers the `adaptic-backend-stable-branch` **Cloud Build**
-trigger (repo `backend-legacy`, `cloudbuild.yaml`, no path filter) → builds the image →
-runs `prisma migrate deploy` → `gcloud run deploy` to **Google Cloud Run** service
-`adaptic-backend` (project `adaptic-438004`, `us-east4`), which serves
-`stable-api.adaptic.ai`. This is a **live production redeploy**, independent of the npm
+A push to `main` triggers a Railway build and redeploy of the `adaptic-backend`
+service in project `adaptic-os`, environment `production`, which serves
+`api.adaptic.ai` (GraphQL) and `wss.adaptic.ai` (graphql-ws at `/subscriptions`);
+`stable-api.adaptic.ai` is kept alive as a compatibility alias for the same
+service. This is a **live production redeploy**, independent of the npm
 `publish.yml` pipeline. The shadow instrumentation in this change is dormant until such a
 deploy ships it; enabling/rolling back an eventual enforcement flag is an env-var change on
-the Cloud Run service, not a code deploy.
+the Railway service, not a code deploy.
 
-> `backend-legacy/CLAUDE.md` still says "Hosted on Railway" — that is **stale**; the live
-> GraphQL service is Google Cloud Run.
+> Superseded 2026-09-12: this section previously described a Cloud Build trigger
+> deploying to Google Cloud Run, and flagged `backend-legacy/CLAUDE.md`'s
+> "Hosted on Railway" as stale. That Google Cloud project is decommissioned —
+> CLAUDE.md was right, and the correction has been reversed.

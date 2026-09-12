@@ -13,7 +13,10 @@ the `platform` frontend monorepo).
 ## Repository status
 
 - **Visibility:** private GitHub repo, public on NPM
-- **Branches:** `main` (npm dist-tag `latest`), `stable-release` (dist-tag `stable`)
+- **Branches:** `main` is the production branch — it publishes the `0.0.x`
+  train on dist-tag `stable` and then points `latest` at the same version.
+  `stable-release` publishes `stable` too, for compatibility, but never moves
+  `latest`.
 - **Publish workflow:** GitHub Actions auto-bumps version and runs
   `npm publish` on push to either branch; **no manual version bumps are
   required** in PRs.

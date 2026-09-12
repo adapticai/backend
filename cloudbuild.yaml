@@ -1,3 +1,8 @@
+# DECOMMISSIONED — the Google Cloud project this pipeline targets
+# (adaptic-438004) no longer exists. adaptic-backend deploys from `main` to
+# Railway adaptic-os/production. Nothing triggers this file; it is kept as the
+# record of how the Cloud Run deployment was built.
+#
 # Cloud Build pipeline for @adaptic/backend-legacy on Google Cloud Run.
 #
 # Pipeline phases (each waits for the previous):

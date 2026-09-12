@@ -54,7 +54,7 @@ Required: `DATABASE_URL` + `DIRECT_DATABASE_URL` (PostgreSQL via Prisma Accelera
 
 Railway-hosted; `GET /health` unauthenticated, `POST /graphql` Bearer-auth, WS subscriptions at `/subscriptions`. `.github/workflows/publish.yml` (branches `main`, `stable-release`, `platform-alignment`) is paths-filtered — docs-only pushes skip the ~20-min pipeline — but **actual publishing is gated by a dist-content diff** against the published npm tarball: it version-bumps and publishes only when `dist/` content differs (or `always-build-npm` is set in `package-npm.json`). **`README-npm.md` IS publish-relevant** (copied to `dist/README.md`); root `README.md` is not.
 
-Before pushing: confirm the intended channel (`main` → `@latest`, `stable-release` → `@stable`) matches your deployment intent, and do not push schema changes while any consumer repo shows `DIRTY_TREE` — your published change will collide with their in-flight work. Close per the root final-response rule, plus publish status and the versions consumers were bumped to.
+Before pushing: confirm the intended channel — **`main` is the production branch** since the 2026-09-12 cutover and publishes the `0.0.x` train on `@stable`, then moves `@latest` to it; `stable-release` still publishes the same train for compatibility but never claims `@latest` — and do not push schema changes while any consumer repo shows `DIRTY_TREE` — your published change will collide with their in-flight work. Close per the root final-response rule, plus publish status and the versions consumers were bumped to.
 
 ## Codebase graph
 

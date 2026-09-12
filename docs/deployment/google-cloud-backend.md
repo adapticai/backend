@@ -1,5 +1,14 @@
 # adaptic-backend on Google Cloud Run
 
+> **DECOMMISSIONED — historical record, do not follow.** The Google Cloud project
+> (`adaptic-438004`) this runbook deploys into no longer exists. `adaptic-backend`
+> runs on Railway `adaptic-os/production`, deployed from `main`, serving
+> `api.adaptic.ai` (GraphQL) and `wss.adaptic.ai` (graphql-ws at `/subscriptions`);
+> `stable-api.adaptic.ai` is kept alive as a compatibility alias. Every `gcloud`,
+> Cloud Build, Cloud Run and AlloyDB step below will fail. The sibling
+> `cloudbuild.yaml` is dead for the same reason. Current routine:
+> `~/adapticai/docs/DEPLOY_ROUTINES.md`.
+
 Deployment guide for running `@adaptic/backend-legacy` (the Apollo / Prisma /
 TypeGraphQL API gateway) on Google Cloud Run, fronting AlloyDB over Private
 Service Connect.
@@ -269,7 +278,7 @@ Railway `adaptic-backend` service is still present and reachable —
 Railway is being decommissioned after the migration stabilises):
 
 1. In the Railway dashboard, re-enable the `adaptic-backend` service in
-   `adaptic-os/stable` and wait for it to deploy successfully.
+   `adaptic-os/production` and wait for it to deploy successfully.
 2. At the registrar, change the `stable-api.adaptic.ai` A record back to
    a CNAME pointing at the Railway-generated domain shown in the Railway
    service settings (Settings → Networking → Public Networking).
