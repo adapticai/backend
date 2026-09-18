@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-# Multi-stage production image for @adaptic/backend-legacy.
+# Multi-stage production image for @adaptic/backend.
 #
 # Stage layout:
 #   1. deps     - install full dependency tree (dev + prod) for the build

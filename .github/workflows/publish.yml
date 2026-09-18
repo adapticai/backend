@@ -36,6 +36,24 @@ jobs:
   publish:
     runs-on: ubuntu-latest
 
+    # The package is published under TWO names during the rename migration. The
+    # canonical name is whatever dist/package.json carries (PACKAGE_NAME, derived
+    # below); MIRROR_NAME is the outgoing name that must keep receiving the same
+    # versions until every consumer has moved off it.
+    #
+    # Why a mirror at all: consumers pin a name, not a repository. Flipping the
+    # name alone would stop publishing the old name, and every pinned consumer
+    # would go on resolving it forever — no error, no warning, just a dependency
+    # that silently stops receiving updates. Publishing both names from one build
+    # keeps the old name a live, current alias until it is deliberately frozen.
+    #
+    # To END the migration: delete this one line. Every loop below iterates
+    # `${MIRROR_NAME:+...}`, so an unset mirror degrades to canonical-only with no
+    # other edit. Freeze the mirror BEFORE `npm deprecate`, because deprecation
+    # marks only the versions that exist at the moment it runs.
+    env:
+      MIRROR_NAME: '@adaptic/backend-legacy'
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -144,6 +162,16 @@ jobs:
         run: |
           rm -rf npm_published_package && mkdir -p npm_published_package
           TARBALL_URL=$(npm view "$PACKAGE_NAME@$NPM_TAG" dist.tarball 2>/dev/null || echo "")
+          if [ -z "$TARBALL_URL" ] && [ -n "${MIRROR_NAME:-}" ]; then
+            # A newly-renamed canonical name has no releases yet, but the mirror
+            # carries the identical tree: both names are published from the same
+            # dist/, and the ONLY file that differs between them is package.json,
+            # which the content diff below already excludes. Using the mirror as
+            # the baseline keeps the skip-if-unchanged gate working through the
+            # migration instead of force-publishing a no-op first release.
+            echo "No release under '$PACKAGE_NAME@$NPM_TAG'; using mirror '$MIRROR_NAME' as the content baseline."
+            TARBALL_URL=$(npm view "$MIRROR_NAME@$NPM_TAG" dist.tarball 2>/dev/null || echo "")
+          fi
           if [ -n "$TARBALL_URL" ]; then
             curl -sL "$TARBALL_URL" | tar -xzf - -C npm_published_package
             echo "tarball_found=true" >> $GITHUB_OUTPUT
@@ -199,25 +227,40 @@ jobs:
           IS_STABLE: ${{ steps.channel.outputs.is_stable }}
           IS_ALIGNMENT: ${{ steps.channel.outputs.is_alignment }}
         run: |
+          # The version train belongs to the PACKAGE, not to any one of its names,
+          # so the next version is anchored on the highest stable release across
+          # every name this pipeline publishes. A freshly-renamed canonical name
+          # has no releases of its own; anchoring on the max lets it join the
+          # existing train at the next patch instead of restarting below it.
+          #
+          # There is deliberately NO literal fallback version here. The previous
+          # `|| echo "0.0.900"` turned "the registry told us nothing" into a
+          # concrete version — which, the moment the name changed, would have
+          # walked the train backwards by 124 releases and published numbers that
+          # can never be reclaimed. An unresolvable base is UNKNOWN and fails the
+          # job loudly rather than being silently converted into a value.
+          stable_of() { npm view "$1" dist-tags.stable 2>/dev/null || true; }
+          STABLE_VERSION=$(
+            for NAME in "$PACKAGE_NAME" ${MIRROR_NAME:+"$MIRROR_NAME"}; do stable_of "$NAME"; done \
+              | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1
+          )
+          if [ "$IS_ALIGNMENT" = "true" ] || [ "$IS_STABLE" = "true" ]; then
+            if [ -z "$STABLE_VERSION" ]; then
+              echo "::error::No stable release resolves for $PACKAGE_NAME${MIRROR_NAME:+ or $MIRROR_NAME} — refusing to invent a version." >&2
+              exit 1
+            fi
+            PATCH=$(echo "$STABLE_VERSION" | cut -d'.' -f3)
+            NEW_PATCH=$((PATCH + 1))
+          fi
+
           if [ "$IS_ALIGNMENT" = "true" ]; then
             # Alignment channel: prerelease derived from the stable base so it
             # never collides with (and always sorts below) the next stable patch.
-            STABLE_VERSION=$(npm view "$PACKAGE_NAME" dist-tags.stable 2>/dev/null || echo "0.0.900")
-            PATCH=$(echo "$STABLE_VERSION" | cut -d'.' -f3)
-            NEW_VERSION="0.0.$((PATCH + 1))-alignment.${GITHUB_RUN_NUMBER}"
+            NEW_VERSION="0.0.${NEW_PATCH}-alignment.${GITHUB_RUN_NUMBER}"
             echo "Alignment prerelease version: $NEW_VERSION (stable base $STABLE_VERSION)"
           elif [ "$IS_STABLE" = "true" ]; then
-            # Stable channel: derive version from latest stable-tagged npm release
-            STABLE_VERSION=$(npm view "$PACKAGE_NAME" dist-tags.stable 2>/dev/null || echo "")
-            if [ -z "$STABLE_VERSION" ]; then
-              NEW_VERSION="0.0.900"
-              echo "No existing stable release found, starting at $NEW_VERSION"
-            else
-              PATCH=$(echo "$STABLE_VERSION" | cut -d'.' -f3)
-              NEW_PATCH=$((PATCH + 1))
-              NEW_VERSION="0.0.$NEW_PATCH"
-              echo "Latest stable version is $STABLE_VERSION, bumping to $NEW_VERSION"
-            fi
+            NEW_VERSION="0.0.$NEW_PATCH"
+            echo "Highest stable release across all published names is $STABLE_VERSION, bumping to $NEW_VERSION"
           else
             # Main channel: existing patch bump logic
             echo "Checking current version..."
@@ -252,7 +295,22 @@ jobs:
             git commit -m "ci: bump version to $NEW_VERSION"
           fi
 
-      - name: Publish package
+      # ONE build, TWO names. The registry keys a tarball by its `name` field
+      # alone, and no module in the published tree RESOLVES its own package name
+      # (no self-import, require, or require.resolve — only README examples and a
+      # few diagnostic strings mention it), so mutating that single field between
+      # publishes yields two interchangeable releases from the same dist/. Keep it
+      # that way: a self-import would resolve to a DIFFERENT copy under the mirror
+      # name and silently duplicate module state. The package is ~35 MB
+      # packed / 677 MB unpacked and `tsc` peaks over 4 GB compiling it — building
+      # it twice to change one string would be pure waste.
+      #
+      # The mirror is published FIRST. If the step dies between the two publishes,
+      # the name that incumbent consumers are pinned to is the one that got the
+      # release; the new name lagging by a version is visible and self-correcting,
+      # whereas a frozen mirror is the silent failure this whole design exists to
+      # prevent.
+      - name: Publish package under every active name
         if: steps.should_publish.outputs.should_publish == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -260,36 +318,145 @@ jobs:
           NPM_TAG: ${{ steps.channel.outputs.npm_tag }}
         working-directory: dist
         run: |
+          set -euo pipefail
           # Ensure compare-step artifacts are removed before publishing
           rm -rf ../npm_published_package ../dist_diff.txt
-          echo "Publishing package..."
           echo "Registry URL: $(npm config get registry)"
-          echo "Package name: $(jq -r .name package.json)"
           echo "Package version: $(jq -r .version package.json)"
           echo "NPM tag: $NPM_TAG"
           echo "NPM whoami: $(npm whoami || echo 'Not authenticated')"
 
-          echo "Running: npm publish --access public --tag $NPM_TAG"
-          npm publish --access public --tag "$NPM_TAG"
+          publish_as() {
+            NAME="$1"
+            # Idempotence: npm refuses to republish an existing version with a 403.
+            # Without this guard a re-run after a half-finished step would die on
+            # the name that already succeeded and never reach the one that did not.
+            if [ -n "$(npm view "$NAME@$NEW_VERSION" version 2>/dev/null || true)" ]; then
+              echo "$NAME@$NEW_VERSION is already on the registry — skipping."
+              return 0
+            fi
+            jq --arg n "$NAME" '.name=$n' package.json > .name.tmp && mv .name.tmp package.json
+            echo "Running: npm publish --access public --tag $NPM_TAG   (name: $NAME)"
+            npm publish --access public --tag "$NPM_TAG"
+          }
+
+          for NAME in ${MIRROR_NAME:+"$MIRROR_NAME"} "$PACKAGE_NAME"; do publish_as "$NAME"; done
+
+          # Leave the manifest on the canonical name so later steps and any
+          # post-mortem of the workspace read the truth.
+          jq --arg n "$PACKAGE_NAME" '.name=$n' package.json > .name.tmp && mv .name.tmp package.json
 
       # `latest` is what an unqualified `npm install` resolves to, so it must
       # name the production release rather than a superseded train. Only a
-      # publish from the production branch moves it; stable-release publishes
-      # deliberately leave it alone during the cutover.
+      # publish from the production branch moves it. Both names get the tag:
+      # a mirror whose `latest` is left behind would quietly serve a stale
+      # release to every unpinned consumer still on the old name.
       - name: Point `latest` at the production release
         if: steps.should_publish.outputs.should_publish == 'true' && steps.channel.outputs.branch == 'main'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          if [ -z "$NEW_VERSION" ]; then
+          set -euo pipefail
+          if [ -z "${NEW_VERSION:-}" ]; then
             echo "NEW_VERSION is empty — refusing to move the latest tag blind." >&2
             exit 1
           fi
-          npm dist-tag add "$PACKAGE_NAME@$NEW_VERSION" latest
-          echo "latest -> $PACKAGE_NAME@$NEW_VERSION"
+          for NAME in "$PACKAGE_NAME" ${MIRROR_NAME:+"$MIRROR_NAME"}; do
+            npm dist-tag add "$NAME@$NEW_VERSION" latest
+            echo "latest -> $NAME@$NEW_VERSION"
+          done
 
+      # The mirror's whole purpose is that a consumer who has not migrated yet is
+      # no worse off. That guarantee is only real if a mirror that stops tracking
+      # the canonical name FAILS THE JOB rather than passing quietly — a silently
+      # frozen alias is indistinguishable from a healthy one at the install site.
+      # fileCount is the invariant to assert: the two tarballs are byte-identical
+      # apart from the `name` string, so their shasums and unpacked sizes legally
+      # differ while their file counts cannot.
+      - name: Assert every published name is in lockstep
+        if: steps.should_publish.outputs.should_publish == 'true' && env.MIRROR_NAME != ''
+        env:
+          NPM_TAG: ${{ steps.channel.outputs.npm_tag }}
+        run: |
+          set -euo pipefail
+          # The registry is read-your-writes only after CDN propagation. Two
+          # different waits are needed, and conflating them is what made this
+          # step report false drift twice:
+          #
+          #   resolve()   — waits for a value to EXIST. Correct when no specific
+          #                 value is expected (the fileCount comparison below).
+          #   converge()  — waits for a value to become the EXPECTED one. A
+          #                 dist-tag read during propagation returns the PREVIOUS
+          #                 version: present, non-empty, and wrong. Retrying only
+          #                 on emptiness accepts that stale read on the first
+          #                 attempt and reports two correctly-published names as
+          #                 "drifted apart" — failing the job, and with it
+          #                 skipping the dist cleanup and the version-bump push
+          #                 that the following step owns.
+          resolve() {
+            ATTEMPT=0
+            while [ "$ATTEMPT" -lt 6 ]; do
+              ATTEMPT=$((ATTEMPT + 1))
+              VALUE=$(npm view "$1" "$2" 2>/dev/null || true)
+              if [ -n "$VALUE" ]; then echo "$VALUE"; return 0; fi
+              [ "$ATTEMPT" -lt 6 ] && sleep 10
+            done
+            return 1
+          }
+          # 30 x 10s. Measured, not guessed: with a 12-attempt (120s) window this
+          # step still read the previous version for the full wait and failed,
+          # while both dist-tags were correct minutes later. npm's dist-tag
+          # read-your-writes latency is simply longer than two minutes here.
+          # `--prefer-online` is required because `npm view` otherwise answers
+          # from its own metadata cache, which would re-introduce the stale read
+          # this function exists to outlast.
+          converge() {
+            ATTEMPT=0
+            LAST=""
+            while [ "$ATTEMPT" -lt 30 ]; do
+              ATTEMPT=$((ATTEMPT + 1))
+              LAST=$(npm view --prefer-online "$1" "$2" 2>/dev/null || true)
+              if [ "$LAST" = "$3" ]; then echo "$LAST"; return 0; fi
+              [ "$ATTEMPT" -lt 30 ] && sleep 10
+            done
+            echo "$LAST"
+            return 1
+          }
+          for NAME in "$PACKAGE_NAME" "$MIRROR_NAME"; do
+            # A genuine drift still fails: converge() exhausts its window and
+            # returns the last value it actually saw, so the error below reports
+            # the real registry state rather than a propagation artifact.
+            SEEN=$(converge "$NAME" "dist-tags.$NPM_TAG" "$NEW_VERSION") || {
+              echo "::error::$NAME has $NPM_TAG=${SEEN:-<none>} after waiting for propagation, expected $NEW_VERSION — the names have drifted apart." >&2
+              exit 1
+            }
+          done
+          CANONICAL_FILES=$(resolve "$PACKAGE_NAME@$NEW_VERSION" dist.fileCount) \
+            || { echo "::error::registry never returned dist.fileCount for $PACKAGE_NAME@$NEW_VERSION." >&2; exit 1; }
+          MIRROR_FILES=$(resolve "$MIRROR_NAME@$NEW_VERSION" dist.fileCount) \
+            || { echo "::error::registry never returned dist.fileCount for $MIRROR_NAME@$NEW_VERSION." >&2; exit 1; }
+          if [ "$CANONICAL_FILES" != "$MIRROR_FILES" ]; then
+            echo "::error::fileCount differs ($PACKAGE_NAME=$CANONICAL_FILES, $MIRROR_NAME=$MIRROR_FILES) — the tarballs are not the same build." >&2
+            exit 1
+          fi
+          echo "Lockstep OK: $PACKAGE_NAME and $MIRROR_NAME both at $NEW_VERSION, $CANONICAL_FILES files."
+
+      # `always()` because a step only runs by default when every earlier step
+      # succeeded, and the lockstep assertion above can fail for a reason that
+      # has nothing to do with this cleanup: npm makes a newly published version
+      # queryable asynchronously, and for a package this size (59,380 files,
+      # ~678 MB unpacked) the canonical name has taken over an HOUR to appear —
+      # far beyond any wait a CI job should hold open.
+      #
+      # When that happened, the job aborted here and the repository was left
+      # stranded: `dist/package.json` still committed and the `ci: bump version`
+      # commit never pushed, so the branch's recorded version drifted behind the
+      # registry and the next run re-derived a version from a stale base. The
+      # lockstep check still fails the job — that signal is worth keeping — but
+      # it must not also strand the branch. Gated on a publish having actually
+      # happened, so nothing is committed when there was nothing to publish.
       - name: Remove dist/package.json after publish and push changes
-        if: steps.should_publish.outputs.should_publish == 'true'
+        if: always() && steps.should_publish.outputs.should_publish == 'true'
         env:
           BRANCH: ${{ steps.channel.outputs.branch }}
         run: |

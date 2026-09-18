@@ -1,5 +1,5 @@
 {
-  "name": "@adaptic/backend-legacy",
+  "name": "@adaptic/backend",
   "version": "0.0.984",
   "description": "A scalable backend solution using Prisma, Apollo Server, and TypeGraphQL, featuring GraphQL and RESTful APIs with real-time subscriptions and robust authentication.",
   "main": "dist/index.js",
@@ -15,6 +15,7 @@
     "tag": "latest"
   },
   "scripts": {
+    "llm:evals": "node scripts/run-llm-evals.mjs",
     "clean": "rm -rf dist && rm -rf src/generated",
     "dev": "npm run migrate:dev && nodemon --exec ts-node src/server.ts",
     "build": "npm run clean && npm run generate && npm run fix-imports && npm run generate:selections && npm run generate:functions && npm run fix-compound-keys && npm run generate:strings && tsc && npm run build:server",
@@ -68,7 +69,7 @@
     "vitest": "^3.0.4"
   },
   "dependencies": {
-    "@adaptic/utils": "0.0.1021",
+    "@adaptic/utils": "0.0.1022",
     "@apollo/client": "^3.13.9",
     "@apollo/server": "^5.4.1",
     "@as-integrations/express4": "^1.1.2",

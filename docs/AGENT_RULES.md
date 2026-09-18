@@ -9,7 +9,7 @@ This package is the **TYPE AUTHORITY** for the entire Adaptic.ai platform. The P
 - **Platform** (`platform/`) -- runtime dependency via GraphQL and WebSocket. Consumes types through Apollo Client queries.
 
 **Type resolution priority across the monorepo:**
-`@adaptic/backend-legacy` -> `@adaptic/utils` -> `@adaptic/lumic-utils` -> `src/interfaces/`
+`@adaptic/backend` -> `@adaptic/utils` -> `@adaptic/lumic-utils` -> `src/interfaces/`
 
 ### Schema-Ownership Boundary (Tier A vs Tier B)
 

@@ -145,6 +145,14 @@ The package publishes types via `dist/index.d.ts` (see `package.json` `types` fi
 
 When engine, utils, or other consumers report type errors after a backend-legacy change.
 
+> The package is published under both `@adaptic/backend` and `@adaptic/backend-legacy`
+> — one build, one version, byte-identical contents — until every consumer has
+> migrated. This section says `@adaptic/backend-legacy` because that is the name
+> consumers currently resolve; substitute `@adaptic/backend` once the consumer you
+> are debugging has moved. A consumer that resolves BOTH names at once is itself the
+> bug: two copies of the same types are structurally identical but nominally
+> distinct, and every value crossing the boundary type-errors.
+
 **Diagnostic steps:**
 
 1. Rebuild backend-legacy first:

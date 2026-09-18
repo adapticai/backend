@@ -1,4 +1,4 @@
-# CLAUDE.md — @adaptic/backend-legacy
+# CLAUDE.md — @adaptic/backend
 
 Root of the type chain and system-of-record for all Adaptic-domain data: the Prisma schema, the TypeGraphQL/Apollo server, and the codegen pipeline that produces the `adaptic.*` CRUD functions, types, selection sets, and typeStrings every other repo consumes. **Highest blast radius in the workspace** — the generated surface IS the monorepo's contract. The root `~/adapticai/CLAUDE.md` loads alongside this file and carries the shared standards (ownership doctrine, code standards, delivery bar, trading doctrines, publish chain, GitNexus/Graphify usage); this file adds only what is backend-legacy-specific.
 
@@ -52,9 +52,15 @@ Required: `DATABASE_URL` + `DIRECT_DATABASE_URL` (PostgreSQL via Prisma Accelera
 
 ## Deployment & publish triggers
 
-Railway-hosted; `GET /health` unauthenticated, `POST /graphql` Bearer-auth, WS subscriptions at `/subscriptions`. `.github/workflows/publish.yml` (branches `main`, `stable-release`, `platform-alignment`) is paths-filtered — docs-only pushes skip the ~20-min pipeline — but **actual publishing is gated by a dist-content diff** against the published npm tarball: it version-bumps and publishes only when `dist/` content differs (or `always-build-npm` is set in `package-npm.json`). **`README-npm.md` IS publish-relevant** (copied to `dist/README.md`); root `README.md` is not.
+Railway-hosted; `GET /health` unauthenticated, `POST /graphql` Bearer-auth, WS subscriptions at `/subscriptions`. `.github/workflows/publish.yml` (branches `main`, `platform-alignment`) is paths-filtered — docs-only pushes skip the ~20-min pipeline — but **actual publishing is gated by a dist-content diff** against the published npm tarball: it version-bumps and publishes only when `dist/` content differs (or `always-build-npm` is set in `package-npm.json`). **`README-npm.md` IS publish-relevant** (copied to `dist/README.md`); root `README.md` is not.
 
-Before pushing: `main` is the production branch — it publishes the `0.0.x` train on `@stable` and moves `@latest` to it; `stable-release` maps to the same train during the compatibility window. Confirm the branch matches your deployment intent, and do not push schema changes while any consumer repo shows `DIRTY_TREE` — your published change will collide with their in-flight work. Close per the root final-response rule, plus publish status and the versions consumers were bumped to.
+Before pushing: `main` is the sole publisher of the `0.0.x` train — it publishes on `@stable` and moves `@latest` to it. `stable-release` deliberately does NOT publish; two branches feeding one version train race to the same number and the loser dies on a duplicate-version 403. Confirm the branch matches your deployment intent, and do not push schema changes while any consumer repo shows `DIRTY_TREE` — your published change will collide with their in-flight work. Close per the root final-response rule, plus publish status and the versions consumers were bumped to.
+
+### Two npm names, one build
+
+The npm package is **`@adaptic/backend`** (`.name` in `package-npm.json`). The workflow publishes that single `dist/` tree a second time under the mirror name **`@adaptic/backend-legacy`** (`MIRROR_NAME` in the workflow) — same version, byte-identical contents, one build. Renaming a package by editing `.name` alone is not a rename but a silent break: pinned consumers keep resolving the old name and simply stop receiving updates, with no error. The mirror keeps them live until each has migrated.
+
+Consequences for anything you change here: the shipped tree must stay **self-resolution-free** — no module under the published `files` set may import, `require`, or `require.resolve` its own package name. Merely mentioning the name in prose or an error string is fine; resolving it is not, because under the mirror name it would resolve to a second installed copy and duplicate module state, and the two tarballs would stop being interchangeable. The next version is anchored on the highest `stable` dist-tag across *both* names, and the job fails rather than inventing one if neither resolves. Never `npm unpublish` the mirror — frozen lineages resolve it transitively. To retire it: delete `MIRROR_NAME`, then `npm deprecate` the old name (that order — `npm deprecate` only marks versions that already exist).
 
 ## Codebase graph
 

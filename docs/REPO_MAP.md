@@ -122,7 +122,7 @@ backend-legacy/
   tsconfig.esm.json            - ESM build variant config
   tsconfig.server.json         - Server-only build config
   vitest.config.ts             - Vitest config (106 tests, coverage thresholds: 60/50/40 lines/functions/branches)
-  package.json                 - @adaptic/backend-legacy (published from `main` on the `stable` dist-tag; `npm view @adaptic/backend-legacy dist-tags` for live versions)
+  package.json                 - @adaptic/backend, mirrored as @adaptic/backend-legacy (published from `main` on the `stable` dist-tag; `npm view @adaptic/backend dist-tags` for live versions)
   Caddyfile                    - Caddy reverse proxy configuration
 
   CLAUDE.md                    - Claude Code instructions for this package

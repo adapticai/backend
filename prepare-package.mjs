@@ -86,7 +86,7 @@ function generateModelsSection() {
   const enums = enumFiles.map((file) => path.basename(file, '.mjs'));
 
   let section = `### Model TypeStrings, Types, and available CRUD Resolvers\n\n`;
-  section += `The \`@adaptic/backend-legacy\` package includes a comprehensive set of CRUD (Create, Read, Update, Delete) resolvers for each of your models. Each model has the following functions (available directly under the \`${GLOBAL_NAMESPACE}\` namespace) and types (under the \`types\` namespace):\n\n`;
+  section += `The \`@adaptic/backend\` package includes a comprehensive set of CRUD (Create, Read, Update, Delete) resolvers for each of your models. Each model has the following functions (available directly under the \`${GLOBAL_NAMESPACE}\` namespace) and types (under the \`types\` namespace):\n\n`;
   section += `| Model Name | TypeString | Type | CRUD Resolvers |\n`;
   section += `|------------|------------|------------|-----------------|\n`;
 
@@ -807,15 +807,15 @@ try {
       console.log('Creating minimal client.mjs');
       const minimalContent = `// Minimal client.mjs placeholder
 export const getApolloClient = async () => {
-  throw new Error('ApolloClient not properly initialized. Check @adaptic/backend-legacy package.');
+  throw new Error('ApolloClient not properly initialized. Check @adaptic/backend package.');
 };
 
 export const getApolloModules = async () => {
-  throw new Error('ApolloModules not properly initialized. Check @adaptic/backend-legacy package.');
+  throw new Error('ApolloModules not properly initialized. Check @adaptic/backend package.');
 };
 
 export const configureConnectionPool = () => {
-  throw new Error('Connection pool not properly initialized. Check @adaptic/backend-legacy package.');
+  throw new Error('Connection pool not properly initialized. Check @adaptic/backend package.');
 };
 
 export const client = Promise.resolve(null);

@@ -54,6 +54,10 @@ import {
   type BackendPrincipal,
 } from './auth/token-verifier';
 import {
+  decideWsAuth,
+  unauthenticatedWsError,
+} from './auth/ws-auth-context';
+import {
   recordShadowAuthMiss,
   recordAuthContextOutcome,
   extractOperationName,
@@ -475,64 +479,58 @@ const startServer = async () => {
         const authHeader =
           (ctx.connectionParams as { authorization?: string })?.authorization ||
           '';
-        const token = authHeader.startsWith('Bearer ')
-          ? authHeader.slice('Bearer '.length).trim()
-          : '';
 
-        // No token presented -> deliver a null-user context. The AuthChecker
-        // landing in CORTEX-P0-001 will reject any subscription that requires
-        // a principal. Until then, public subscriptions continue to work.
-        if (!token) {
-          // Shadow-observe the would-deny WITHOUT blocking — the WebSocket
-          // parallel of the HTTP path. Operation name is best-effort from
-          // ExecutionArgs; origin / user-agent / IP come from the upgrade
-          // request carried on ctx.extra.
-          const wsIdentity = extractHeaderIdentityFromWsExtra(ctx.extra);
-          recordShadowAuthMiss({
-            transport: 'ws',
-            operationName: extractOperationNameFromArgs(args),
-            origin: wsIdentity.origin,
-            ip: wsIdentity.ip,
-            userAgent: wsIdentity.userAgent,
-            authHeaderPresent: authHeader.length > 0,
-          });
-          return { prisma: global.prisma, user: null, principal: null };
-        }
+        // The classification itself lives in src/auth/ws-auth-context.ts so the
+        // security predicate is reachable by tests without booting the server.
+        // The effects it drives — shadow metrics, logging, Prisma attachment —
+        // stay here at the transport boundary.
+        const decision = await decideWsAuth(authHeader);
 
-        // Verify the bearer token via the single typed entry point.
-        // Any verification failure THROWS — graphql-ws closes the connection
-        // when the context callback throws, instead of silently downgrading
-        // to a degraded `authError` context that quietly delivered messages
-        // to an unauthenticated socket.
-        try {
-          const principal = await verifyBackendToken(token);
-          recordAuthContextOutcome('ws', 'authenticated');
-          return {
-            prisma: global.prisma,
-            user: principalToUser(principal),
-            principal,
-          };
-        } catch (e) {
-          const reason = e instanceof AuthError ? e.reason : 'bad_signature';
-          // Already rejected today (connection closed). Counted only to complete
-          // the shadow denominator alongside authenticated / no_principal.
-          recordAuthContextOutcome('ws', 'invalid_token');
-          logger.warn('WebSocket auth rejected — closing connection', {
-            reason,
-          });
-          // graphql-ws closes the connection rather than producing an HTTP
-          // response, so `extensions.http.status` is irrelevant here — but
-          // we include it for symmetry with the HTTP context above. Any
-          // future code that funnels a WS-rejected GraphQLError back into
-          // an HTTP response (e.g. a graceful-degrade fallback) will get
-          // the correct status without further changes.
-          throw new GraphQLError('Unauthenticated', {
-            extensions: {
-              code: 'UNAUTHENTICATED',
-              reason,
-              http: { status: 401 },
-            },
-          });
+        switch (decision.kind) {
+          case 'anonymous': {
+            // No token presented -> deliver a null-user context. The AuthChecker
+            // landing in CORTEX-P0-001 will reject any subscription that requires
+            // a principal. Until then, public subscriptions continue to work.
+            //
+            // Shadow-observe the would-deny WITHOUT blocking — the WebSocket
+            // parallel of the HTTP path. Operation name is best-effort from
+            // ExecutionArgs; origin / user-agent / IP come from the upgrade
+            // request carried on ctx.extra.
+            const wsIdentity = extractHeaderIdentityFromWsExtra(ctx.extra);
+            recordShadowAuthMiss({
+              transport: 'ws',
+              operationName: extractOperationNameFromArgs(args),
+              origin: wsIdentity.origin,
+              ip: wsIdentity.ip,
+              userAgent: wsIdentity.userAgent,
+              authHeaderPresent: authHeader.length > 0,
+            });
+            return { prisma: global.prisma, user: null, principal: null };
+          }
+
+          case 'authenticated': {
+            recordAuthContextOutcome('ws', 'authenticated');
+            return {
+              prisma: global.prisma,
+              user: principalToUser(decision.principal),
+              principal: decision.principal,
+            };
+          }
+
+          case 'rejected': {
+            // Already rejected today (connection closed). Counted only to complete
+            // the shadow denominator alongside authenticated / no_principal.
+            recordAuthContextOutcome('ws', 'invalid_token');
+            logger.warn('WebSocket auth rejected — closing connection', {
+              reason: decision.reason,
+            });
+            // Throwing IS the close mechanism: graphql-ws propagates the throw
+            // out of its message handler and terminates the socket (close code
+            // 4500, close reason "Unauthenticated"). There is deliberately no
+            // fall-through to a degraded `authError` context that would keep
+            // delivering messages to an unauthenticated socket.
+            throw unauthenticatedWsError(decision.reason);
+          }
         }
       },
     },

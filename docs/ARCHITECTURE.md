@@ -2,7 +2,7 @@
 
 ## System Overview
 
-`@adaptic/backend-legacy` is the canonical data layer and code generation package for the Adaptic.ai platform. It serves three primary functions:
+`@adaptic/backend` is the canonical data layer and code generation package for the Adaptic.ai platform. It serves three primary functions:
 
 1. **Type Authority** -- Defines all 67 Prisma models and 73 enums (as of 2026-05-22) that form the data contract for the entire monorepo
 2. **Code Generation** -- Produces typed CRUD functions, GraphQL selection sets, and LLM type strings from the Prisma schema
@@ -36,7 +36,7 @@
                            |
                        dist/ + dist/server/
                            |
-                NPM Package (@adaptic/backend-legacy)
+                NPM Package (@adaptic/backend)
                            |
             +--------------+---------------+
             |              |               |

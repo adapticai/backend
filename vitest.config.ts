@@ -17,6 +17,24 @@ export default defineConfig({
     // Writing console output straight to stdout removes the RPC flood
     // without hiding any output.
     disableConsoleIntercept: true,
+    server: {
+      deps: {
+        // `graphql` 16 publishes `main: index.js` (CJS) and `module:
+        // index.mjs` with no `exports` map. Vite resolves it through `module`,
+        // while an externalized ESM dependency gets `main` through Node's own
+        // resolver — two live copies of the library in one process. Any schema
+        // built on one side then fails `instanceOf` on the other with
+        // "Cannot use GraphQLSchema from another module or realm".
+        //
+        // graphql-ws validates the document BEFORE it invokes the `context`
+        // callback, so the realm mismatch aborts a subscription before any
+        // auth code runs and closes the socket with 4500 — indistinguishable
+        // from a genuine rejection to a test that only checks the close code.
+        // Inlining graphql-ws routes it through the same resolver as the test
+        // files, leaving exactly one `graphql` instance.
+        inline: [/(?:^|\/)graphql-ws(?:\/|$)/],
+      },
+    },
     // The generator writes through src/utils/logger.ts (raw process.stdout,
     // not console), so interception is not the only flood path — the sheer
     // stdout volume through the forked worker's IPC pipe can still starve

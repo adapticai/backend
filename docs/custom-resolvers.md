@@ -46,10 +46,10 @@ SELECT
 FROM options_greeks_history
 ```
 
-### Usage from @adaptic/backend-legacy Package
+### Usage from @adaptic/backend Package
 
 ```typescript
-import { OptionsGreeksHistoryCustomResolver } from '@adaptic/backend-legacy';
+import { OptionsGreeksHistoryCustomResolver } from '@adaptic/backend';
 
 // The resolver is automatically registered with the GraphQL server
 // Use the GraphQL query above to access the data
@@ -87,7 +87,7 @@ The custom resolvers are:
 
 1. Compiled by TypeScript during `yarn build`
 2. Exported through `/src/index.ts` (auto-generated)
-3. Available through the `@adaptic/backend-legacy` package
+3. Available through the `@adaptic/backend` package
 4. Automatically registered with the GraphQL server
 
 ### Notes

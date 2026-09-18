@@ -1,6 +1,12 @@
-# Using `@adaptic/backend-legacy`
+# Using `@adaptic/backend`
 
-This is the canonical consumer-facing usage guide for the `@adaptic/backend-legacy`
+> **Renamed from `@adaptic/backend-legacy`.** Both names are published from the same
+> build at the same version with byte-identical contents, so the two are
+> interchangeable and nothing in this guide changes with the name. Install
+> `@adaptic/backend` for new work; `@adaptic/backend-legacy` stays published, and
+> every version of it stays installable, until every consumer has migrated.
+
+This is the canonical consumer-facing usage guide for the `@adaptic/backend`
 NPM package. It covers Apollo Client setup, the typed CRUD API exposed under the
 `adaptic` default export, the `types`/`enums`/`typeStrings` namespaces, and the
 operational rules every consumer must observe (schema-ownership boundary, real
@@ -13,7 +19,7 @@ import patterns, error handling).
 | Models          | `prisma/schema.prisma`                                    | `grep -c '^model ' prisma/schema.prisma` -> 67 |
 | Enums           | `prisma/schema.prisma`                                    | `grep -c '^enum ' prisma/schema.prisma` -> 73  |
 | Migrations      | `prisma/migrations/`                                      | `ls prisma/migrations/ | wc -l` -> 165         |
-| Published version | `npm view @adaptic/backend-legacy version`              | latest channel currently `0.0.984`             |
+| Published version | `npm view @adaptic/backend version`              | read it from the registry; never trust a number pasted into a doc |
 
 (Snapshot date: 2026-05-22. If you are reading this much later, regenerate the
 counts before quoting them.)
@@ -89,7 +95,7 @@ telemetry, observability, governance, or cache, it is Tier A
 ## Installation
 
 ```bash
-npm install @adaptic/backend-legacy
+npm install @adaptic/backend
 ```
 
 ### Environment variables (consumer)
@@ -123,7 +129,7 @@ exports cover Apollo Client configuration and the type/enum/string namespaces.
 The engine and utils packages import via:
 
 ```typescript
-import adaptic from '@adaptic/backend-legacy';
+import adaptic from '@adaptic/backend';
 import {
   getApolloClient,
   configureConnectionPool,
@@ -134,12 +140,12 @@ import {
   type NormalizedCacheObject,
   type TokenProvider,
   type PoolStats,
-} from '@adaptic/backend-legacy';
-import type { types, enums } from '@adaptic/backend-legacy';
+} from '@adaptic/backend';
+import type { types, enums } from '@adaptic/backend';
 ```
 
 There is **no** named `{ adaptic }` export — `adaptic` is the default. Patterns
-like `import { adaptic } from '@adaptic/backend-legacy'` will not type-check.
+like `import { adaptic } from '@adaptic/backend'` will not type-check.
 
 ### What's exported
 
@@ -162,7 +168,7 @@ like `import { adaptic } from '@adaptic/backend-legacy'` will not type-check.
 > `dist/middleware/`, `dist/auth/`, `dist/plugins/`, `dist/utils/`, and
 > `dist/validators/`. These are **not** re-exported through `src/index.ts`.
 > They are reachable via deep imports (e.g.
-> `import { softDeleteRecord } from '@adaptic/backend-legacy/middleware'`) but
+> `import { softDeleteRecord } from '@adaptic/backend/middleware'`) but
 > are not part of the documented public API. Treat them as server-side
 > internals — consumers that depend on them are coupling to an unstable
 > surface.
@@ -178,7 +184,7 @@ internal pool keeps the backend within configured concurrency limits.
 ### Minimum setup
 
 ```typescript
-import adaptic, { getApolloClient } from '@adaptic/backend-legacy';
+import adaptic, { getApolloClient } from '@adaptic/backend';
 
 const client = await getApolloClient();
 
@@ -189,7 +195,7 @@ const trade = await adaptic.trade.get({ id: 'trade-abc' }, client);
 ### Configuring the connection pool
 
 ```typescript
-import { configureConnectionPool, getApolloClient } from '@adaptic/backend-legacy';
+import { configureConnectionPool, getApolloClient } from '@adaptic/backend';
 
 configureConnectionPool({
   maxConcurrentOperations: 50,    // hard cap on parallel ops (default: 50)
@@ -212,7 +218,7 @@ Server consumers typically register a token provider that pulls a session JWT
 from their auth system (NextAuth, custom JWT, etc.):
 
 ```typescript
-import { setTokenProvider } from '@adaptic/backend-legacy';
+import { setTokenProvider } from '@adaptic/backend';
 
 setTokenProvider(async () => {
   return await resolveSessionJwt(); // your auth lookup
@@ -245,7 +251,7 @@ appropriate GraphQL `where` and `data` shapes automatically.
 ### Examples (current models)
 
 ```typescript
-import adaptic, { getApolloClient, types, enums } from '@adaptic/backend-legacy';
+import adaptic, { getApolloClient, types, enums } from '@adaptic/backend';
 
 const client = await getApolloClient();
 
@@ -334,7 +340,7 @@ const accountsWithRecentTrades = await adaptic.alpacaAccount.findMany(
 ## Types namespace
 
 ```typescript
-import { types, enums } from '@adaptic/backend-legacy';
+import { types, enums } from '@adaptic/backend';
 
 const trade: types.Trade = {
   id: 'trade-abc',
@@ -355,7 +361,7 @@ type surface for the entire monorepo.
 ## Enums namespace
 
 ```typescript
-import { enums } from '@adaptic/backend-legacy';
+import { enums } from '@adaptic/backend';
 
 const role: enums.UserRole = enums.UserRole.ADMIN;
 const exitReason: enums.TradeExitReason = enums.TradeExitReason.STOP_LOSS;
@@ -378,7 +384,7 @@ in LLM prompts where the model wants the LLM to return data matching a
 specific shape.
 
 ```typescript
-import { typeStrings } from '@adaptic/backend-legacy';
+import { typeStrings } from '@adaptic/backend';
 
 const prompt = `
 Return a JSON object that matches this TypeScript type:
@@ -402,7 +408,7 @@ functions internally. Consumers occasionally need to compose a custom query
 using these:
 
 ```typescript
-import { selectionSets } from '@adaptic/backend-legacy/generated/selectionSets';
+import { selectionSets } from '@adaptic/backend/generated/selectionSets';
 
 const fields = selectionSets.Trade; // multi-line string
 ```
@@ -423,7 +429,7 @@ inspect Apollo errors for diagnostics:
 import adaptic, {
   getApolloClient,
   getApolloModules,
-} from '@adaptic/backend-legacy';
+} from '@adaptic/backend';
 
 const client = await getApolloClient();
 const { ApolloError } = await getApolloModules();
@@ -474,8 +480,8 @@ your dependency.
 | `QUEUE_WAIT_TIMEOUT`                                   | Operation sat in queue longer than `queueWaitTimeoutMs`                                       | Backend is overloaded — investigate upstream rather than just raising the timeout                     |
 | `UNAUTHENTICATED` with `reason: misconfigured`         | Server hasn't been started with `GOOGLE_OAUTH_CLIENT_IDS` (or the wrong audiences)            | Set `GOOGLE_OAUTH_CLIENT_IDS` on the server before restart                                            |
 | `Cannot read properties of undefined (reading 'write')` | Old Apollo Client version mismatched with backend response shape                              | Pin to `@apollo/client@^3.11.0` (current peer dep)                                                    |
-| Type-check fails after schema change                   | Consumer is on an older `@adaptic/backend-legacy` version                                     | Bump consumer dep version; rebuild                                                                    |
-| Stale enum values after schema change                  | Consumer hasn't reinstalled `@adaptic/backend-legacy` after publish                           | `npm install` / `yarn install` in the consumer; rebuild                                               |
+| Type-check fails after schema change                   | Consumer is on an older `@adaptic/backend` version                                     | Bump consumer dep version; rebuild                                                                    |
+| Stale enum values after schema change                  | Consumer hasn't reinstalled `@adaptic/backend` after publish                           | `npm install` / `yarn install` in the consumer; rebuild                                               |
 
 For deeper failure modes (Prisma generation errors, codegen drift, audit-plugin
 issues), see [`docs/DEBUGGING_PLAYBOOK.md`](./DEBUGGING_PLAYBOOK.md).
@@ -486,17 +492,22 @@ issues), see [`docs/DEBUGGING_PLAYBOOK.md`](./DEBUGGING_PLAYBOOK.md).
 
 The package is published on every push to `main`, the production branch since
 the 2026-09-12 cutover: CI bumps the patch version, publishes the `0.0.x` train
-on dist-tag `stable`, and moves `latest` to the same version. `stable-release`
-publishes to the same train during the compatibility window but does not move
-`latest`.
+on dist-tag `stable`, and moves `latest` to the same version. `main` is the SOLE
+publisher of that train: a second branch feeding one version train races the
+first to the same number, and the loser dies on a duplicate-version 403 after
+the winner has already published.
 
-| Channel              | Use when                                                                  |
-| -------------------- | ------------------------------------------------------------------------- |
-| `@adaptic/backend-legacy@stable` | Production deploys and every in-workspace consumer   |
-| `@adaptic/backend-legacy@latest` | External installs; now tracks the same production train |
+Every release goes out under both npm names, from one build, at one version, so
+the channel you consume is the same on either name.
+
+| Channel                          | Use when                                                |
+| -------------------------------- | ------------------------------------------------------- |
+| `@adaptic/backend@stable`         | Production deploys and every in-workspace consumer      |
+| `@adaptic/backend@latest`         | External installs; tracks the same production train     |
+| `@adaptic/backend-legacy@stable`  | Consumers that have not migrated off the old name yet   |
 
 Re-verify the live versions with
-`npm view @adaptic/backend-legacy dist-tags` rather than trusting a number
+`npm view @adaptic/backend dist-tags` rather than trusting a number
 in older copies of the doc.
 
 ---

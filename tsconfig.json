@@ -19,6 +19,7 @@
     "removeComments": false,
     "paths": {
       "@/*": ["./src/*"],
+      "@adaptic/backend/*": ["./node_modules/@adaptic/backend/*"],
       "@adaptic/backend-legacy/*": ["./node_modules/@adaptic/backend-legacy/*"]
     },
     "sourceMap": true

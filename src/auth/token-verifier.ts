@@ -3,7 +3,7 @@
  *
  * `verifyBackendToken` is the SOLE entry point for establishing principal
  * identity from a bearer token presented at the GraphQL HTTP, GraphQL WebSocket,
- * or Express middleware layer of `@adaptic/backend-legacy`.
+ * or Express middleware layer of `@adaptic/backend`.
  *
  * It rejects, in priority order:
  *

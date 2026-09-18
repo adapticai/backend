@@ -1,7 +1,7 @@
 /**
- * Integration test: when a graphql-ws connection presents an invalid Bearer
- * token, the WebSocket connection MUST close (not deliver a downgraded
- * context with an `authError` field).
+ * Integration test: when a graphql-ws connection presents a Bearer token that
+ * fails verification, the WebSocket connection MUST close — it must never be
+ * downgraded to a context that keeps streaming subscription data.
  *
  * The historical regression this test guards against:
  *
@@ -14,9 +14,20 @@
  * which combined with a `return { prisma: global.prisma, authError: '...' }`
  * fall-through to silently keep subscriptions open without authentication.
  *
- * This test wires `verifyBackendToken` into a minimal graphql-ws server,
- * opens a client with an opaque `ya29.…` token, and asserts the socket
- * receives a close frame instead of remaining open with a degraded context.
+ * The test drives a real graphql-ws server over a real WebSocket and wires in
+ * `decideWsAuth` / `unauthenticatedWsError` — the SAME functions `server.ts`
+ * uses for `/subscriptions` — so a regression in the production decision fails
+ * this suite rather than a re-implementation of it.
+ *
+ * Two properties make the negative assertions meaningful:
+ *
+ *  1. A valid-token CONTROL case asserts the socket stays OPEN and a `next`
+ *     message arrives. "No data was delivered" proves nothing unless the same
+ *     harness can be shown to deliver data when authentication succeeds.
+ *  2. Every case asserts the production decision actually ran. A transport or
+ *     module-resolution fault that prevents graphql-ws from ever invoking the
+ *     `context` callback now fails the suite instead of silently satisfying
+ *     every "did not happen" expectation.
  */
 
 import {
@@ -31,11 +42,14 @@ import { createServer, type Server as HttpServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { buildSchema as buildGraphQLSchema } from 'graphql';
-import { GraphQLError } from 'graphql';
+import jwt from 'jsonwebtoken';
 
 // ---------------------------------------------------------------------------
-// Test-time env setup — must precede the `verifyBackendToken` import below.
+// Test-time env setup — must precede the `ws-auth-context` import below.
 // ---------------------------------------------------------------------------
+const TEST_SECRET =
+  'test-secret-for-cortex-p0-002-ws-suite-32-chars-min-required';
+
 vi.hoisted(() => {
   const secret =
     'test-secret-for-cortex-p0-002-ws-suite-32-chars-min-required';
@@ -48,47 +62,33 @@ vi.hoisted(() => {
   delete process.env.SERVER_AUTH_TOKEN;
 });
 
-import {
-  verifyBackendToken,
-  AuthError,
-} from '../token-verifier';
+import { decideWsAuth, unauthenticatedWsError } from '../ws-auth-context';
 
 // ---------------------------------------------------------------------------
 // Tiny GraphQL schema with one subscription so graphql-ws has something to
-// route. We do not actually exercise the subscription — the test only proves
-// that the connection-init phase rejects an invalid Bearer token.
+// route. The subscription resolves immediately, which is what lets the
+// valid-token control prove the harness can deliver data at all.
 // ---------------------------------------------------------------------------
 const schema = buildGraphQLSchema(`
   type Query { hello: String }
   type Subscription { ping: String }
 `);
 
-interface TestContext {
-  authenticated: boolean;
-}
+const PING_PAYLOAD = 'pong';
 
-async function buildWsContext(
-  authHeader: string | undefined
-): Promise<TestContext> {
-  const token = authHeader?.startsWith('Bearer ')
-    ? authHeader.slice('Bearer '.length).trim()
-    : '';
+/**
+ * Counts every invocation of the production auth decision by the graphql-ws
+ * `context` callback. Assertions read it to prove the decision under test was
+ * actually reached, rather than the socket dying earlier for an unrelated
+ * reason.
+ */
+let contextInvocations = 0;
 
-  if (!token) {
-    // Mirror server.ts: no token -> open connection but with unauthenticated
-    // context. The AuthChecker (CORTEX-P0-001) will reject operations.
-    return { authenticated: false };
-  }
-
-  try {
-    await verifyBackendToken(token);
-    return { authenticated: true };
-  } catch (e) {
-    const reason = e instanceof AuthError ? e.reason : 'bad_signature';
-    throw new GraphQLError('Unauthenticated', {
-      extensions: { code: 'UNAUTHENTICATED', reason },
-    });
-  }
+/** A JWT this environment's verifier accepts, for the control case. */
+function validToken(): string {
+  return jwt.sign({ sub: 'user-under-test', roles: ['user'] }, TEST_SECRET, {
+    expiresIn: '5m',
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -111,11 +111,24 @@ beforeAll(
       useServer(
         {
           schema,
-          context: (ctx) =>
-            buildWsContext(
+          roots: {
+            subscription: {
+              ping: async function* (): AsyncGenerator<{ ping: string }> {
+                yield { ping: PING_PAYLOAD };
+              },
+            },
+          },
+          context: async (ctx) => {
+            contextInvocations += 1;
+            const authHeader =
               (ctx.connectionParams as { authorization?: string } | undefined)
-                ?.authorization
-            ),
+                ?.authorization ?? '';
+            const decision = await decideWsAuth(authHeader);
+            if (decision.kind === 'rejected') {
+              throw unauthenticatedWsError(decision.reason);
+            }
+            return { decision };
+          },
         },
         wsServer
       );
@@ -144,40 +157,60 @@ afterAll(
 // Helpers
 // ---------------------------------------------------------------------------
 
-interface OpenSubscribeResult {
+interface SubscribeOutcome {
+  /** True when the server closed the socket before the settle window elapsed. */
+  closed: boolean;
   closeCode: number | null;
-  errorPayload: unknown | null;
+  closeReason: string | null;
+  /** True when at least one `next` (subscription data) message arrived. */
+  sawNext: boolean;
+  /** True when the production auth decision ran for this connection. */
+  contextRan: boolean;
 }
 
 /**
- * Open a graphql-ws v5-protocol connection, send ConnectionInit + Subscribe,
- * and resolve when either an error message is received OR the socket closes.
+ * How long to hold a connection open before declaring it "not closed".
  *
- * Returns the close code (if the socket closed) and/or the error payload
- * (if graphql-ws delivered an "error" message). One of the two must occur
- * before the timeout for the verification path to be considered closed.
+ * The rejection path closes in single-digit milliseconds; this window only has
+ * to be long enough that a failure to close is distinguishable from a slow
+ * close, and it is the full cost of the control case.
  */
-function openSubscribeAwaitOutcome(
-  authorization: string
-): Promise<OpenSubscribeResult> {
-  return new Promise((resolve) => {
+const SETTLE_MS = 1200;
+
+/**
+ * Open a graphql-transport-ws connection, send ConnectionInit + Subscribe, and
+ * report what the server did: closed (with code/reason), delivered data, or
+ * neither within the settle window.
+ *
+ * A socket-level `error` rejects rather than resolving. An unreachable or
+ * mis-wired server must surface as a failure, not as an outcome whose every
+ * "did not happen" field is trivially satisfied.
+ */
+function subscribeWithAuth(authorization: string): Promise<SubscribeOutcome> {
+  const invocationsBefore = contextInvocations;
+  return new Promise((resolve, reject) => {
     const ws = new WebSocket(
       `ws://localhost:${port}/subscriptions`,
       'graphql-transport-ws'
     );
 
-    let closeCode: number | null = null;
-    let errorPayload: unknown | null = null;
-    const timeout = setTimeout(() => {
-      // 1.5s should be plenty; if neither close nor error happened, the test
-      // will assert on the empty result and fail descriptively.
-      try {
-        ws.close();
-      } catch {
-        // ignore — best effort
-      }
-      resolve({ closeCode, errorPayload });
-    }, 1500);
+    let sawNext = false;
+    let settled = false;
+
+    const finish = (outcome: Omit<SubscribeOutcome, 'contextRan'>): void => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve({
+        ...outcome,
+        contextRan: contextInvocations > invocationsBefore,
+      });
+    };
+
+    const timer = setTimeout(() => {
+      ws.close();
+      finish({ closed: false, closeCode: null, closeReason: null, sawNext });
+    }, SETTLE_MS);
 
     ws.on('open', () => {
       ws.send(
@@ -189,171 +222,105 @@ function openSubscribeAwaitOutcome(
     });
 
     ws.on('message', (raw) => {
-      const text = raw.toString();
-      try {
-        const msg = JSON.parse(text) as { type: string; payload?: unknown };
-        if (msg.type === 'connection_ack') {
-          // Send a subscribe so the server has to invoke the `context`
-          // callback (graphql-ws invokes context lazily, on subscribe).
-          ws.send(
-            JSON.stringify({
-              id: '1',
-              type: 'subscribe',
-              payload: {
-                query: 'subscription { ping }',
-              },
-            })
-          );
-        } else if (msg.type === 'error') {
-          errorPayload = msg.payload;
-        }
-      } catch {
-        // ignore parse errors; the close event will fire shortly
+      const msg = JSON.parse(raw.toString()) as { type: string };
+      if (msg.type === 'connection_ack') {
+        // graphql-ws invokes `context` lazily, on subscribe — not on
+        // connection_init — so the decision under test only runs once a
+        // Subscribe message is sent.
+        ws.send(
+          JSON.stringify({
+            id: '1',
+            type: 'subscribe',
+            payload: { query: 'subscription { ping }' },
+          })
+        );
+      } else if (msg.type === 'next') {
+        sawNext = true;
       }
     });
 
-    ws.on('close', (code) => {
-      closeCode = code;
-      clearTimeout(timeout);
-      resolve({ closeCode, errorPayload });
+    ws.on('close', (code, reasonBuffer) => {
+      finish({
+        closed: true,
+        closeCode: code,
+        closeReason: reasonBuffer.toString(),
+        sawNext,
+      });
     });
 
-    ws.on('error', () => {
-      // graphql-ws closes the socket on auth failure; we observe that via
-      // the `close` event. The `error` event is benign here.
+    ws.on('error', (err) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      reject(err);
     });
   });
 }
 
 describe('WebSocket auth-failure closing semantics', () => {
-  // graphql-ws's behaviour when the `context` callback throws:
-  //  - From `context()` (during subscribe handling): the throw propagates up
-  //    the message handler, which closes the socket with code 4500
-  //    (CloseCode.InternalServerError per the graphql-ws spec).
-  //  - There is intentionally NO fallback to "deliver the subscription
-  //    anyway with an authError field." That is the security invariant
-  //    P0-002 is asserting.
-  //
-  // Acceptable outcomes (either proves the auth failure was surfaced):
-  //   1. closeCode is a 4xxx (graphql-ws app-level close), OR
-  //   2. errorPayload is non-null AND carries UNAUTHENTICATED extension code.
-  //
-  // What we MUST NOT see: closeCode=1000 (normal close) with no error
-  // payload AND no rejection — that would be the pre-fix silent-downgrade
-  // behaviour.
-  const isAuthFailureOutcome = (
-    closeCode: number | null,
-    errorPayload: unknown | null
-  ): boolean => {
-    if (closeCode !== null && closeCode >= 4000) return true;
-    if (errorPayload === null) return false;
-    const arr = errorPayload as Array<{ extensions?: { code?: string } }>;
-    return arr[0]?.extensions?.code === 'UNAUTHENTICATED';
-  };
+  // graphql-ws closes the socket when the `context` callback throws: the throw
+  // propagates out of its message handler, which closes with
+  // CloseCode.InternalServerError (4500) and puts the error message in the
+  // close reason. Asserting the reason as well as the code is what separates
+  // "closed because authentication failed" from "closed because something else
+  // crashed" — a distinction a bare `code >= 4000` check cannot make.
 
-  it('opaque ya29.… token causes the graphql-ws connection to close on auth failure', async () => {
-    const { closeCode, errorPayload } = await openSubscribeAwaitOutcome(
-      'Bearer ya29.A0AbVbY6Eabc_opaque_access_token_should_be_rejected'
-    );
+  it('CONTROL: a valid token keeps the socket OPEN and delivers subscription data', async () => {
+    const outcome = await subscribeWithAuth(`Bearer ${validToken()}`);
+
     expect(
-      isAuthFailureOutcome(closeCode, errorPayload),
-      `Expected auth failure (4xxx close or UNAUTHENTICATED error), got closeCode=${String(
-        closeCode
-      )}, errorPayload=${JSON.stringify(errorPayload)}`
+      outcome.contextRan,
+      'the production auth decision never ran — the harness is not exercising it'
     ).toBe(true);
-  });
-
-  it('clearly malformed token (2 segments) is rejected by closing the connection', async () => {
-    const { closeCode, errorPayload } = await openSubscribeAwaitOutcome(
-      'Bearer aa.bb'
-    );
     expect(
-      isAuthFailureOutcome(closeCode, errorPayload),
-      `Expected auth failure, got closeCode=${String(
-        closeCode
-      )}, errorPayload=${JSON.stringify(errorPayload)}`
+      outcome.sawNext,
+      'an authenticated subscription delivered no data — the negative assertions below would be vacuous'
     ).toBe(true);
-  });
-
-  it('JWT signed with wrong secret is rejected by closing the connection', async () => {
-    // 3-segment JWT shape, signed with a non-matching secret. Local JWT
-    // verify fails. With no Google audience configured (test default), the
-    // verifier surfaces `bad_signature` and our context callback throws.
-    const header = Buffer.from(
-      JSON.stringify({ alg: 'HS256', typ: 'JWT' })
-    ).toString('base64url');
-    const payload = Buffer.from(
-      JSON.stringify({ sub: 'attacker', exp: 9999999999 })
-    ).toString('base64url');
-    const forged = `${header}.${payload}.invalid-sig`;
-
-    const { closeCode, errorPayload } = await openSubscribeAwaitOutcome(
-      `Bearer ${forged}`
-    );
     expect(
-      isAuthFailureOutcome(closeCode, errorPayload),
-      `Expected auth failure for forged JWT, got closeCode=${String(
-        closeCode
-      )}, errorPayload=${JSON.stringify(errorPayload)}`
-    ).toBe(true);
+      outcome.closed,
+      `an authenticated socket was closed (code=${String(outcome.closeCode)}, reason=${String(outcome.closeReason)})`
+    ).toBe(false);
   });
 
-  it('does NOT downgrade to a silent authError context for invalid tokens', async () => {
-    // This is the regression-guard: the old behavior would have returned
-    // `{ authError: "Invalid token" }` as the WebSocket context, letting
-    // the subscription proceed (the resolver might then ignore the flag and
-    // start delivering data). We assert that does NOT happen — no data
-    // message arrives for the subscription id we sent.
-    //
-    // We open the socket, send an invalid token, and assert that NO `next`
-    // message ever fires for our subscription id.
-    const result = await new Promise<{ saw_next: boolean }>((resolve) => {
-      const ws = new WebSocket(
-        `ws://localhost:${port}/subscriptions`,
-        'graphql-transport-ws'
-      );
-      let sawNext = false;
-      const timeout = setTimeout(() => {
-        try {
-          ws.close();
-        } catch {
-          // ignore
-        }
-        resolve({ saw_next: sawNext });
-      }, 1000);
+  const rejectedCredentials: ReadonlyArray<readonly [string, string]> = [
+    [
+      'opaque ya29.… Google access token',
+      'ya29.A0AbVbY6Eabc_opaque_access_token_should_be_rejected',
+    ],
+    ['clearly malformed token (2 segments)', 'aa.bb'],
+    [
+      'JWT signed with the wrong secret',
+      jwt.sign(
+        { sub: 'attacker' },
+        'a-different-secret-that-is-at-least-32-characters-long',
+        { expiresIn: '5m' }
+      ),
+    ],
+  ];
 
-      ws.on('open', () => {
-        ws.send(
-          JSON.stringify({
-            type: 'connection_init',
-            payload: { authorization: 'Bearer ya29.invalid_opaque' },
-          })
-        );
-      });
-      ws.on('message', (raw) => {
-        try {
-          const msg = JSON.parse(raw.toString()) as { type: string };
-          if (msg.type === 'connection_ack') {
-            ws.send(
-              JSON.stringify({
-                id: 'guard-1',
-                type: 'subscribe',
-                payload: { query: 'subscription { ping }' },
-              })
-            );
-          } else if (msg.type === 'next') {
-            sawNext = true;
-          }
-        } catch {
-          // ignore
-        }
-      });
-      ws.on('close', () => {
-        clearTimeout(timeout);
-        resolve({ saw_next: sawNext });
-      });
-    });
+  it.each(rejectedCredentials)(
+    '%s closes the socket (4500 / "Unauthenticated") and delivers no data',
+    async (_name, token) => {
+      const outcome = await subscribeWithAuth(`Bearer ${token}`);
 
-    expect(result.saw_next).toBe(false);
-  });
+      expect(
+        outcome.contextRan,
+        'the production auth decision never ran — the harness is not exercising it'
+      ).toBe(true);
+      expect(
+        outcome.closed,
+        `socket stayed open for an unverifiable token (sawNext=${String(outcome.sawNext)})`
+      ).toBe(true);
+      expect(outcome.closeCode).toBe(4500);
+      expect(
+        outcome.closeReason,
+        'socket closed for a reason other than the auth rejection'
+      ).toBe('Unauthenticated');
+      expect(
+        outcome.sawNext,
+        'subscription data was delivered to an unauthenticated socket'
+      ).toBe(false);
+    }
+  );
+
 });

@@ -3,7 +3,7 @@
 # Railway adaptic-os/production. Nothing triggers this file; it is kept as the
 # record of how the Cloud Run deployment was built.
 #
-# Cloud Build pipeline for @adaptic/backend-legacy on Google Cloud Run.
+# Cloud Build pipeline for @adaptic/backend on Google Cloud Run.
 #
 # Pipeline phases (each waits for the previous):
 #   1. build     - multi-stage Docker build of the runtime image

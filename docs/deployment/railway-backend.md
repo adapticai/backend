@@ -1,6 +1,6 @@
 # adaptic-backend on Railway
 
-Deployment runbook for `@adaptic/backend-legacy` — the Apollo / Prisma /
+Deployment runbook for `@adaptic/backend` — the Apollo / Prisma /
 TypeGraphQL API gateway that is the system of record for Tier B domain data.
 
 > Replaces the former Cloud Run + AlloyDB runbook. That Google Cloud project is

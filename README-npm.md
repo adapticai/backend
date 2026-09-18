@@ -1,10 +1,24 @@
-# @adaptic/backend-legacy
+# @adaptic/backend
 
 ![Adaptic Readme Banner](https://adaptic-public.s3.ap-southeast-2.amazonaws.com/adaptic-readme-banner.png?=1)
 
+> **This package was previously published as `@adaptic/backend-legacy`.**
+> It is now `@adaptic/backend`. Both names are published from the same build, at the
+> same version, with byte-identical contents, so the change is a pure rename — no API
+> difference and no behavioural difference between them. Migrate with:
+>
+> ```bash
+> npm install @adaptic/backend && npm uninstall @adaptic/backend-legacy
+> ```
+>
+> then replace the specifier `@adaptic/backend-legacy` with `@adaptic/backend` in your
+> imports (subpaths such as `/server/index` are unchanged). `@adaptic/backend-legacy`
+> keeps publishing until every consumer has moved, and every version of it that has
+> ever been published stays installable — it will never be unpublished.
+
 ## Description
 
-The `@adaptic/backend-legacy` NPM package provides a comprehensive set of executable CRUD (Create, Read, Update, Delete) functions, type and enums definitions, tailored for the Adaptic AI platform. Designed for both client-side and server-side applications, it leverages the power of **Apollo Client** for GraphQL interactions, and **TypeGraphQL** for building type-safe APIs.
+The `@adaptic/backend` NPM package provides a comprehensive set of executable CRUD (Create, Read, Update, Delete) functions, type and enums definitions, tailored for the Adaptic AI platform. Designed for both client-side and server-side applications, it leverages the power of **Apollo Client** for GraphQL interactions, and **TypeGraphQL** for building type-safe APIs.
 
 It's primary goal, is to enabled developers to quickly scaffold and interact with their data models, without the need to write elaborate gql operations, or lack certainty of what data to pass through as variables or arguments. Rather, the executable CRUD functions are generated dynamically based on the models defined in the project, and are accessible under the global `adaptic` namespace. Rather than requiring various inputTypes, you simply pass through the data as an object that conforms to the corresponding model's type definition, and the package will handle the rest, irrespective of mutation or query operation being performed.
 
@@ -26,7 +40,7 @@ This package offers a robust backend solution tailored for the Adaptic AI platfo
 
 ## Prerequisites
 
-To use the `@adaptic/backend-legacy` package, the only requirement is to ensure you have several environment variables configured (see below). This can be a local development server or a production endpoints for the graphql server, and the corresponding HTTPS and WebSocket URLs.
+To use the `@adaptic/backend` package, the only requirement is to ensure you have several environment variables configured (see below). This can be a local development server or a production endpoints for the graphql server, and the corresponding HTTPS and WebSocket URLs.
 
 ### Environment Variables
 
@@ -44,12 +58,12 @@ BACKEND_WS_URL=wss://api.example.com/subscriptions
 
 ## Installation
 
-To install the `@adaptic/backend-legacy` package, follow these steps:
+To install the `@adaptic/backend` package, follow these steps:
 
 1. **Install NPM Package**:
 
    ```bash
-   npm @adaptic/backend-legacy
+   npm install @adaptic/backend
    ```
 
 2. **Set Up Environment Variables**:
@@ -68,7 +82,7 @@ All the dynamically generated functions for each content model are available und
 
 ```typescript
 // client-side/index.ts
-import adaptic, { types, enums } from '@adaptic/backend-legacy';
+import adaptic, { types, enums } from '@adaptic/backend';
 
 export const main = async () => {
   // Example: Create a new User
@@ -111,11 +125,11 @@ export const main = async () => {
 
 #### Server-Side Usage (Within a Lambda Function)
 
-The only difference between client-side and server-side usage is the import statement. On the server-side, you import the functions from `@adaptic/backend-legacy/server/index` instead of `@adaptic/backend-legacy`, and you need to provide an Apollo Client instance to the functions with the use of 'fetch' for the HTTP link.
+The only difference between client-side and server-side usage is the import statement. On the server-side, you import the functions from `@adaptic/backend/server/index` instead of `@adaptic/backend`, and you need to provide an Apollo Client instance to the functions with the use of 'fetch' for the HTTP link.
 
 ```javascript
 // server-side/lambdaFunction.mjs
-import adaptic from '@adaptic/backend-legacy/server/index';
+import adaptic from '@adaptic/backend/server/index';
 
 export const handler = async (event) => {
   // Parse the incoming event data
@@ -174,7 +188,7 @@ Types associated with your data models are available under the `types` namespace
 
 ```typescript
 // types-example.ts
-import { types } from '@adaptic/backend-legacy';
+import { types } from '@adaptic/backend';
 
 // Define a new user
 const newUser: types.UserCreateInput = {
@@ -197,7 +211,7 @@ Enums associated with your data models are available under the `enums` namespace
 
 ```typescript
 // enums-example.ts
-import { enums } from '@adaptic/backend-legacy';
+import { enums } from '@adaptic/backend';
 
 // Assign a user role
 const userRole: enums.UserRole = enums.UserRole.MODERATOR;
@@ -217,7 +231,7 @@ Their purpose is to provide a reference to the type of data being requested, whi
 ```typescript
 // typeStrings-example.ts
 
-import { typeStrings } from '@adaptic/backend-legacy';
+import { typeStrings } from '@adaptic/backend';
 
 // Use typeStrings in a prompt being sent to an LLM
 const prompt = `
@@ -231,7 +245,7 @@ const prompt = `
 
 ### Model CRUD Resolvers
 
-The `@adaptic/backend-legacy` package includes a comprehensive set of CRUD (Create, Read, Update, Delete) resolvers for each of your models. Each model has the following functions:
+The `@adaptic/backend` package includes a comprehensive set of CRUD (Create, Read, Update, Delete) resolvers for each of your models. Each model has the following functions:
 
 - `ModelName.create`: Create a single record.
 - `ModelName.createMany`: Create multiple records.

@@ -1001,7 +1001,7 @@ export async function getApolloModules(): Promise<ApolloModules> {
  * awaited (or used in `Promise.all`). Previously this was `getApolloClient()` which
  * eagerly opened a connection at module-load time, before any pool configuration or
  * auth token provider was set, causing orphaned connections in every process that
- * imported `@adaptic/backend-legacy`.
+ * imported `@adaptic/backend`.
  *
  * @deprecated Prefer calling `getApolloClient()` directly for explicit lifecycle control.
  */
