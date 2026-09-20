@@ -5251,6 +5251,31 @@ model TradingPolicy {
   /// Portfolio-level trailing stop percentage used by the Realtime Trade Engine for reducing the trailing stop once the profit threshold is exceeded. Canonical replacement for legacy AlpacaAccount.reducedPortfolioTrailPercent.
   reducedPortfolioTrailPercent Float @default(0.5)
 
+  /// Ordered ladder of portfolio trailing-stop rungs, generalising the single
+  /// portfolioProfitThresholdPercent/reducedPortfolioTrailPercent pair above.
+  /// Shape: [{ "thresholdPercent": 0.35, "trailPercent": 0.25 }, ...] in WHOLE
+  /// PERCENT of the session's opening equity (0.35 = 35bp), ordered ascending by
+  /// threshold. The engine applies min() across every rung whose threshold the
+  /// session high-water mark has reached, so the trail tightens monotonically and
+  /// a mis-ordered or wider rung can never loosen a stop that has already
+  /// tightened. NULL = use the single legacy rung, which reproduces today's
+  /// behaviour exactly.
+  portfolioTrailRungs Json?
+
+  /// Local ET time ("HH:MM", 24h) at which the portfolio trailing-stop state
+  /// re-anchors for a SECOND intraday round: open equity re-seeds from that
+  /// tick, the high-water mark resets to zero and the trail returns to base.
+  /// Intended for an afternoon session traded with freshly entered positions.
+  /// NULL = single round per day, which is today's behaviour.
+  portfolioAfternoonResetEt String?
+
+  /// Rung ladder for the afternoon round, same shape as portfolioTrailRungs.
+  /// The afternoon window is materially shorter than the morning, so the
+  /// thresholds that are reachable within it differ and must be set from the
+  /// afternoon's own distribution rather than inherited. NULL = reuse
+  /// portfolioTrailRungs for the second round.
+  portfolioAfternoonTrailRungs Json?
+
   /// Whether the portfolio-level daily take-profit circuit breaker is enabled for this account.
   enablePortfolioTakeProfit          Boolean? @default(false)
   /// Daily gain target (whole percent, e.g. 1 = 1%) since the 09:30 open that trips the take-profit breaker.

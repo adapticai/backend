@@ -1258,6 +1258,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -3271,6 +3274,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -5152,6 +5158,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.engineAccount.tradingPolicy.portfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.engineAccount.tradingPolicy.portfolioTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.engineAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -13659,6 +13668,11 @@ import { logger } from './utils/logger';
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
                 set: item.tradingPolicy.reducedPortfolioTrailPercent
               } : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+                set: item.tradingPolicy.portfolioAfternoonResetEt
+              } : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
                 set: item.tradingPolicy.enablePortfolioTakeProfit
               } : undefined,
@@ -13824,6 +13838,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -14547,6 +14564,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -19166,6 +19186,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -21547,6 +21570,11 @@ import { logger } from './utils/logger';
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
                 set: item.tradingPolicy.reducedPortfolioTrailPercent
               } : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+                set: item.tradingPolicy.portfolioAfternoonResetEt
+              } : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
                 set: item.tradingPolicy.enablePortfolioTakeProfit
               } : undefined,
@@ -21712,6 +21740,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -22435,6 +22466,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -27054,6 +27088,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -29133,6 +29170,11 @@ import { logger } from './utils/logger';
             reducedPortfolioTrailPercent: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
                 set: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent
               } : undefined,
+            portfolioTrailRungs: item.engineAccount.tradingPolicy.portfolioTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+                set: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt
+              } : undefined,
+            portfolioAfternoonTrailRungs: item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
                 set: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit
               } : undefined,
@@ -29298,6 +29340,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.engineAccount.tradingPolicy.portfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.engineAccount.tradingPolicy.portfolioTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.engineAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -29989,6 +30034,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.engineAccount.tradingPolicy.portfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.engineAccount.tradingPolicy.portfolioTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.engineAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -30407,6 +30455,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.engineAccount.tradingPolicy.portfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.engineAccount.tradingPolicy.portfolioTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.engineAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -47332,6 +47383,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -49345,6 +49399,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -51226,6 +51283,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.engineAccount.tradingPolicy.portfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.engineAccount.tradingPolicy.portfolioTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.engineAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -59403,6 +59463,11 @@ import { logger } from './utils/logger';
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
                 set: item.tradingPolicy.reducedPortfolioTrailPercent
               } : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+                set: item.tradingPolicy.portfolioAfternoonResetEt
+              } : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
                 set: item.tradingPolicy.enablePortfolioTakeProfit
               } : undefined,
@@ -59568,6 +59633,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -60291,6 +60359,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -64910,6 +64981,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -67291,6 +67365,11 @@ import { logger } from './utils/logger';
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
                 set: item.tradingPolicy.reducedPortfolioTrailPercent
               } : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+                set: item.tradingPolicy.portfolioAfternoonResetEt
+              } : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
                 set: item.tradingPolicy.enablePortfolioTakeProfit
               } : undefined,
@@ -67456,6 +67535,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -68179,6 +68261,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -72798,6 +72883,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -74877,6 +74965,11 @@ import { logger } from './utils/logger';
             reducedPortfolioTrailPercent: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
                 set: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent
               } : undefined,
+            portfolioTrailRungs: item.engineAccount.tradingPolicy.portfolioTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+                set: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt
+              } : undefined,
+            portfolioAfternoonTrailRungs: item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
                 set: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit
               } : undefined,
@@ -75042,6 +75135,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.engineAccount.tradingPolicy.portfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.engineAccount.tradingPolicy.portfolioTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.engineAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -75733,6 +75829,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.engineAccount.tradingPolicy.portfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.engineAccount.tradingPolicy.portfolioTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.engineAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -76151,6 +76250,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.engineAccount.tradingPolicy.portfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.engineAccount.tradingPolicy.portfolioTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.engineAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -95862,6 +95964,11 @@ import { logger } from './utils/logger';
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
                 set: item.tradingPolicy.reducedPortfolioTrailPercent
               } : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+                set: item.tradingPolicy.portfolioAfternoonResetEt
+              } : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
                 set: item.tradingPolicy.enablePortfolioTakeProfit
               } : undefined,
@@ -96027,6 +96134,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -96750,6 +96860,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -101369,6 +101482,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -103750,6 +103866,11 @@ import { logger } from './utils/logger';
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
                 set: item.tradingPolicy.reducedPortfolioTrailPercent
               } : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+                set: item.tradingPolicy.portfolioAfternoonResetEt
+              } : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
                 set: item.tradingPolicy.enablePortfolioTakeProfit
               } : undefined,
@@ -103915,6 +104036,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -104638,6 +104762,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -109257,6 +109384,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.tradingPolicy.portfolioTrailPercent !== undefined ? item.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.tradingPolicy.portfolioTrailRungs !== undefined ? item.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -111336,6 +111466,11 @@ import { logger } from './utils/logger';
             reducedPortfolioTrailPercent: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
                 set: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent
               } : undefined,
+            portfolioTrailRungs: item.engineAccount.tradingPolicy.portfolioTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+                set: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt
+              } : undefined,
+            portfolioAfternoonTrailRungs: item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
                 set: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit
               } : undefined,
@@ -111501,6 +111636,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.engineAccount.tradingPolicy.portfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.engineAccount.tradingPolicy.portfolioTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.engineAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -112192,6 +112330,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.engineAccount.tradingPolicy.portfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.engineAccount.tradingPolicy.portfolioTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.engineAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -112610,6 +112751,9 @@ import { logger } from './utils/logger';
             portfolioTrailPercent: item.engineAccount.tradingPolicy.portfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailPercent : undefined,
             portfolioProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
             reducedPortfolioTrailPercent: item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? item.engineAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+            portfolioTrailRungs: item.engineAccount.tradingPolicy.portfolioTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioTrailRungs : undefined,
+            portfolioAfternoonResetEt: item.engineAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+            portfolioAfternoonTrailRungs: item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? item.engineAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
             enablePortfolioTakeProfit: item.engineAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? item.engineAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
             portfolioTakeProfitThresholdPercent: item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? item.engineAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
             defaultTrailingStopPercentage100: item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? item.engineAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,

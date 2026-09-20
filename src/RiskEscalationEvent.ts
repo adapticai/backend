@@ -212,6 +212,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.alpacaAccount.tradingPolicy.portfolioTrailPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.alpacaAccount.tradingPolicy.portfolioTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -1246,6 +1249,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -1563,6 +1569,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -2435,6 +2444,11 @@ import { logger } from './utils/logger';
           reducedPortfolioTrailPercent: props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
               set: props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent
             } : undefined,
+          portfolioTrailRungs: props.alpacaAccount.tradingPolicy.portfolioTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+              set: props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt
+            } : undefined,
+          portfolioAfternoonTrailRungs: props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
               set: props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit
             } : undefined,
@@ -2681,6 +2695,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.alpacaAccount.tradingPolicy.portfolioTrailPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.alpacaAccount.tradingPolicy.portfolioTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -5316,6 +5333,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.alpacaAccount.tradingPolicy.portfolioTrailPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.alpacaAccount.tradingPolicy.portfolioTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -6453,6 +6473,11 @@ import { logger } from './utils/logger';
           reducedPortfolioTrailPercent: props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
               set: props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent
             } : undefined,
+          portfolioTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+              set: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt
+            } : undefined,
+          portfolioAfternoonTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
               set: props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit
             } : undefined,
@@ -6741,6 +6766,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -7297,6 +7325,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -7717,6 +7748,11 @@ import { logger } from './utils/logger';
           reducedPortfolioTrailPercent: props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
               set: props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent
             } : undefined,
+          portfolioTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+              set: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt
+            } : undefined,
+          portfolioAfternoonTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
               set: props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit
             } : undefined,
@@ -8005,6 +8041,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -8564,6 +8603,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -9089,6 +9131,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.alpacaAccount.tradingPolicy.portfolioTrailPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.alpacaAccount.tradingPolicy.portfolioTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -10123,6 +10168,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -10440,6 +10488,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -10987,6 +11038,11 @@ import { logger } from './utils/logger';
           reducedPortfolioTrailPercent: props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
               set: props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent
             } : undefined,
+          portfolioTrailRungs: props.alpacaAccount.tradingPolicy.portfolioTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+              set: props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt
+            } : undefined,
+          portfolioAfternoonTrailRungs: props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
               set: props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit
             } : undefined,
@@ -11233,6 +11289,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.alpacaAccount.tradingPolicy.portfolioTrailPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.alpacaAccount.tradingPolicy.portfolioTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -13868,6 +13927,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.alpacaAccount.tradingPolicy.portfolioTrailPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.alpacaAccount.tradingPolicy.portfolioTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -15005,6 +15067,11 @@ import { logger } from './utils/logger';
           reducedPortfolioTrailPercent: props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
               set: props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent
             } : undefined,
+          portfolioTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+              set: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt
+            } : undefined,
+          portfolioAfternoonTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
               set: props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit
             } : undefined,
@@ -15293,6 +15360,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -15849,6 +15919,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -16269,6 +16342,11 @@ import { logger } from './utils/logger';
           reducedPortfolioTrailPercent: props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
               set: props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent
             } : undefined,
+          portfolioTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+              set: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt
+            } : undefined,
+          portfolioAfternoonTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
               set: props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit
             } : undefined,
@@ -16557,6 +16635,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -17116,6 +17197,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: props.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: props.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -17823,6 +17907,11 @@ import { logger } from './utils/logger';
           reducedPortfolioTrailPercent: prop.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
               set: prop.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent
             } : undefined,
+          portfolioTrailRungs: prop.alpacaAccount.tradingPolicy.portfolioTrailRungs !== undefined ? prop.alpacaAccount.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: prop.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+              set: prop.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt
+            } : undefined,
+          portfolioAfternoonTrailRungs: prop.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? prop.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: prop.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
               set: prop.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit
             } : undefined,
@@ -18069,6 +18158,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: prop.alpacaAccount.tradingPolicy.portfolioTrailPercent !== undefined ? prop.alpacaAccount.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: prop.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? prop.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: prop.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? prop.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: prop.alpacaAccount.tradingPolicy.portfolioTrailRungs !== undefined ? prop.alpacaAccount.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: prop.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? prop.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: prop.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? prop.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: prop.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? prop.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: prop.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? prop.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: prop.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? prop.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -20704,6 +20796,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: prop.alpacaAccount.tradingPolicy.portfolioTrailPercent !== undefined ? prop.alpacaAccount.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: prop.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? prop.alpacaAccount.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: prop.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? prop.alpacaAccount.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: prop.alpacaAccount.tradingPolicy.portfolioTrailRungs !== undefined ? prop.alpacaAccount.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: prop.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt !== undefined ? prop.alpacaAccount.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: prop.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? prop.alpacaAccount.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: prop.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit !== undefined ? prop.alpacaAccount.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: prop.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? prop.alpacaAccount.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: prop.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? prop.alpacaAccount.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -21841,6 +21936,11 @@ import { logger } from './utils/logger';
           reducedPortfolioTrailPercent: prop.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
               set: prop.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent
             } : undefined,
+          portfolioTrailRungs: prop.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: prop.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+              set: prop.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt
+            } : undefined,
+          portfolioAfternoonTrailRungs: prop.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: prop.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
               set: prop.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit
             } : undefined,
@@ -22129,6 +22229,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: prop.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: prop.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: prop.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: prop.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: prop.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: prop.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: prop.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: prop.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: prop.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -22685,6 +22788,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: prop.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: prop.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: prop.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: prop.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: prop.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: prop.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: prop.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: prop.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: prop.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -23105,6 +23211,11 @@ import { logger } from './utils/logger';
           reducedPortfolioTrailPercent: prop.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? {
               set: prop.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent
             } : undefined,
+          portfolioTrailRungs: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? {
+              set: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt
+            } : undefined,
+          portfolioAfternoonTrailRungs: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: prop.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? {
               set: prop.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit
             } : undefined,
@@ -23393,6 +23504,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: prop.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: prop.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: prop.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,
@@ -23952,6 +24066,9 @@ import { logger } from './utils/logger';
           portfolioTrailPercent: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailPercent : undefined,
           portfolioProfitThresholdPercent: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.portfolioProfitThresholdPercent : undefined,
           reducedPortfolioTrailPercent: prop.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.reducedPortfolioTrailPercent : undefined,
+          portfolioTrailRungs: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.portfolioTrailRungs : undefined,
+          portfolioAfternoonResetEt: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonResetEt : undefined,
+          portfolioAfternoonTrailRungs: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.portfolioAfternoonTrailRungs : undefined,
           enablePortfolioTakeProfit: prop.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.enablePortfolioTakeProfit : undefined,
           portfolioTakeProfitThresholdPercent: prop.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.portfolioTakeProfitThresholdPercent : undefined,
           defaultTrailingStopPercentage100: prop.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.defaultTrailingStopPercentage100 : undefined,

@@ -46,6 +46,9 @@ import { logger } from './utils/logger';
   portfolioTrailPercent
   portfolioProfitThresholdPercent
   reducedPortfolioTrailPercent
+  portfolioTrailRungs
+  portfolioAfternoonResetEt
+  portfolioAfternoonTrailRungs
   enablePortfolioTakeProfit
   portfolioTakeProfitThresholdPercent
   defaultTrailingStopPercentage100
@@ -178,6 +181,9 @@ import { logger } from './utils/logger';
   portfolioTrailPercent: props.portfolioTrailPercent !== undefined ? props.portfolioTrailPercent : undefined,
   portfolioProfitThresholdPercent: props.portfolioProfitThresholdPercent !== undefined ? props.portfolioProfitThresholdPercent : undefined,
   reducedPortfolioTrailPercent: props.reducedPortfolioTrailPercent !== undefined ? props.reducedPortfolioTrailPercent : undefined,
+  portfolioTrailRungs: props.portfolioTrailRungs !== undefined ? props.portfolioTrailRungs : undefined,
+  portfolioAfternoonResetEt: props.portfolioAfternoonResetEt !== undefined ? props.portfolioAfternoonResetEt : undefined,
+  portfolioAfternoonTrailRungs: props.portfolioAfternoonTrailRungs !== undefined ? props.portfolioAfternoonTrailRungs : undefined,
   enablePortfolioTakeProfit: props.enablePortfolioTakeProfit !== undefined ? props.enablePortfolioTakeProfit : undefined,
   portfolioTakeProfitThresholdPercent: props.portfolioTakeProfitThresholdPercent !== undefined ? props.portfolioTakeProfitThresholdPercent : undefined,
   defaultTrailingStopPercentage100: props.defaultTrailingStopPercentage100 !== undefined ? props.defaultTrailingStopPercentage100 : undefined,
@@ -1737,6 +1743,9 @@ import { logger } from './utils/logger';
   portfolioTrailPercent: prop.portfolioTrailPercent !== undefined ? prop.portfolioTrailPercent : undefined,
   portfolioProfitThresholdPercent: prop.portfolioProfitThresholdPercent !== undefined ? prop.portfolioProfitThresholdPercent : undefined,
   reducedPortfolioTrailPercent: prop.reducedPortfolioTrailPercent !== undefined ? prop.reducedPortfolioTrailPercent : undefined,
+  portfolioTrailRungs: prop.portfolioTrailRungs !== undefined ? prop.portfolioTrailRungs : undefined,
+  portfolioAfternoonResetEt: prop.portfolioAfternoonResetEt !== undefined ? prop.portfolioAfternoonResetEt : undefined,
+  portfolioAfternoonTrailRungs: prop.portfolioAfternoonTrailRungs !== undefined ? prop.portfolioAfternoonTrailRungs : undefined,
   enablePortfolioTakeProfit: prop.enablePortfolioTakeProfit !== undefined ? prop.enablePortfolioTakeProfit : undefined,
   portfolioTakeProfitThresholdPercent: prop.portfolioTakeProfitThresholdPercent !== undefined ? prop.portfolioTakeProfitThresholdPercent : undefined,
   defaultTrailingStopPercentage100: prop.defaultTrailingStopPercentage100 !== undefined ? prop.defaultTrailingStopPercentage100 : undefined,
@@ -2036,6 +2045,11 @@ import { logger } from './utils/logger';
   reducedPortfolioTrailPercent: props.reducedPortfolioTrailPercent !== undefined ? {
             set: props.reducedPortfolioTrailPercent 
            } : undefined,
+  portfolioTrailRungs: props.portfolioTrailRungs !== undefined ? props.portfolioTrailRungs : undefined,
+  portfolioAfternoonResetEt: props.portfolioAfternoonResetEt !== undefined ? {
+            set: props.portfolioAfternoonResetEt 
+           } : undefined,
+  portfolioAfternoonTrailRungs: props.portfolioAfternoonTrailRungs !== undefined ? props.portfolioAfternoonTrailRungs : undefined,
   enablePortfolioTakeProfit: props.enablePortfolioTakeProfit !== undefined ? {
             set: props.enablePortfolioTakeProfit 
            } : undefined,
@@ -7427,6 +7441,9 @@ import { logger } from './utils/logger';
   portfolioTrailPercent: props.portfolioTrailPercent !== undefined ? props.portfolioTrailPercent : undefined,
   portfolioProfitThresholdPercent: props.portfolioProfitThresholdPercent !== undefined ? props.portfolioProfitThresholdPercent : undefined,
   reducedPortfolioTrailPercent: props.reducedPortfolioTrailPercent !== undefined ? props.reducedPortfolioTrailPercent : undefined,
+  portfolioTrailRungs: props.portfolioTrailRungs !== undefined ? props.portfolioTrailRungs : undefined,
+  portfolioAfternoonResetEt: props.portfolioAfternoonResetEt !== undefined ? props.portfolioAfternoonResetEt : undefined,
+  portfolioAfternoonTrailRungs: props.portfolioAfternoonTrailRungs !== undefined ? props.portfolioAfternoonTrailRungs : undefined,
   enablePortfolioTakeProfit: props.enablePortfolioTakeProfit !== undefined ? props.enablePortfolioTakeProfit : undefined,
   portfolioTakeProfitThresholdPercent: props.portfolioTakeProfitThresholdPercent !== undefined ? props.portfolioTakeProfitThresholdPercent : undefined,
   defaultTrailingStopPercentage100: props.defaultTrailingStopPercentage100 !== undefined ? props.defaultTrailingStopPercentage100 : undefined,
@@ -8896,6 +8913,11 @@ import { logger } from './utils/logger';
   reducedPortfolioTrailPercent: props.reducedPortfolioTrailPercent !== undefined ? {
             set: props.reducedPortfolioTrailPercent 
            } : undefined,
+  portfolioTrailRungs: props.portfolioTrailRungs !== undefined ? props.portfolioTrailRungs : undefined,
+  portfolioAfternoonResetEt: props.portfolioAfternoonResetEt !== undefined ? {
+            set: props.portfolioAfternoonResetEt 
+           } : undefined,
+  portfolioAfternoonTrailRungs: props.portfolioAfternoonTrailRungs !== undefined ? props.portfolioAfternoonTrailRungs : undefined,
   enablePortfolioTakeProfit: props.enablePortfolioTakeProfit !== undefined ? {
             set: props.enablePortfolioTakeProfit 
            } : undefined,
@@ -14337,6 +14359,11 @@ import { logger } from './utils/logger';
   reducedPortfolioTrailPercent: prop.reducedPortfolioTrailPercent !== undefined ? {
             set: prop.reducedPortfolioTrailPercent 
            } : undefined,
+  portfolioTrailRungs: prop.portfolioTrailRungs !== undefined ? prop.portfolioTrailRungs : undefined,
+  portfolioAfternoonResetEt: prop.portfolioAfternoonResetEt !== undefined ? {
+            set: prop.portfolioAfternoonResetEt 
+           } : undefined,
+  portfolioAfternoonTrailRungs: prop.portfolioAfternoonTrailRungs !== undefined ? prop.portfolioAfternoonTrailRungs : undefined,
   enablePortfolioTakeProfit: prop.enablePortfolioTakeProfit !== undefined ? {
             set: prop.enablePortfolioTakeProfit 
            } : undefined,
