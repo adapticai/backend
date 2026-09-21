@@ -75,4 +75,11 @@ COPY --from=builder --chown=adaptic:0 /app/package.json ./package.json
 USER adaptic
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["sh", "-c", "npx prisma migrate deploy --schema=prisma/schema.prisma || { echo '[migrate] FATAL: database migration failed - refusing to serve against a drifted schema. Fix the failed migration (see log above) and redeploy.'; exit 1; }; exec node dist/server.js"]
+# The image must boot identically whether the platform invokes this CMD or an
+# equivalent configured start command. Both therefore go through `npm start`,
+# which is the single definition of the boot sequence: resolve the known
+# rolled-back migration, apply pending migrations, then exec the server under
+# an explicit heap ceiling. Encoding the sequence twice — once here and once
+# in a platform setting — lets the two drift, and the drift is invisible until
+# a boot behaves differently from the one that was tested.
+CMD ["npm", "run", "start"]
