@@ -8,6 +8,7 @@ import { PrismaClient } from '@prisma/client';
 // plugin and server context injection. Revisit if we adopt per-query
 // caching strategies.
 import { logger } from './utils/logger';
+import { withFindManyGuard } from './prisma-find-many-guard';
 
 /**
  * Define the global type for PrismaClient to use across environments
@@ -273,7 +274,10 @@ if (!global.prisma) {
   // via the soft-delete middleware (see src/middleware/soft-delete.ts).
   // Prisma 6 uses client extensions rather than $use() middleware.
 
-  global.prisma = client;
+  // Applied at BOTH assignment sites. A guard installed only on the initial
+  // client silently disappears on the first reconnect, which is precisely when
+  // the process is already unhealthy.
+  global.prisma = withFindManyGuard(client);
 }
 
 // Initialize a singleton PrismaClient with a connection pool that persists across requests
@@ -377,7 +381,7 @@ async function reconnectPrisma(): Promise<void> {
       });
     });
 
-    global.prisma = newClient;
+    global.prisma = withFindManyGuard(newClient);
     heartbeatFailures = 0;
     logger.info('Prisma client reconnected successfully');
   } catch (error) {
