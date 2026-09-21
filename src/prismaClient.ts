@@ -8,7 +8,6 @@ import { PrismaClient } from '@prisma/client';
 // plugin and server context injection. Revisit if we adopt per-query
 // caching strategies.
 import { logger } from './utils/logger';
-import { withFindManyGuard } from './prisma-find-many-guard';
 
 /**
  * Define the global type for PrismaClient to use across environments
@@ -16,6 +15,90 @@ import { withFindManyGuard } from './prisma-find-many-guard';
 declare global {
   // This works in both browser and Node.js environments
   var prisma: PrismaClient | undefined;
+}
+
+/**
+ * Default ceiling for a `findMany` issued with no `take`.
+ *
+ * A `findMany` with no `take` materialises an entire table into this process's
+ * fixed heap. That is survivable while a table is small and becomes an outage
+ * when it is not: `account_decision_records` reached 1.4 GB and `audit_logs`
+ * 3.8 GB, either of which exhausts the heap on a single unqualified read and
+ * takes the API down for every caller, including the trading engine reading
+ * its own governed policy.
+ *
+ * The value sits above every result set any current caller can produce — the
+ * largest is `trade.getAll` at roughly 25k rows — so it is inert for every
+ * query in service today and active only for a read bounded by nothing but
+ * table size. A ceiling rather than a rejection, because refusing an
+ * unqualified read would surface the problem immediately but would also break
+ * callers that are correct today.
+ */
+export const DEFAULT_FIND_MANY_TAKE = 50_000;
+
+/**
+ * Resolve the ceiling, allowing an operator to lower it without a deploy.
+ *
+ * @returns The row ceiling to apply to an unqualified `findMany`.
+ */
+export function resolveFindManyTake(): number {
+  const raw = process.env.PRISMA_FIND_MANY_DEFAULT_TAKE;
+  if (raw === undefined || raw.trim() === '') return DEFAULT_FIND_MANY_TAKE;
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    logger.warn(
+      'PRISMA_FIND_MANY_DEFAULT_TAKE is not a positive integer — using the built-in ceiling',
+      { provided: raw, using: DEFAULT_FIND_MANY_TAKE }
+    );
+    return DEFAULT_FIND_MANY_TAKE;
+  }
+  return parsed;
+}
+
+/**
+ * Apply the unqualified-`findMany` ceiling to a Prisma client.
+ *
+ * An explicit `take` is always honoured — a caller that has stated how many
+ * rows it wants has already bounded itself, and overriding that would be this
+ * guard changing an answer rather than protecting the process.
+ *
+ * A read that comes back exactly at the ceiling has probably been truncated,
+ * so it is logged with the model and the count: silent truncation of a query
+ * whose caller expects every row is a wrong answer wearing the shape of a
+ * right one, and worse than the crash it prevents. That warning is the signal
+ * to give the call site an explicit `take` before the ceiling has to decide
+ * anything.
+ *
+ * @param client - The client to wrap.
+ * @returns The client with the ceiling applied.
+ */
+export function withFindManyGuard(client: PrismaClient): PrismaClient {
+  const ceiling = resolveFindManyTake();
+  const extended = client.$extends({
+    name: 'find-many-ceiling',
+    query: {
+      $allModels: {
+        async findMany({ model, args, query }) {
+          const unbounded = args.take === undefined || args.take === null;
+          const bounded = unbounded ? { ...args, take: ceiling } : args;
+          const rows: unknown = await query(bounded);
+          if (unbounded && Array.isArray(rows) && rows.length >= ceiling) {
+            logger.warn(
+              'Unqualified findMany returned the ceiling row count — the result is probably truncated; give this call site an explicit take',
+              { model, ceiling, returned: rows.length }
+            );
+          }
+          return rows;
+        },
+      },
+    },
+  });
+  // Prisma types an extended client as a structurally distinct object even
+  // when, as here, the extension only wraps query execution and adds, removes
+  // and renames nothing on the model surface. The delegates callers use are the
+  // same delegates; the assertion states that, and is confined to this one
+  // boundary rather than spread across every consumer.
+  return extended as unknown as PrismaClient;
 }
 
 /** Default statement timeout (30s) prevents hung queries from blocking pool slots indefinitely */
