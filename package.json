@@ -21,7 +21,7 @@
     "build": "npm run clean && npm run generate && npm run fix-imports && npm run generate:selections && npm run generate:functions && npm run fix-compound-keys && npm run generate:strings && tsc && npm run build:server",
     "build:server": "tsc --project tsconfig.server.json",
     "build:package": "npm run build && npm run prepare-package-folder",
-    "start": "npm run migrate && node --max-old-space-size=3072 dist/server.js",
+    "start": "npm run migrate && node --max-old-space-size=6144 dist/server.js",
     "start:prod": "node dist/server.js",
     "generate": "SKIP_PRISMA_VERSION_CHECK=true npx prisma generate",
     "migrate:dev": "SKIP_PRISMA_VERSION_CHECK=true npx prisma migrate dev && npm run migrate",
