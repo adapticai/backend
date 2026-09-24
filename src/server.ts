@@ -31,6 +31,7 @@ import { graphqlRateLimiter, authRateLimiter } from './middleware/rate-limiter';
 import { createAuditLogPlugin } from './middleware/audit-logger';
 import { createTenancyScopingMiddleware } from './middleware/tenancy-scoping';
 import { createCredentialFieldGuardMiddleware } from './middleware/credential-field-guard';
+import { installMutationAuthGuard } from './middleware/mutation-auth-guard';
 import { cortexAuthChecker } from './auth/cortex-auth-checker';
 import { applyCortexAuthorizationMap } from './auth/authorization-map';
 import { createHttpStatusMapperPlugin } from './plugins/http-status-mapper';
@@ -186,6 +187,21 @@ const startServer = async () => {
     // it observes + counts would-deny operations but always allows —
     // byte-identical live behaviour until enforcement is flipped on.
     authChecker: cortexAuthChecker,
+  });
+
+  // Mutation authorization: every mutation is admitted only for a principal
+  // authorised to write that model — the engine's service principal and admins
+  // everywhere, a user only on an account, row or tenant it owns — and every
+  // TradingPolicy write leaves an attributed audit row. Installed on the built
+  // schema's Mutation fields (not as a global middleware, which would tax every
+  // read field), so it covers generated and custom mutations alike on both the
+  // HTTP and WebSocket transports. Gated by `MUTATION_AUTH_MODE` (unset =
+  // `shadow`) and the per-model escalation `MUTATION_AUTH_ENFORCE_MODELS`; see
+  // src/middleware/mutation-auth-guard.ts and
+  // docs/security/2026-09-24-mutation-authorization-runbook.md.
+  const guardedMutations = installMutationAuthGuard(schema);
+  logger.info('[mutation-auth] guard installed on every root Mutation field', {
+    guardedMutations,
   });
 
   const app = express();

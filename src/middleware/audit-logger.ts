@@ -15,6 +15,8 @@ import type {
   GraphQLRequestListener,
 } from '@apollo/server';
 import type { PrismaClient } from '@prisma/client';
+import { redactCredentials } from '../auth/credential-redaction';
+import type { BackendPrincipal } from '../auth/token-verifier';
 import { logger } from '../utils/logger';
 
 /** Represents the user object decoded from JWT context */
@@ -30,6 +32,8 @@ interface AuditUser {
 interface AuditContext {
   prisma: PrismaClient;
   user?: AuditUser | string | null;
+  /** The verified principal, when the request presented one. */
+  principal?: BackendPrincipal | null;
   req?: {
     ip?: string;
     headers?: Record<string, string | string[] | undefined>;
@@ -157,6 +161,11 @@ function extractRecordId(
  * For update operations, captures the data being set.
  * For delete operations, captures the where clause.
  *
+ * Stored-credential values (broker keys, OAuth / session / invite tokens) are
+ * replaced with a placeholder: an audit row is readable far more widely than
+ * the credential column, so a key copied into one is an unguarded second copy
+ * of the secret.
+ *
  * @param operationType - The type of mutation operation
  * @param variables - The GraphQL variables passed to the mutation
  * @returns A JSON-serializable object representing the changed fields
@@ -167,19 +176,37 @@ function extractChangedFields(
 ): Record<string, unknown> {
   if (!variables) return {};
 
-  switch (operationType) {
-    case 'CREATE':
-      return { input: variables.data || variables };
-    case 'UPDATE':
-      return {
-        where: variables.where || {},
-        data: variables.data || {},
-      };
-    case 'DELETE':
-      return { where: variables.where || {} };
-    default:
-      return variables;
+  const fields = ((): Record<string, unknown> => {
+    switch (operationType) {
+      case 'CREATE':
+        return { input: variables.data || variables };
+      case 'UPDATE':
+        return {
+          where: variables.where || {},
+          data: variables.data || {},
+        };
+      case 'DELETE':
+        return { where: variables.where || {} };
+      default:
+        return variables;
+    }
+  })();
+  return redactCredentials(fields) as Record<string, unknown>;
+}
+
+/**
+ * The acting principal as recorded on an audit row. `userId` holds only a
+ * UUID subject, so a service or anonymous write needs its identity here or
+ * the row cannot say who made it.
+ */
+function principalMetadata(
+  principal: BackendPrincipal | null | undefined
+): { principalKind: string; principalSub: string | null } {
+  if (!principal) return { principalKind: 'none', principalSub: null };
+  if (principal.kind === 'server') {
+    return { principalKind: 'server', principalSub: principal.sub ?? null };
   }
+  return { principalKind: principal.kind, principalSub: principal.sub };
 }
 
 /**
@@ -286,6 +313,7 @@ export function createAuditLogPlugin(): ApolloServerPlugin<AuditContext> {
                     ipAddress,
                     metadata: {
                       graphqlOperationName: request.operationName || null,
+                      ...principalMetadata(contextValue.principal),
                     },
                   },
                 });
@@ -314,4 +342,5 @@ export {
   extractUserId,
   extractRecordId,
   extractChangedFields,
+  principalMetadata,
 };

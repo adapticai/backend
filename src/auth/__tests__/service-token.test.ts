@@ -75,7 +75,17 @@ describe('verifyServiceToken', () => {
   });
 
   it('yields a server principal for a correctly bound credential', () => {
-    expect(verifyServiceToken(mint())).toEqual({ kind: 'server' });
+    expect(verifyServiceToken(mint())).toEqual({
+      kind: 'server',
+      sub: 'adaptic-engine:test',
+    });
+  });
+
+  it('carries the minting service\'s subject so a write can be attributed', () => {
+    expect(verifyServiceToken(mint({ sub: '  adaptic-engine:host-7:42 ' }))).toEqual({
+      kind: 'server',
+      sub: 'adaptic-engine:host-7:42',
+    });
   });
 
   it('is unavailable — not permissive — when no secret is provisioned', () => {
@@ -202,6 +212,7 @@ describe('verifyBackendToken — service path integration', () => {
   it('promotes an engine credential to a server principal end to end', async () => {
     await expect(verifyBackendToken(mint())).resolves.toEqual({
       kind: 'server',
+      sub: 'adaptic-engine:test',
     });
   });
 

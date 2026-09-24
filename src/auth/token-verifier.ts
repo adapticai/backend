@@ -59,7 +59,9 @@ export type AuthErrorReason =
  * Backend principal — the verified caller identity attached to a request.
  *
  * - `server`: trusted server-to-server caller (Next.js route handler, internal
- *   service). Authenticated by the static `SERVER_AUTH_TOKEN`.
+ *   service). Authenticated by the static `SERVER_AUTH_TOKEN` (no `sub`: the
+ *   static token names no caller) or by a service JWT, whose `sub` names the
+ *   minting process so audit rows can attribute a service write.
  * - `user`: end-user authenticated via app-issued JWT or Google ID token.
  * - `admin`: same as `user` but with an `admin` role explicitly listed.
  *
@@ -67,7 +69,7 @@ export type AuthErrorReason =
  * compiler enforces exhaustive handling.
  */
 export type BackendPrincipal =
-  | { kind: 'server' }
+  | { kind: 'server'; sub?: string }
   | { kind: 'user'; sub: string; email?: string; roles: string[] }
   | { kind: 'admin'; sub: string; email?: string; roles: string[] };
 
