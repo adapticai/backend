@@ -335,13 +335,13 @@ function logDecision(
 ): void {
   const operationName = info.operation?.name?.value ?? '<unnamed>';
   const userAgent = headerValue(request?.headers?.['user-agent']);
-  // The source address is part of the key: two callers sending the same
-  // operation with the same user agent (every Node `fetch` sends `node`) are
-  // different callers, and a key without the address logs only the first of
-  // them per window — which is exactly the attribution a pre-enforcement
-  // review of the would-deny set depends on.
-  const ip = request?.ip ?? '<none>';
-  const key = `${decision}|${surface}|${principal}|${references.join(',')}|${operationName}|${userAgent}|${ip}`;
+  // The source is part of the key: two callers sending the same operation
+  // with the same user agent (every Node `fetch` sends `node`) are different
+  // callers, and a key without the source logs only the first of them per
+  // window — which is exactly the attribution a pre-enforcement review of the
+  // would-deny set depends on.
+  const source = callerSource(request);
+  const key = `${decision}|${surface}|${principal}|${references.join(',')}|${operationName}|${userAgent}|${source.ip}|${source.forwardedFor}`;
   const previous = lastLoggedAt.get(key);
   if (previous !== undefined && nowMs - previous < LOG_THROTTLE_MS) return;
   if (lastLoggedAt.size >= LOG_THROTTLE_MAX_KEYS) lastLoggedAt.clear();
@@ -353,6 +353,7 @@ function logDecision(
     principalKind: principal,
     operationName,
     ip: request?.ip,
+    forwardedFor: source.forwardedFor,
     userAgent,
     dedupWindowMs: LOG_THROTTLE_MS,
   });
@@ -379,8 +380,8 @@ function logServiceRead(
 ): void {
   const operationName = info.operation?.name?.value ?? '<unnamed>';
   const caller = sub ?? '<unattributed>';
-  const ip = request?.ip ?? '<none>';
-  const key = `allowed|${caller}|${reference}|${operationName}|${ip}`;
+  const source = callerSource(request);
+  const key = `allowed|${caller}|${reference}|${operationName}|${source.ip}|${source.forwardedFor}`;
   const previous = lastLoggedAt.get(key);
   if (previous !== undefined && nowMs - previous < LOG_THROTTLE_MS) return;
   if (lastLoggedAt.size >= LOG_THROTTLE_MAX_KEYS) lastLoggedAt.clear();
@@ -391,8 +392,31 @@ function logServiceRead(
     reference,
     operationName,
     ip: request?.ip,
+    forwardedFor: source.forwardedFor,
     dedupWindowMs: LOG_THROTTLE_MS,
   });
+}
+
+/** Longest `X-Forwarded-For` chain the log keeps, in characters. */
+const MAX_FORWARDED_FOR_LENGTH = 256;
+
+/**
+ * Where a request came from, as far as this process can tell.
+ *
+ * `req.ip` is the address `trust proxy` resolves, and behind the production
+ * edge it resolves to the edge's own pool (an operator's laptop and a hosted
+ * service log the same handful of addresses), so on its own it cannot tell
+ * callers apart. The raw `X-Forwarded-For` chain carries the hops the edge
+ * saw. It is caller-supplied at its left end, so it is attribution evidence
+ * for an operator reading the log, never an identity the guard decides on;
+ * it is truncated so a padded header cannot bloat the log or the throttle.
+ */
+function callerSource(request: GuardRequest | undefined): { ip: string; forwardedFor: string } {
+  const forwardedFor = headerValue(request?.headers?.['x-forwarded-for']);
+  return {
+    ip: request?.ip ?? '<none>',
+    forwardedFor: forwardedFor.slice(0, MAX_FORWARDED_FOR_LENGTH),
+  };
 }
 
 function headerValue(value: string | string[] | undefined): string {

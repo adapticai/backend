@@ -57,12 +57,12 @@ async function resolveSecret(
   mode: 'enforce' | 'shadow',
   principal: BackendPrincipal | null,
   ip: string,
+  forwardedFor?: string,
   operationName = 'findManyAlpacaAccount'
 ): Promise<void> {
-  const context: CredentialFieldGuardContext = {
-    principal,
-    req: { ip, headers: { 'user-agent': 'node' } },
-  };
+  const headers: Record<string, string> = { 'user-agent': 'node' };
+  if (forwardedFor !== undefined) headers['x-forwarded-for'] = forwardedFor;
+  const context: CredentialFieldGuardContext = { principal, req: { ip, headers } };
   await graphql({
     schema: schemaFor(mode),
     source: `query ${operationName} { alpacaAccounts { id APISecret } }`,
@@ -98,6 +98,28 @@ describe('credential-field guard decision log attribution', () => {
     const lines = guardLines(warn);
     expect(lines.map((l) => l.ip)).toEqual(['198.51.100.7', '203.0.113.20']);
     expect(lines.every((l) => l.decision === 'would_deny')).toBe(true);
+  });
+
+  it('tells apart callers that arrive through the same edge address by their forwarded chain', async () => {
+    // Behind the production edge `req.ip` is the edge pool, so an operator's
+    // laptop and a hosted service share it; the forwarded chain differs.
+    const edge = '152.233.12.241';
+    await resolveSecret('shadow', null, edge, '198.51.100.7, 152.233.12.241');
+    await resolveSecret('shadow', null, edge, '203.0.113.20, 152.233.12.241');
+
+    const lines = guardLines(warn);
+    expect(lines.map((l) => l.forwardedFor)).toEqual([
+      '198.51.100.7, 152.233.12.241',
+      '203.0.113.20, 152.233.12.241',
+    ]);
+    expect(lines.every((l) => l.ip === edge)).toBe(true);
+  });
+
+  it('bounds a padded forwarded chain', async () => {
+    await resolveSecret('shadow', null, '152.233.12.241', `${'9'.repeat(5000)}`);
+
+    const [line] = guardLines(warn);
+    expect(String(line?.forwardedFor).length).toBeLessThanOrEqual(256);
   });
 
   it('still logs one caller once per window (the throttle is per caller, not removed)', async () => {
