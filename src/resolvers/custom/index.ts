@@ -5,6 +5,10 @@
  */
 
 export { OptionsGreeksHistoryCustomResolver } from './OptionsGreeksHistoryCustomResolver';
+export {
+  BrokerageAccountCredentialStatusResolver,
+  hasStoredApiCredentials,
+} from './BrokerageAccountCredentialStatusResolver';
 export { OptionsGreeksHistorySystemSummary } from './OptionsGreeksHistorySystemSummary';
 export {
   TradingSettingsResolver,

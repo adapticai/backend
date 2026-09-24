@@ -17,6 +17,7 @@ import { buildSchema } from 'type-graphql';
 import { GraphQLError } from 'graphql';
 import { resolvers } from './generated/typegraphql-prisma';
 import {
+  BrokerageAccountCredentialStatusResolver,
   OptionsGreeksHistoryCustomResolver,
   TradingSettingsResolver,
 } from './resolvers/custom';
@@ -29,6 +30,7 @@ import { authMiddleware } from './middleware/auth';
 import { graphqlRateLimiter, authRateLimiter } from './middleware/rate-limiter';
 import { createAuditLogPlugin } from './middleware/audit-logger';
 import { createTenancyScopingMiddleware } from './middleware/tenancy-scoping';
+import { createCredentialFieldGuardMiddleware } from './middleware/credential-field-guard';
 import { cortexAuthChecker } from './auth/cortex-auth-checker';
 import { applyCortexAuthorizationMap } from './auth/authorization-map';
 import { createHttpStatusMapperPlugin } from './plugins/http-status-mapper';
@@ -160,13 +162,24 @@ const startServer = async () => {
       ...resolvers,
       OptionsGreeksHistoryCustomResolver,
       TradingSettingsResolver,
+      BrokerageAccountCredentialStatusResolver,
     ],
     validate: false,
     // Row-level tenancy scoping (SP2-G7 / SOC2). Applies ONLY to user-scoped
     // principals on the tenancy + notification models; service/admin principals
     // and unauthenticated callers are bypassed in every mode. Gated by
     // `TENANCY_SCOPING_MODE` (default `shadow`).
-    globalMiddlewares: [createTenancyScopingMiddleware()],
+    //
+    // Credential-field guard: stored credentials (broker API keys, OAuth,
+    // session and invite tokens) resolve — and can be filtered, sorted or
+    // grouped on — only for a verified service principal. It runs FIRST so a
+    // credential predicate is refused before any other middleware or resolver
+    // touches the database. Gated by `CREDENTIAL_FIELD_GUARD_MODE` (default
+    // `enforce`); see src/middleware/credential-field-guard.ts.
+    globalMiddlewares: [
+      createCredentialFieldGuardMiddleware(),
+      createTenancyScopingMiddleware(),
+    ],
     // Resolver-level authorization (CORTEX-P0-001). Invoked for the
     // `@Authorized()`-decorated fields applied by applyCortexAuthorizationMap
     // above. SHADOW-FIRST: while `CORTEX_AUTHCHECKER_ENFORCE` is OFF (default),
