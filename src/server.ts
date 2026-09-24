@@ -32,6 +32,7 @@ import { createAuditLogPlugin } from './middleware/audit-logger';
 import { createTenancyScopingMiddleware } from './middleware/tenancy-scoping';
 import { createCredentialFieldGuardMiddleware } from './middleware/credential-field-guard';
 import { installMutationAuthGuard } from './middleware/mutation-auth-guard';
+import { wsActorRequest } from './middleware/trading-policy-audit';
 import { cortexAuthChecker } from './auth/cortex-auth-checker';
 import { applyCortexAuthorizationMap } from './auth/authorization-map';
 import { createHttpStatusMapperPlugin } from './plugins/http-status-mapper';
@@ -367,7 +368,10 @@ const startServer = async () => {
     },
     credentials: true,
     methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
+    // X-Adaptic-Change-Reason is the stated reason recorded on every
+    // TradingPolicy audit row (src/middleware/trading-policy-audit.ts); a
+    // browser caller can only send it if preflight allows it.
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-Adaptic-Change-Reason'],
     maxAge: 86400, // 24h preflight cache
   };
 
@@ -534,13 +538,19 @@ const startServer = async () => {
               userAgent: wsIdentity.userAgent,
               authHeaderPresent: authHeader.length > 0,
             });
-            return { prisma: global.prisma, user: null, principal: null };
+            return {
+              prisma: global.prisma,
+              req: wsActorRequest(ctx.extra, ctx.connectionParams),
+              user: null,
+              principal: null,
+            };
           }
 
           case 'authenticated': {
             recordAuthContextOutcome('ws', 'authenticated');
             return {
               prisma: global.prisma,
+              req: wsActorRequest(ctx.extra, ctx.connectionParams),
               user: principalToUser(decision.principal),
               principal: decision.principal,
             };

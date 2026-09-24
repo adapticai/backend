@@ -21,12 +21,22 @@
  *    type and current switch values; and
  * 2. a `result` row after it, carrying the outcome, linked by `attemptId`.
  *
+ * Each touched policy is resolved from its OWN argument path: a nested write
+ * that reaches a different account than the root's is recorded against that
+ * account, and one whose account the arguments do not identify is recorded
+ * as `unresolved` — never attributed to the root's account.
+ *
  * A refused write produces only the `attempt` row (its outcome is `denied`).
  *
  * Writing the attempt row first is what makes the record durable: if the
  * attempt row cannot be written and the mutation is being enforced, the
  * mutation is refused rather than executed unattributed. The caller decides
- * that; this module reports the failure and never swallows it.
+ * that; this module reports the failure and never swallows it. The one
+ * exception is a write that only DISARMS ({@link isDisarmOnlyPolicyWrite}):
+ * refusing it during an AuditLog outage would block the protective direction
+ * (a kill switch, `realtimeTradingEnabled = false`) exactly when the system is
+ * degraded, so it is admitted, counted on
+ * `graphql_mutation_audit_bypassed_total`, and logged in full at error level.
  *
  * @module middleware/trading-policy-audit
  */
@@ -60,12 +70,30 @@ export type TradingSwitches = Partial<
   Record<(typeof TRADING_SWITCH_FIELDS)[number], boolean | string | null>
 >;
 
+/**
+ * How a touched policy's account was identified: read from the database
+ * (`resolved`), created by this same mutation (`new_account`), or not
+ * identifiable from the arguments (`unresolved`).
+ */
+export type PolicyResolution = 'resolved' | 'new_account' | 'unresolved';
+
 /** A policy row the write will touch, as read before the write. */
 export interface AuditedPolicyRow {
+  /** Argument path of the nested write that reaches it; `null` for a root write. */
+  readonly nestedPath: string | null;
+  readonly resolution: PolicyResolution;
   readonly policyId: string | null;
-  readonly alpacaAccountId: string;
+  readonly alpacaAccountId: string | null;
   readonly accountType: string | null;
   readonly before: TradingSwitches | null;
+}
+
+/**
+ * Whether a write may touch a LIVE account's switches: a resolved LIVE
+ * account, or any account the guard could not identify (which may be LIVE).
+ */
+export function mayTouchLiveAccount(policies: readonly AuditedPolicyRow[]): boolean {
+  return policies.some((p) => p.accountType === 'LIVE' || p.resolution !== 'resolved');
 }
 
 /** Who is writing, as far as the request can prove and report it. */
@@ -85,8 +113,8 @@ export type AuditOutcome = 'pending' | 'denied' | 'succeeded' | 'failed';
 export interface TradingPolicyAuditEntry {
   readonly mutation: string;
   readonly action: MutationAction | 'custom';
-  /** Argument path of the nested write, or `null` for a root write. */
-  readonly nestedPath: string | null;
+  /** Argument paths of the nested TradingPolicy writes; empty for a root write. */
+  readonly nestedPaths: readonly string[];
   readonly actor: AuditActor;
   readonly changeReason: string | null;
   readonly decision: 'allowed' | 'would_deny' | 'denied';
@@ -103,6 +131,19 @@ export interface AuditLogWriter {
     create(args: { data: Record<string, unknown> }): Promise<{ id: string }>;
   };
 }
+
+/**
+ * Disarm-only TradingPolicy writes admitted without an attempt row because
+ * AuditLog was unavailable under enforce. Each is also logged in full.
+ */
+export const mutationAuditBypassedTotal = new Counter({
+  name: 'graphql_mutation_audit_bypassed_total',
+  help:
+    'TradingPolicy writes admitted under enforce without an attempt audit row, by reason. ' +
+    'Only disarm-only writes (kill switch on, trading off, paper only, safe autonomy) qualify.',
+  labelNames: ['reason'] as const,
+  registers: [metricsRegistry],
+});
 
 /** Audit-row write failures, by phase. Non-zero means an unattributed write risk. */
 export const mutationAuditWriteFailuresTotal = new Counter({
@@ -183,7 +224,8 @@ function operationTypeFor(action: MutationAction | 'custom'): 'CREATE' | 'UPDATE
 function recordIdFor(policies: readonly AuditedPolicyRow[]): string {
   if (policies.length === 1) {
     const [row] = policies;
-    return row.policyId ?? `alpacaAccount:${row.alpacaAccountId}`;
+    if (row.policyId) return row.policyId;
+    return row.alpacaAccountId ? `alpacaAccount:${row.alpacaAccountId}` : row.resolution;
   }
   return policies.length === 0 ? 'unresolved' : `bulk:${policies.length}`;
 }
@@ -204,7 +246,7 @@ function rowData(
     ipAddress: actor.ip ? actor.ip.slice(0, 45) : null,
     changedFields: redactCredentials({
       requested: entry.requested,
-      nestedPath: entry.nestedPath,
+      nestedPaths: entry.nestedPaths,
     }) as Record<string, unknown>,
     metadata: redactCredentials({
       source: 'mutation-auth-guard',
@@ -266,4 +308,96 @@ export async function writeResultRow(
     mutationAuditWriteFailuresTotal.inc({ phase: 'result' });
     throw error;
   }
+}
+
+/** The value each trading switch moves to when a write DISARMS it. */
+const DISARMED_VALUES: Readonly<Record<(typeof TRADING_SWITCH_FIELDS)[number], ReadonlySet<unknown>>> = {
+  realtimeTradingEnabled: new Set([false]),
+  killSwitchEnabled: new Set([true]),
+  paperTradingOnly: new Set([true]),
+  autonomyMode: new Set(['ADVISORY_ONLY', 'EMERGENCY_SAFE_MODE']),
+};
+
+/** Bookkeeping fields a disarm write may also set. */
+const DISARM_BOOKKEEPING_FIELDS: ReadonlySet<string> = new Set(['lastModifiedBy', 'lastModifiedAt', 'version']);
+
+/** The value a generated update input sets: `{ set: v }` → `v`; anything else is not a plain set. */
+function setValueOf(value: unknown): { readonly value: unknown } | null {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const keys = Object.keys(record).filter((key) => record[key] !== undefined);
+  return keys.length === 1 && keys[0] === 'set' ? { value: record.set } : null;
+}
+
+/**
+ * Whether a root `updateOneTradingPolicy` only disarms: it sets at least one
+ * trading switch, every switch it sets moves to its disarmed value, and every
+ * other field it sets is bookkeeping (or re-states the row's own `id`). Any
+ * other shape — a nested write, an upsert (which may create an armed policy),
+ * a bulk write, a change to limits — is not disarm-only.
+ *
+ * @param target - The classified root mutation field.
+ * @param args - The field's arguments.
+ */
+export function isDisarmOnlyPolicyWrite(
+  target: { readonly model: string; readonly action: string; readonly cardinality: string },
+  args: Record<string, unknown>
+): boolean {
+  if (target.model !== 'TradingPolicy' || target.action !== 'update' || target.cardinality !== 'one') {
+    return false;
+  }
+  const data = args.data;
+  if (data === null || typeof data !== 'object' || Array.isArray(data)) return false;
+  const where = args.where as { id?: unknown } | null | undefined;
+  let disarmed = 0;
+  for (const [key, raw] of Object.entries(data as Record<string, unknown>)) {
+    if (raw === undefined) continue;
+    const set = setValueOf(raw);
+    if (!set) return false;
+    if (key in DISARMED_VALUES) {
+      if (!DISARMED_VALUES[key as keyof typeof DISARMED_VALUES].has(set.value)) return false;
+      disarmed += 1;
+    } else if (!DISARM_BOOKKEEPING_FIELDS.has(key) && !(key === 'id' && where?.id === set.value)) {
+      return false;
+    }
+  }
+  return disarmed > 0;
+}
+
+/** Case-insensitive read of one key from a WebSocket `connectionParams` bag. */
+function connectionParam(params: unknown, name: string): string | undefined {
+  if (params === null || typeof params !== 'object') return undefined;
+  for (const [key, value] of Object.entries(params as Record<string, unknown>)) {
+    if (key.toLowerCase() === name && typeof value === 'string') return value;
+  }
+  return undefined;
+}
+
+/**
+ * The actor request for a GraphQL-over-WebSocket operation, so a mutation
+ * sent over `/subscriptions` is attributed like an HTTP one: IP (socket
+ * remote address), user agent and origin from the upgrade request, and the
+ * change reason from the upgrade request's `X-Adaptic-Change-Reason` header
+ * or the connection's `connectionParams` (a browser cannot set headers on a
+ * WebSocket upgrade). The reason is per connection, not per operation.
+ *
+ * @param extra - graphql-ws `ctx.extra` (carries the upgrade `request`).
+ * @param connectionParams - graphql-ws `ctx.connectionParams`.
+ */
+export function wsActorRequest(extra: unknown, connectionParams: unknown): ActorRequest {
+  const request =
+    extra !== null && typeof extra === 'object' ? (extra as { request?: unknown }).request : undefined;
+  const req = request !== null && typeof request === 'object' ? (request as Record<string, unknown>) : {};
+  const rawHeaders = req.headers !== null && typeof req.headers === 'object' ? req.headers : {};
+  const headers: Record<string, string | string[] | undefined> = {};
+  for (const name of ['user-agent', 'origin', CHANGE_REASON_HEADER]) {
+    const value = (rawHeaders as Record<string, unknown>)[name];
+    if (typeof value === 'string' || Array.isArray(value)) headers[name] = value as string | string[];
+  }
+  headers[CHANGE_REASON_HEADER] ??= connectionParam(connectionParams, CHANGE_REASON_HEADER);
+  const socket = req.socket !== null && typeof req.socket === 'object' ? (req.socket as { remoteAddress?: unknown }) : {};
+  return {
+    ip: typeof socket.remoteAddress === 'string' ? socket.remoteAddress : undefined,
+    headers,
+  };
 }

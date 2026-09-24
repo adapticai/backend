@@ -14,11 +14,10 @@
  * @module middleware/mutation-account-facts
  */
 
-import {
-  resolveEntitlement,
-  type EntitlementPrismaClient,
-} from '../auth/tenancy-scope';
+import { resolveEntitlement } from '../auth/tenancy-scope';
 import type { AccountOwnership, MutationTarget } from '../auth/mutation-authorization';
+import type { NestedWrite } from '../auth/nested-write-inspector';
+import type { TenantScopePrisma } from './mutation-tenant-facts';
 import type { AuditedPolicyRow, AuditLogWriter } from './trading-policy-audit';
 
 /** Most rows a bulk policy write records in its audit row. */
@@ -66,7 +65,7 @@ type Where = Record<string, unknown>;
  * The slice of the Prisma client the guard uses. Declared structurally so the
  * guard can be exercised against a fake, the pattern the tenancy scoping uses.
  */
-export interface MutationAuthPrisma extends AuditLogWriter, EntitlementPrismaClient {
+export interface MutationAuthPrisma extends AuditLogWriter, TenantScopePrisma {
   tradingPolicy: {
     findUnique(args: { where: Where; select: typeof POLICY_SELECT }): Promise<PolicyFacts | null>;
     findMany(args: {
@@ -108,8 +107,10 @@ function policyAccountIdIn(data: unknown): string | undefined {
   return stringAt(data, 'alpacaAccountId') ?? stringAt(data, 'alpacaAccount', 'connect', 'id');
 }
 
-function policyRow(row: PolicyFacts): AuditedPolicyRow {
+function policyRow(row: PolicyFacts, nestedPath: string | null = null): AuditedPolicyRow {
   return {
+    nestedPath,
+    resolution: 'resolved',
     policyId: row.id,
     alpacaAccountId: row.alpacaAccountId,
     accountType: row.alpacaAccount.type,
@@ -122,8 +123,23 @@ function policyRow(row: PolicyFacts): AuditedPolicyRow {
   };
 }
 
-function newPolicyRow(account: AccountFacts): AuditedPolicyRow {
-  return { policyId: null, alpacaAccountId: account.id, accountType: account.type, before: null };
+function newPolicyRow(account: AccountFacts, nestedPath: string | null = null): AuditedPolicyRow {
+  return {
+    nestedPath,
+    resolution: 'resolved',
+    policyId: null,
+    alpacaAccountId: account.id,
+    accountType: account.type,
+    before: null,
+  };
+}
+
+/** A policy write whose account the arguments do not identify. */
+function unidentifiedPolicyRow(
+  nestedPath: string,
+  resolution: 'new_account' | 'unresolved'
+): AuditedPolicyRow {
+  return { nestedPath, resolution, policyId: null, alpacaAccountId: null, accountType: null, before: null };
 }
 
 async function accountById(prisma: MutationAuthPrisma, id: string): Promise<AccountFacts | null> {
@@ -145,14 +161,14 @@ async function touchedByPolicyWrite(
         const account = id ? await accountById(prisma, id) : null;
         if (account) accounts.push(account);
       }
-      return { accounts, policies: accounts.map(newPolicyRow) };
+      return { accounts, policies: accounts.map((a) => newPolicyRow(a)) };
     }
     const rows = await prisma.tradingPolicy.findMany({
       where: where ?? {},
       select: POLICY_SELECT,
       take: MAX_AUDITED_BULK_ROWS,
     });
-    return { accounts: rows.map((r) => r.alpacaAccount), policies: rows.map(policyRow) };
+    return { accounts: rows.map((r) => r.alpacaAccount), policies: rows.map((r) => policyRow(r)) };
   }
 
   const existing =
@@ -235,4 +251,49 @@ export async function ownershipOf(
     (a) => a.userId === userId || (a.brokerageAccount !== null && funds.has(a.brokerageAccount.fundId))
   );
   return allowed ? { kind: 'fund_entitled' } : { kind: 'other' };
+}
+
+/**
+ * The policy row each nested TradingPolicy write reaches, resolved from THAT
+ * write's own path — never from the root. A policy container is resolved when
+ * its parent is an AlpacaAccount row the arguments name by a unique selector
+ * (the root `where`, or a to-many `update` / `upsert` entry's `where`); one
+ * whose account is created in the same mutation is `new_account`; anything
+ * else (a to-one hop through another model, whose row the arguments do not
+ * name) is `unresolved`, recorded as such rather than attributed to a guess.
+ *
+ * @param prisma - The database client.
+ * @param writes - The nested TradingPolicy containers, outermost first.
+ * @throws Whatever the database raised; the caller records the before-state
+ *   as unread.
+ */
+export async function resolveNestedPolicyRows(
+  prisma: MutationAuthPrisma,
+  writes: readonly NestedWrite[]
+): Promise<AuditedPolicyRow[]> {
+  const rows: AuditedPolicyRow[] = [];
+  for (const write of writes.slice(0, MAX_AUDITED_BULK_ROWS)) {
+    if (write.parentModel === 'AlpacaAccount' && write.parentMode === 'create') {
+      rows.push(unidentifiedPolicyRow(write.path, 'new_account'));
+      continue;
+    }
+    if (write.parentModel !== 'AlpacaAccount' || !write.parentRowWhere) {
+      rows.push(unidentifiedPolicyRow(write.path, 'unresolved'));
+      continue;
+    }
+    const account = await prisma.alpacaAccount.findUnique({
+      where: { ...write.parentRowWhere },
+      select: ACCOUNT_SELECT,
+    });
+    if (!account) {
+      rows.push(unidentifiedPolicyRow(write.path, 'unresolved'));
+      continue;
+    }
+    const policy = await prisma.tradingPolicy.findUnique({
+      where: { alpacaAccountId: account.id },
+      select: POLICY_SELECT,
+    });
+    rows.push(policy ? policyRow(policy, write.path) : newPolicyRow(account, write.path));
+  }
+  return rows;
 }

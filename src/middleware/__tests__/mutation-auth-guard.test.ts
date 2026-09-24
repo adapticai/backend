@@ -25,7 +25,7 @@ interface AuditRow {
   userId: string | null;
   recordId: string;
   ipAddress: string | null;
-  changedFields: { nestedPath: string | null; requested: Record<string, unknown> };
+  changedFields: { nestedPaths: string[]; requested: Record<string, unknown> };
   metadata: {
     phase: string;
     outcome: string;
@@ -35,7 +35,14 @@ interface AuditRow {
     attemptId?: string | null;
     tradingSwitchTouched: boolean;
     actor: { principalKind: string; sub: string | null; ip: string | null; userAgent: string | null };
-    accounts: Array<{ alpacaAccountId: string; accountType: string; before: Record<string, unknown> | null }>;
+    accounts: Array<{
+      alpacaAccountId: string | null;
+      accountType: string | null;
+      resolution: string;
+      nestedPath: string | null;
+      policyId: string | null;
+      before: Record<string, unknown> | null;
+    }>;
   };
 }
 
@@ -48,6 +55,7 @@ interface ScenarioResult {
   audit: AuditRow[];
   counterDelta: Record<string, number>;
   auditFailureDelta: number;
+  auditBypassDelta: number;
 }
 
 let results: Record<string, ScenarioResult>;
@@ -239,6 +247,8 @@ describe('TradingPolicy audit trail', () => {
     });
     expect(attempt.metadata.accounts).toEqual([
       {
+        nestedPath: null,
+        resolution: 'resolved',
         policyId: 'p1',
         alpacaAccountId: 'a1',
         accountType: 'LIVE',
@@ -281,7 +291,7 @@ describe('TradingPolicy audit trail', () => {
 
   it('audits a nested TradingPolicy write with its argument path', () => {
     const [attempt] = scenario('nested/owner/enforce').audit;
-    expect(attempt.changedFields.nestedPath).toBe('data.tradingPolicy');
+    expect(attempt.changedFields.nestedPaths).toEqual(['data.tradingPolicy']);
     expect(attempt.metadata.accounts.map((a) => a.alpacaAccountId)).toEqual(['a1']);
     expect(scenario('nested/none/enforce').audit[0].metadata.outcome).toBe('denied');
   });
@@ -306,5 +316,143 @@ describe('TradingPolicy audit trail', () => {
 
   it('does not write guard audit rows for models other than TradingPolicy', () => {
     expect(scenario('self/owner/enforce').audit).toEqual([]);
+  });
+});
+
+/** A refusal that must reach no resolver: FORBIDDEN, the given reason, no write. */
+function expectRefused(name: string, reason: string): void {
+  const r = scenario(name);
+  expect(r.status, name).toBe(403);
+  expect(r.codes, name).toEqual(['FORBIDDEN']);
+  expect(r.reasons, name).toEqual([reason]);
+  expect(r.writes, name).toEqual([]);
+}
+
+describe('fund entitlement cannot be minted by the caller it authorises', () => {
+  it('refuses nested FundAssignment / OrgMembership writes under the caller\'s own User row', () => {
+    expectRefused('b1/nestedAssignment/fundUser/enforce', 'nested_entitlement_write');
+    expectRefused('b1/nestedMembership/stranger/enforce', 'nested_entitlement_write');
+  });
+
+  it('checks a root entitlement write against the caller\'s own tenants, whatever TENANCY_SCOPING_MODE says', () => {
+    expectRefused('b1/rootAssignment/stranger/enforce', 'tenant_out_of_scope');
+    expectRefused('b1/crossTenantBroker/stranger/enforce', 'tenant_out_of_scope');
+    expect(scenario('b1/rootAssignment/fundUser/enforce').writes).toEqual(['fundAssignment.create']);
+    expect(scenario('b1/tenantBroker/fundUser/enforce').writes).toEqual(['brokerageAccount.update']);
+  });
+
+  it('refuses re-pointing an entitled row into another tenant', () => {
+    expectRefused('b1/retenantAssignment/fundUser/enforce', 'nested_write_not_user_writable');
+  });
+
+  it('enforces the entitlement-source models as soon as an account model is escalated (Stage 1)', () => {
+    expectRefused('b1/rootAssignment/stranger/shadow+accounts', 'tenant_out_of_scope');
+    expect(scenario('b1/rootAssignment/stranger/shadow+accounts').counterDelta).toEqual({
+      'createOneFundAssignment|user|denied|tenant_out_of_scope': 1,
+    });
+  });
+
+  it('enforces a nested write into an escalated model even under a shadow-mode root', () => {
+    for (const name of ['b1/armUnderUser/none/shadow+policy', 'b1/stealAccountUnderUser/none/shadow+accounts']) {
+      const r = scenario(name);
+      expect(r.status, name).toBe(401);
+      expect(r.codes, name).toEqual(['UNAUTHENTICATED']);
+      expect(r.writes, name).toEqual([]);
+    }
+  });
+
+  it('does not escalate a mutation for a connect that only sets its own row\'s key (control)', () => {
+    expect(scenario('b1/connectAccountOntoPolicy/none/shadow+accounts').counterDelta).toEqual({
+      'createOneTradingPolicy|none|would_deny|unauthenticated': 1,
+    });
+  });
+});
+
+describe('a nested write is authorised on its own hop, never on the root\'s', () => {
+  it('refuses walks that leave the root\'s rows', () => {
+    expectRefused('b2/accountChain/owner/enforce', 'nested_write_not_user_writable');
+    expectRefused('b2/managedFundOperator/fundUser/enforce', 'nested_entitlement_write');
+    expectRefused('b2/armUnderUser/fundUser/enforce', 'nested_write_not_user_writable');
+    expectRefused('b3/armUnderUser/owner/enforce', 'nested_write_not_user_writable');
+  });
+
+  it('does not let a fund-entitled account root write the account owner\'s User row', () => {
+    expectRefused('b2/ownerRowViaFund/fundUser/enforce', 'nested_write_not_user_writable');
+  });
+
+  it('refuses connecting another tenant\'s row onto an owned account', () => {
+    expectRefused('b2/repointBroker/owner/enforce', 'nested_write_not_user_writable');
+    expectRefused('ctl/brokerBridgeForeign/fundUser/enforce', 'nested_write_not_user_writable');
+    expectRefused('ctl/brokerCreateOtherOwner/fundUser/enforce', 'nested_write_not_user_writable');
+  });
+
+  it('control: an entitled user still writes the account\'s own policy nested, and the platform\'s fund-operator writes', () => {
+    expect(scenario('b2/nestedFundPolicy/fundUser/enforce').writes).toEqual(['alpacaAccount.update']);
+    expect(scenario('ctl/brokerCreate/fundUser/enforce').writes).toEqual(['brokerageAccount.create']);
+    expect(scenario('ctl/suspendUpsert/fundUser/enforce').writes).toEqual(['tradingPolicy.upsert']);
+    expect(scenario('ctl/brokerRotate/fundUser/enforce').writes).toEqual(['brokerageAccount.update']);
+    expectRefused('ctl/brokerRotate/stranger/enforce', 'tenant_out_of_scope');
+  });
+});
+
+describe('nested TradingPolicy writes are attributed to the account they reach', () => {
+  it('resolves a policy written under a User root to that account, with its LIVE type and before-state', () => {
+    const [attempt] = scenario('b3/armUnderUser/server/enforce').audit;
+    expect(attempt.recordId).toBe('p3');
+    expect(attempt.metadata.accounts).toEqual([
+      {
+        nestedPath: 'data.alpacaAccounts.update[0].data.tradingPolicy',
+        resolution: 'resolved',
+        policyId: 'p3',
+        alpacaAccountId: 'a3',
+        accountType: 'LIVE',
+        before: {
+          realtimeTradingEnabled: false,
+          paperTradingOnly: false,
+          killSwitchEnabled: false,
+          autonomyMode: 'ADVISORY_ONLY',
+        },
+      },
+    ]);
+  });
+
+  it('never records the root account for a policy the walk reached elsewhere; unidentifiable is unresolved', () => {
+    for (const name of ['b3/armFarFromRoot/server/enforce', 'b3/armViaBroker/server/enforce']) {
+      const [attempt] = scenario(name).audit;
+      expect(attempt.recordId, name).toBe('unresolved');
+      expect(attempt.metadata.accounts.map((a) => [a.alpacaAccountId, a.resolution]), name).toEqual([[null, 'unresolved']]);
+      expect(attempt.metadata.tradingSwitchTouched, name).toBe(true);
+    }
+  });
+});
+
+describe('user write content', () => {
+  it('refuses a user raising their own role, and still lets them edit their profile', () => {
+    expectRefused('m/selfRole/owner/enforce', 'field_not_user_writable');
+    expect(scenario('self/owner/enforce').writes).toEqual(['user.update']);
+  });
+
+  it('refuses a user-authored audit row claiming the guard\'s source', () => {
+    expectRefused('m/forgedAudit/owner/enforce', 'reserved_audit_source');
+    expect(scenario('m/audit/owner/enforce').writes).toEqual(['auditLog.create']);
+  });
+
+  it('refuses a user upsert of a system configuration row, and admits their own preference row', () => {
+    expectRefused('m/systemConfig/owner/enforce', 'config_key_not_user_scoped');
+    expect(scenario('m/ownConfig/owner/enforce').writes).toEqual(['configuration.upsert']);
+  });
+});
+
+describe('disarm writes during an AuditLog outage', () => {
+  it('admits a disarm-only write under enforce, counted as an audit bypass', () => {
+    const r = scenario('m/disarmAuditDown/server/enforce');
+    expect(r.codes).toEqual([]);
+    expect(r.writes).toEqual(['tradingPolicy.update']);
+    expect(r.auditBypassDelta).toBe(1);
+  });
+
+  it('still refuses an arming write it cannot attribute (control)', () => {
+    expect(scenario('auditDown/server/enforce').codes).toEqual(['AUDIT_UNAVAILABLE']);
+    expect(scenario('auditDown/server/enforce').auditBypassDelta).toBe(0);
   });
 });

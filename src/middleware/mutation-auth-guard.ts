@@ -25,6 +25,14 @@
  * middleware chain, so it decides before the credential-field guard and the
  * tenancy scoping see the field.
  *
+ * ## Nested writes and modes
+ *
+ * A root field's arguments can write far beyond its own model (nested
+ * `create` / `update` / `connect` along relations). Every nested container is
+ * decided on its own hop (`src/auth/nested-write-policy.ts`), and the mutation
+ * is decided at the strictest mode among every model it writes, so an
+ * escalated model cannot be written through a shadow-mode root.
+ *
  * @module middleware/mutation-auth-guard
  */
 
@@ -38,35 +46,44 @@ import {
 } from 'graphql';
 import { Counter } from 'prom-client';
 
+import { redactCredentials } from '../auth/credential-redaction';
 import {
   classifyMutationField,
   effectiveModeFor,
   evaluateMutationAccess,
   getEnforcedModels,
   getMutationAuthMode,
-  isNestedWriteUserWritable,
   type MutationAuthEvaluation,
   type MutationAuthMode,
   type MutationFacts,
   type MutationTarget,
 } from '../auth/mutation-authorization';
 import { findNestedWrites, type NestedWrite } from '../auth/nested-write-inspector';
+import { firstNestedRefusal, writesNestedModelRows, type RelationFacts } from '../auth/nested-write-policy';
+import { GOVERNED_MODELS, type GovernedModel } from '../auth/tenancy-scope';
 import type { BackendPrincipal } from '../auth/token-verifier';
+import { userContentRefusal } from '../auth/user-write-content';
 import { metricsRegistry } from '../config/metrics';
 import { logger } from '../utils/logger';
 import {
   loadTouchedAccounts,
   ownershipOf,
+  resolveNestedPolicyRows,
   type MutationAuthPrisma,
   type TouchedAccounts,
 } from './mutation-account-facts';
+import { tenantScopeOf } from './mutation-tenant-facts';
 import {
   actorFor,
   changeReasonFor,
+  isDisarmOnlyPolicyWrite,
+  mayTouchLiveAccount,
+  mutationAuditBypassedTotal,
   touchesTradingSwitch,
   writeAttemptRow,
   writeResultRow,
   type ActorRequest,
+  type AuditedPolicyRow,
   type TradingPolicyAuditEntry,
 } from './trading-policy-audit';
 
@@ -100,7 +117,30 @@ export interface MutationAuthGuardOptions {
   modeProvider?: () => MutationAuthMode;
   enforcedModelsProvider?: () => ReadonlySet<string>;
   models?: readonly string[];
+  /** Foreign-key placement per relation; defaults to the Prisma data model. */
+  relations?: RelationFacts;
   now?: () => number;
+}
+
+/**
+ * Foreign-key placement read from the Prisma data model: `Model.relation`
+ * holds the key when its `relationFromFields` is non-empty.
+ */
+export function prismaRelationFacts(): RelationFacts {
+  const onParent = new Map<string, boolean>();
+  for (const model of Prisma.dmmf.datamodel.models) {
+    for (const field of model.fields) {
+      if (field.kind !== 'object') continue;
+      onParent.set(`${model.name}.${field.name}`, (field.relationFromFields ?? []).length > 0);
+    }
+  }
+  return { fkOnParent: (model, relation) => onParent.get(`${model}.${relation}`) };
+}
+
+const GOVERNED: ReadonlySet<string> = new Set(GOVERNED_MODELS);
+
+function isGovernedModel(model: string): model is GovernedModel {
+  return GOVERNED.has(model);
 }
 
 const LOG_THROTTLE_MS = 10 * 60 * 1000;
@@ -174,46 +214,52 @@ function logRefusal(
   });
 }
 
-/** Decide one mutation, resolving ownership facts only when the decision needs them. */
+/** Decide one mutation, resolving database facts only when the decision needs them. */
 async function decide(
   principal: BackendPrincipal | null,
   target: MutationTarget,
   nested: readonly NestedWrite[],
   args: Record<string, unknown>,
   touched: () => Promise<TouchedAccounts>,
-  prisma: MutationAuthPrisma | undefined
+  prisma: MutationAuthPrisma | undefined,
+  relations: RelationFacts
 ): Promise<MutationAuthEvaluation> {
   if (principal?.kind !== 'user') return evaluateMutationAccess(principal, target);
 
   const facts: MutationFacts = {
-    forbiddenNestedWrites: nested
-      .filter(
-        (n) =>
-          !isNestedWriteUserWritable(
-            target.model,
-            n.model,
-            n.operations,
-            n.connectIds !== null &&
-              n.connectIds.length > 0 &&
-              n.connectIds.every((id) => id === principal.sub)
-          )
-      )
-      .map((n) => n.model),
+    nestedRefusal: firstNestedRefusal(nested, principal.sub, relations),
+    contentRefusal: userContentRefusal(target, args, principal.sub),
     targetsSelf: targetsSelf(principal, args),
   };
   const first = evaluateMutationAccess(principal, target, facts);
-  if (first.reason !== 'account_unresolved' || !prisma) return first;
+  if (!prisma) return first;
 
-  try {
-    const ownership = await ownershipOf(prisma, principal.sub, await touched());
-    return evaluateMutationAccess(principal, target, { ...facts, ownership });
-  } catch (error: unknown) {
-    logger.error('[mutation-auth] account ownership could not be read; refusing as unresolved', {
-      mutation: target.fieldName,
-      error: error instanceof Error ? error.message : String(error),
-    });
-    return first;
+  if (first.reason === 'account_unresolved') {
+    try {
+      const ownership = await ownershipOf(prisma, principal.sub, await touched());
+      return evaluateMutationAccess(principal, target, { ...facts, ownership });
+    } catch (error: unknown) {
+      logger.error('[mutation-auth] account ownership could not be read; refusing as unresolved', {
+        mutation: target.fieldName,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return first;
+    }
   }
+
+  if (first.reason === 'tenant_unresolved' && isGovernedModel(target.model)) {
+    try {
+      const tenantScope = await tenantScopeOf(prisma, target.model, target, args, principal.sub);
+      return evaluateMutationAccess(principal, target, { ...facts, tenantScope });
+    } catch (error: unknown) {
+      logger.error('[mutation-auth] tenant scope could not be read; refusing as unresolved', {
+        mutation: target.fieldName,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return first;
+    }
+  }
+  return first;
 }
 
 function targetsSelf(principal: { sub: string; email?: string }, args: Record<string, unknown>): boolean {
@@ -269,6 +315,7 @@ function createMutationGuard(
   const resolveEnforced = options.enforcedModelsProvider ?? (() => getEnforcedModels());
   const models = new Set(options.models ?? Object.values(Prisma.ModelName));
   const modelsLongestFirst = [...models].sort((a, b) => b.length - a.length);
+  const relations = options.relations ?? prismaRelationFacts();
   const now = options.now ?? Date.now;
 
   /**
@@ -311,12 +358,13 @@ function createMutationGuard(
     try {
       baseMode = resolveMode();
       target = classifyMutationField(info.fieldName, models);
-      mode = effectiveModeFor(target.model, baseMode, resolveEnforced());
-      nested = findNestedWrites(info, argRecord, modelsLongestFirst);
+      nested = findNestedWrites(info, argRecord, modelsLongestFirst, target);
+      const written = nested.filter((n) => writesNestedModelRows(n, relations)).map((n) => n.model);
+      mode = effectiveModeFor([target.model, ...written], baseMode, resolveEnforced());
       evaluation =
         mode === 'off'
           ? { allowed: true, reason: 'guard_off' }
-          : await decide(principal, target, nested, argRecord, touched, prisma);
+          : await decide(principal, target, nested, argRecord, touched, prisma, relations);
     } catch (error: unknown) {
       const refuse = failsClosedOnError(baseMode);
       mutationAuthorizationTotal.inc({
@@ -345,15 +393,15 @@ function createMutationGuard(
       logRefusal(decision, target, evaluation, principal, info, context.req, now());
     }
 
-    const policyNested = nested.find((n) => n.model === 'TradingPolicy');
-    if (target.model !== 'TradingPolicy' && !policyNested) {
+    const policyWrites = nested.filter((n) => n.model === 'TradingPolicy');
+    if (target.model !== 'TradingPolicy' && policyWrites.length === 0) {
       if (decision === 'denied') throw refusalError(evaluation);
       return proceed();
     }
 
     return auditedPolicyWrite({
       target,
-      nestedPath: target.model === 'TradingPolicy' ? null : (policyNested?.path ?? null),
+      policyWrites,
       principal,
       context,
       info,
@@ -370,7 +418,8 @@ function createMutationGuard(
 
 interface AuditedWriteInput {
   target: MutationTarget;
-  nestedPath: string | null;
+  /** The nested TradingPolicy containers, each resolved from its own path. */
+  policyWrites: readonly NestedWrite[];
   principal: BackendPrincipal | null;
   context: MutationAuthGuardContext;
   info: Pick<GraphQLResolveInfo, 'operation'>;
@@ -385,10 +434,13 @@ interface AuditedWriteInput {
 
 async function auditedPolicyWrite(input: AuditedWriteInput): Promise<unknown> {
   const { target, principal, context, evaluation, decision, mode, prisma } = input;
-  let policies: TouchedAccounts['policies'] = [];
+  let policies: readonly AuditedPolicyRow[] = [];
   let policyReadFailed = false;
   try {
-    policies = (await input.touched()).policies;
+    const root = target.model === 'TradingPolicy' ? (await input.touched()).policies : [];
+    const nestedRows =
+      input.policyWrites.length > 0 && prisma ? await resolveNestedPolicyRows(prisma, input.policyWrites) : [];
+    policies = [...root, ...nestedRows];
   } catch (error: unknown) {
     policyReadFailed = true;
     logger.error('[mutation-auth] trading-policy before-state could not be read', {
@@ -400,7 +452,7 @@ async function auditedPolicyWrite(input: AuditedWriteInput): Promise<unknown> {
   const entry: TradingPolicyAuditEntry = {
     mutation: target.fieldName,
     action: target.action,
-    nestedPath: input.nestedPath,
+    nestedPaths: input.policyWrites.map((w) => w.path),
     actor: actorFor(principal, context.req),
     changeReason: changeReasonFor(context.req),
     decision,
@@ -411,8 +463,8 @@ async function auditedPolicyWrite(input: AuditedWriteInput): Promise<unknown> {
     policies,
   };
 
-  if (policies.some((p) => p.accountType === 'LIVE') && touchesTradingSwitch(input.args)) {
-    logger.warn('[mutation-auth] trading-switch write on a LIVE account', {
+  if ((policyReadFailed || mayTouchLiveAccount(policies)) && touchesTradingSwitch(input.args)) {
+    logger.warn('[mutation-auth] trading-switch write on a LIVE or unidentified account', {
       mutation: target.fieldName,
       decision,
       reason: evaluation.reason,
@@ -447,12 +499,19 @@ async function auditedPolicyWrite(input: AuditedWriteInput): Promise<unknown> {
   try {
     attemptId = await writeAttemptRow(prisma, entry, 'pending');
   } catch (error: unknown) {
+    const disarmOnly = isDisarmOnlyPolicyWrite(target, input.args);
     logger.error('[mutation-auth] trading-policy attempt row could not be written', {
       mutation: target.fieldName,
-      refused: mode === 'enforce',
+      refused: mode === 'enforce' && !disarmOnly,
       error: error instanceof Error ? error.message : String(error),
     });
-    if (mode === 'enforce') throw auditUnavailableError();
+    if (mode === 'enforce') {
+      if (!disarmOnly) throw auditUnavailableError();
+      mutationAuditBypassedTotal.inc({ reason: 'disarm_during_audit_outage' });
+      logger.error('[mutation-auth] AuditLog unavailable; admitting a disarm-only trading-policy write unaudited', {
+        entry: redactCredentials(entry),
+      });
+    }
   }
 
   let result: unknown;

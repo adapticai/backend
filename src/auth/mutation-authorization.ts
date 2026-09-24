@@ -28,15 +28,25 @@
  *     (the same OrgMembership / FundAssignment entitlement the tenancy scoping
  *     uses). Bulk actions are never user-writable: a `where` filter over many
  *     accounts has no single owner to check.
- *   - `self` — `User`: only the caller's own row.
- *   - `tenant_scoped` — the tenancy-governed models; the row-level scope is
- *     applied by the tenancy-scoping middleware (`TENANCY_SCOPING_MODE`).
+ *   - `self` — `User`: only the caller's own row, and only its profile and
+ *     onboarding fields (`./user-write-content.ts`).
+ *   - `tenant_scoped` — the tenancy-governed models: the row (for an update,
+ *     upsert or delete) or the payload's tenant (for a create) must lie in the
+ *     caller's OrgMembership / FundAssignment entitlement. The guard checks
+ *     this itself, whatever `TENANCY_SCOPING_MODE` says, because fund
+ *     entitlement is what authorises `account_owned` writes on fund-bridged
+ *     accounts: a scope that only observes would let a caller mint the
+ *     entitlement it is then checked against.
  *   - `authenticated` — user-authored content with no finer ownership model
- *     yet, restricted per model to the actions the platform performs.
+ *     yet, restricted per model to the actions the platform performs, and for
+ *     `AuditLog` and `Configuration` to content a user may author
+ *     (`./user-write-content.ts`).
  *   - `resolver_authorized` — custom mutations whose resolver performs its own
  *     authorization.
  *   - everything else is `service_only`.
  * - no principal may run no mutation.
+ *
+ * Nested relation writes are decided hop by hop in `./nested-write-policy.ts`.
  *
  * ## Modes
  *
@@ -51,7 +61,16 @@
  * `MUTATION_AUTH_ENFORCE_MODELS` (comma-separated model names) escalates the
  * listed models to `enforce` while the global mode is `shadow`, so the
  * capital-bearing models can be contained before every browser-side platform
- * write has migrated to a verified principal.
+ * write has migrated to a verified principal. Two rules keep an escalation
+ * from being bypassed:
+ *
+ * - a mutation is decided at the STRICTEST mode among its root model and
+ *   every model its nested writes reach, so `updateOneUser → alpacaAccounts →
+ *   tradingPolicy` is enforced when TradingPolicy is;
+ * - escalating an account model (`TradingPolicy`, `AlpacaAccount`) escalates
+ *   the entitlement-source models (`OrgMembership`, `FundAssignment`, `Fund`,
+ *   `BrokerageAccount`) with it, because the account rule admits a caller on
+ *   fund entitlement read from those rows.
  *
  * @module auth/mutation-authorization
  */
@@ -102,18 +121,48 @@ export function getEnforcedModels(
   );
 }
 
+/** The models whose user writes are authorised by row ownership or fund entitlement. */
+export const ACCOUNT_MODELS: readonly string[] = ['TradingPolicy', 'AlpacaAccount'];
+
 /**
- * The mode that applies to one model. `off` is a kill switch and wins; a
- * global `enforce` covers every model; under `shadow`, a listed model
- * enforces.
+ * The models fund entitlement and the fund-to-account bridge are read from:
+ * `resolveEntitlement` reads OrgMembership, Fund and FundAssignment, and a
+ * BrokerageAccount binds an AlpacaAccount to its fund.
+ */
+export const ENTITLEMENT_SOURCE_MODELS: readonly string[] = [
+  'OrgMembership',
+  'FundAssignment',
+  'Fund',
+  'BrokerageAccount',
+];
+
+/**
+ * The escalation list with its implied members: an escalated account model
+ * brings every entitlement-source model with it.
+ */
+export function expandEnforcedModels(enforcedModels: ReadonlySet<string>): ReadonlySet<string> {
+  if (!ACCOUNT_MODELS.some((model) => enforcedModels.has(model))) return enforcedModels;
+  return new Set([...enforcedModels, ...ENTITLEMENT_SOURCE_MODELS]);
+}
+
+/**
+ * The mode a mutation is decided in. `off` is a kill switch and wins; a
+ * global `enforce` covers every model; under `shadow`, the mutation enforces
+ * when ANY model it writes — the root or one reached by a nested write — is
+ * escalated (directly, or through {@link expandEnforcedModels}).
+ *
+ * @param models - The root model and every nested write's model.
+ * @param mode - The global mode.
+ * @param enforcedModels - The escalation list as configured.
  */
 export function effectiveModeFor(
-  model: string,
+  models: readonly string[],
   mode: MutationAuthMode,
   enforcedModels: ReadonlySet<string>
 ): MutationAuthMode {
   if (mode === 'off' || mode === 'enforce') return mode;
-  return enforcedModels.has(model) ? 'enforce' : 'shadow';
+  const escalated = expandEnforcedModels(enforcedModels);
+  return models.some((model) => escalated.has(model)) ? 'enforce' : 'shadow';
 }
 
 // -----------------------------------------------------------------------------
@@ -258,7 +307,14 @@ export type MutationAuthReason =
   | 'not_account_owner'
   | 'account_unresolved'
   | 'not_self'
-  | 'nested_write_not_user_writable';
+  | 'tenant_out_of_scope'
+  | 'tenant_unresolved'
+  | 'field_not_user_writable'
+  | 'reserved_audit_source'
+  | 'audit_actor_mismatch'
+  | 'config_key_not_user_scoped'
+  | 'nested_write_not_user_writable'
+  | 'nested_entitlement_write';
 
 /** Ownership facts the middleware resolved for an `account_owned` write. */
 export type AccountOwnership =
@@ -267,14 +323,26 @@ export type AccountOwnership =
   | { readonly kind: 'other' }
   | { readonly kind: 'unresolved' };
 
+/** For a `tenant_scoped` write: whether the row or payload lies in the caller's entitlement. */
+export type TenantScope = 'in_scope' | 'out_of_scope';
+
 /** Everything the decision needs beyond the principal and target. */
 export interface MutationFacts {
   /** For `account_owned`: whether the caller owns every account touched. */
   readonly ownership?: AccountOwnership;
   /** For `self`: whether the `where` names the caller's own row. */
   readonly targetsSelf?: boolean;
-  /** Nested relation writes a user may not make (model names). */
-  readonly forbiddenNestedWrites?: readonly string[];
+  /** For `tenant_scoped`: the guard's own scope check; absent = not yet resolved. */
+  readonly tenantScope?: TenantScope;
+  /** The refusal from `./nested-write-policy.ts`, if any nested write is refused. */
+  readonly nestedRefusal?: 'nested_write_not_user_writable' | 'nested_entitlement_write' | null;
+  /** The refusal from `./user-write-content.ts`, if the payload's content is refused. */
+  readonly contentRefusal?:
+    | 'field_not_user_writable'
+    | 'reserved_audit_source'
+    | 'audit_actor_mismatch'
+    | 'config_key_not_user_scoped'
+    | null;
 }
 
 /** The decision for one mutation, before the mode is applied. */
@@ -316,9 +384,8 @@ export function evaluateMutationAccess(
     return forbid('action_not_user_writable');
   }
   if (target.cardinality === 'many') return forbid('bulk_not_user_writable');
-  if (facts.forbiddenNestedWrites && facts.forbiddenNestedWrites.length > 0) {
-    return forbid('nested_write_not_user_writable');
-  }
+  if (facts.nestedRefusal) return forbid(facts.nestedRefusal);
+  if (facts.contentRefusal) return forbid(facts.contentRefusal);
 
   switch (rule.policy) {
     case 'account_owned': {
@@ -331,63 +398,12 @@ export function evaluateMutationAccess(
     case 'self':
       return facts.targetsSelf === true ? allow('self') : forbid('not_self');
     case 'tenant_scoped':
-      return allow('tenant_scoped');
+      if (facts.tenantScope === 'in_scope') return allow('tenant_scoped');
+      if (facts.tenantScope === 'out_of_scope') return forbid('tenant_out_of_scope');
+      return forbid('tenant_unresolved');
     case 'authenticated':
       return allow('authenticated_user_model');
     case 'resolver_authorized':
       return allow('resolver_authorized');
   }
 }
-
-/**
- * Whether a nested write into `nestedModel`, reached from `rootModel`, is one
- * a user may make.
- *
- * A nested write inherits the ROOT's authorization only when it stays inside
- * what the root's ownership check proved. Prisma applies a nested `create`,
- * `update` or `upsert` to rows related to the root row, so under an owned
- * root (`account_owned` or `self`) those reach only the caller's own account,
- * policy or user row. Re-pointing a relation (`connect`, `set`, `disconnect`,
- * `connectOrCreate`) or deleting through it can move a row the caller does not
- * own — `connect` a stranger's account onto your user — so those operations on
- * an `account_owned` or `self` model are never user-writable when nested. Any
- * user-writable root may reach tenant-scoped or authenticated models.
- *
- * One re-pointing operation is safe by construction: a `connect` to the
- * caller's OWN user row (`createOneAlpacaAccount(data: { user: { connect: {
- * id: <self> } } })`) assigns the new row to the caller, which is exactly
- * what the root's ownership check then verifies.
- *
- * @param rootModel - The root mutation's model.
- * @param nestedModel - The model the nested input writes.
- * @param operations - The keys present on the nested input container.
- * @param connectsOnlyCaller - Whether every `connect` entry names the caller's
- *   own `User` row by id (and nothing else is connected).
- */
-export function isNestedWriteUserWritable(
-  rootModel: string,
-  nestedModel: string,
-  operations: readonly string[],
-  connectsOnlyCaller = false
-): boolean {
-  const nested = ruleFor(nestedModel).policy;
-  if (nested === 'service_only' || nested === 'resolver_authorized') return false;
-  if (nested === 'tenant_scoped' || nested === 'authenticated') return true;
-  if (
-    nested === 'self' &&
-    connectsOnlyCaller &&
-    operations.length === 1 &&
-    operations[0] === 'connect'
-  ) {
-    return true;
-  }
-  const moves = operations.some((op) => !NESTED_CONTENT_OPERATIONS.has(op));
-  if (moves) return false;
-  return OWNED_POLICIES.has(ruleFor(rootModel).policy);
-}
-
-/** Policies whose authorization proves the caller owns the root row. */
-const OWNED_POLICIES: ReadonlySet<UserWritePolicy> = new Set(['account_owned', 'self']);
-
-/** Nested operations that write the related row's content without re-pointing it. */
-const NESTED_CONTENT_OPERATIONS: ReadonlySet<string> = new Set(['create', 'update', 'upsert']);
