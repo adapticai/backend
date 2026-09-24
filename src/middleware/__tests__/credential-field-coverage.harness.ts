@@ -200,6 +200,42 @@ interface ShapeResult {
   resolverCalls: number;
 }
 
+/**
+ * Marker in the error a resolver gets when it calls a Prisma delegate or
+ * method the double does not provide. The test fails on any response that
+ * carries it: a missing method otherwise surfaces as an ordinary resolver
+ * error, which a "the secret is absent" assertion reads as a pass and a
+ * "the service control receives it" assertion reports without saying why.
+ */
+export const DOUBLE_GAP_MARKER = 'COVERAGE_HARNESS_DOUBLE_GAP';
+
+type DelegateDouble = Record<string, (...args: unknown[]) => unknown>;
+
+/** Wrap the Prisma double so a missing delegate or method names itself. */
+function doubleWithTripwire(
+  delegates: Record<string, DelegateDouble>
+): Record<string, DelegateDouble> {
+  const missing = (ref: string): never => {
+    throw new Error(`${DOUBLE_GAP_MARKER}: prisma.${ref} is not provided by the harness double`);
+  };
+  const wrapDelegate = (model: string, methods: DelegateDouble): DelegateDouble =>
+    new Proxy(methods, {
+      get: (target, prop) =>
+        typeof prop === 'string' && !(prop in target)
+          ? () => missing(`${model}.${prop}`)
+          : Reflect.get(target, prop),
+    });
+  const wrapped = Object.fromEntries(
+    Object.entries(delegates).map(([model, methods]) => [model, wrapDelegate(model, methods)])
+  );
+  return new Proxy(wrapped, {
+    get: (target, prop) =>
+      typeof prop === 'string' && !(prop in target) && prop !== 'then'
+        ? wrapDelegate(prop, {})
+        : Reflect.get(target, prop),
+  });
+}
+
 async function main(): Promise<void> {
   let resolverCalls = 0;
   const count = <T>(value: T): Promise<T> => {
@@ -213,7 +249,14 @@ async function main(): Promise<void> {
     APISecret: API_SECRET,
     userId: 'u-1',
   };
-  const prisma = {
+  // The generated relation resolvers reach a parent's relation through the
+  // Prisma fluent API. Which unique finder they chain from is a generator
+  // detail (`findUnique` today, `findUniqueOrThrow` in other versions), so
+  // the double serves both rather than pinning the harness to one release.
+  const userRelations = (): { alpacaAccounts: () => Promise<(typeof row)[]> } => ({
+    alpacaAccounts: () => count([row]),
+  });
+  const prisma = doubleWithTripwire({
     alpacaAccount: {
       findMany: () => count([row]),
       createManyAndReturn: () => count([{ ...row, id: 'acct-2' }]),
@@ -222,9 +265,10 @@ async function main(): Promise<void> {
     },
     user: {
       findMany: () => count([{ id: 'u-1' }]),
-      findUniqueOrThrow: () => ({ alpacaAccounts: () => count([row]) }),
+      findUnique: userRelations,
+      findUniqueOrThrow: userRelations,
     },
-  };
+  });
 
   const schema = await buildSchema({
     resolvers: [

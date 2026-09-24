@@ -335,7 +335,13 @@ function logDecision(
 ): void {
   const operationName = info.operation?.name?.value ?? '<unnamed>';
   const userAgent = headerValue(request?.headers?.['user-agent']);
-  const key = `${decision}|${surface}|${principal}|${references.join(',')}|${operationName}|${userAgent}`;
+  // The source address is part of the key: two callers sending the same
+  // operation with the same user agent (every Node `fetch` sends `node`) are
+  // different callers, and a key without the address logs only the first of
+  // them per window — which is exactly the attribution a pre-enforcement
+  // review of the would-deny set depends on.
+  const ip = request?.ip ?? '<none>';
+  const key = `${decision}|${surface}|${principal}|${references.join(',')}|${operationName}|${userAgent}|${ip}`;
   const previous = lastLoggedAt.get(key);
   if (previous !== undefined && nowMs - previous < LOG_THROTTLE_MS) return;
   if (lastLoggedAt.size >= LOG_THROTTLE_MAX_KEYS) lastLoggedAt.clear();
@@ -348,6 +354,43 @@ function logDecision(
     operationName,
     ip: request?.ip,
     userAgent,
+    dedupWindowMs: LOG_THROTTLE_MS,
+  });
+}
+
+/**
+ * Log a service principal's credential read at most once per caller key per
+ * window.
+ *
+ * Every holder of the service secret is `kind: "server"`, so the metric alone
+ * cannot say WHICH holder read a broker key. The signed credential's `sub`
+ * (`adaptic-engine:<host>:<pid>`, `adaptic-platform:…`, an operator toolkit's
+ * `adaptic-audit:…`) can, and it is what an operator needs to tell a known
+ * service from a leaked secret. It goes to the log, not the metric label,
+ * because host:pid is unbounded. A static `SERVER_AUTH_TOKEN` names no caller
+ * and logs as `<unattributed>`.
+ */
+function logServiceRead(
+  sub: string | undefined,
+  reference: string,
+  info: Pick<GraphQLResolveInfo, 'operation'>,
+  request: GuardRequest | undefined,
+  nowMs: number
+): void {
+  const operationName = info.operation?.name?.value ?? '<unnamed>';
+  const caller = sub ?? '<unattributed>';
+  const ip = request?.ip ?? '<none>';
+  const key = `allowed|${caller}|${reference}|${operationName}|${ip}`;
+  const previous = lastLoggedAt.get(key);
+  if (previous !== undefined && nowMs - previous < LOG_THROTTLE_MS) return;
+  if (lastLoggedAt.size >= LOG_THROTTLE_MAX_KEYS) lastLoggedAt.clear();
+  lastLoggedAt.set(key, nowMs);
+  logger.info('[credential-field-guard] credential read by a service principal', {
+    decision: 'allowed',
+    serviceSub: caller,
+    reference,
+    operationName,
+    ip: request?.ip,
     dedupWindowMs: LOG_THROTTLE_MS,
   });
 }
@@ -418,6 +461,7 @@ export function createCredentialFieldGuardMiddleware(
           decision: 'allowed',
           principal_kind: 'server',
         });
+        logServiceRead(principal.sub, output, info, context.req, now());
       }
       return proceed();
     }

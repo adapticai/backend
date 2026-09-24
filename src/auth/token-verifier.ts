@@ -67,7 +67,15 @@ export type AuthErrorReason =
  * compiler enforces exhaustive handling.
  */
 export type BackendPrincipal =
-  | { kind: 'server' }
+  | {
+      kind: 'server';
+      /**
+       * The `sub` a signed service credential names (e.g.
+       * `adaptic-engine:<host>:<pid>`). Absent for the static
+       * `SERVER_AUTH_TOKEN`, which names no caller.
+       */
+      sub?: string;
+    }
   | { kind: 'user'; sub: string; email?: string; roles: string[] }
   | { kind: 'admin'; sub: string; email?: string; roles: string[] };
 

@@ -29,6 +29,8 @@ import { beforeAll, describe, expect, it } from 'vitest';
 const API_KEY = 'PKCOVERAGEKEYVALUE00000000';
 const API_SECRET = 'coverage-secret-value-that-must-never-leak';
 const PREDICATE_CANARY = 'predicate-canary-value-9f3c';
+/** Mirrors `DOUBLE_GAP_MARKER` in the harness (it runs out of process). */
+const DOUBLE_GAP_MARKER = 'COVERAGE_HARNESS_DOUBLE_GAP';
 
 interface CoverageReport {
   typesWalked: number;
@@ -75,6 +77,15 @@ beforeAll(() => {
   coverage = parsed.coverage;
   shapes = parsed.shapes;
 }, 300_000);
+
+describe('harness integrity', () => {
+  it('every resolver the battery reached found its Prisma method on the double', () => {
+    const gaps = Object.entries(shapes)
+      .filter(([, r]) => r.json.includes(DOUBLE_GAP_MARKER))
+      .map(([name]) => name);
+    expect(gaps).toEqual([]);
+  });
+});
 
 describe('whole-schema coverage', () => {
   it('walked the served schema, not an empty one', () => {
