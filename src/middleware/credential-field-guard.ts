@@ -29,7 +29,9 @@
  * ## What is guarded
  *
  * 1. **Output** — a credential field on its model type and on that model's
- *    `GroupBy` / `MinAggregate` / `MaxAggregate` output types.
+ *    `GroupBy` / `MinAggregate` / `MaxAggregate` output types, and on the
+ *    `CreateManyAndReturn…` / `UpdateManyAndReturn…` row types a bulk write
+ *    returns.
  * 2. **Filter and sort input** — any argument that names a credential field:
  *    a key in the model's own `…Where…`, `…OrderBy…` or `…Having…` input types
  *    at any nesting depth (AND / OR / NOT, relation filters reached from other
@@ -102,18 +104,32 @@ export const CREDENTIAL_FIELDS: ReadonlyMap<string, ReadonlySet<string>> = new M
 ]);
 
 /**
- * Output types that carry a model's column VALUES. The `Count` aggregate is
- * absent on purpose: it returns how many rows are non-null, never a value.
+ * Output types that carry a model's column VALUES, as name suffixes on the
+ * model. The `Count` aggregate is absent on purpose: it returns how many rows
+ * are non-null, never a value.
  */
 const VALUE_OUTPUT_SUFFIXES = ['', 'GroupBy', 'MinAggregate', 'MaxAggregate'] as const;
 
+/**
+ * Output types that carry a model's column VALUES, as name prefixes on the
+ * model. `createManyAndReturn<Model>` / `updateManyAndReturn<Model>` return
+ * the written rows as their own generated type rather than as `<Model>`, so a
+ * guard keyed only on the model type would serve the credential columns of
+ * every row such a mutation touches — including columns the caller did not
+ * write.
+ */
+const VALUE_OUTPUT_PREFIXES = ['CreateManyAndReturn', 'UpdateManyAndReturn'] as const;
+
 /** Output type name → the credential fields it exposes. */
 const OUTPUT_TYPE_FIELDS: ReadonlyMap<string, ReadonlySet<string>> = new Map(
-  [...CREDENTIAL_FIELDS].flatMap(([model, fields]) =>
-    VALUE_OUTPUT_SUFFIXES.map(
+  [...CREDENTIAL_FIELDS].flatMap(([model, fields]) => [
+    ...VALUE_OUTPUT_SUFFIXES.map(
       (suffix) => [`${model}${suffix}`, fields] as [string, ReadonlySet<string>]
-    )
-  )
+    ),
+    ...VALUE_OUTPUT_PREFIXES.map(
+      (prefix) => [`${prefix}${model}`, fields] as [string, ReadonlySet<string>]
+    ),
+  ])
 );
 
 /**
@@ -149,6 +165,42 @@ function predicateFieldsFor(typeName: string): ReadonlySet<string> | undefined {
     return CREDENTIAL_FIELDS.get(model);
   }
   return undefined;
+}
+
+/**
+ * The credential fields an input type's keys can reference as a predicate,
+ * or `undefined` when it is not a credential model's predicate type.
+ *
+ * @internal Exported for the schema-coverage test, which walks every input
+ *   type in the served schema and fails if a credential column appears in a
+ *   predicate type this function does not claim.
+ */
+export function credentialPredicateFieldsFor(
+  typeName: string
+): ReadonlySet<string> | undefined {
+  return predicateFieldsFor(typeName);
+}
+
+/**
+ * The credential fields an output type exposes as values, or `undefined`.
+ *
+ * @internal Exported for the schema-coverage test (see above).
+ */
+export function credentialOutputFieldsFor(
+  typeName: string
+): ReadonlySet<string> | undefined {
+  return OUTPUT_TYPE_FIELDS.get(typeName);
+}
+
+/**
+ * The credential values a `<Model>ScalarFieldEnum` can name, or `undefined`.
+ *
+ * @internal Exported for the schema-coverage test (see above).
+ */
+export function credentialEnumValuesFor(
+  typeName: string
+): ReadonlySet<string> | undefined {
+  return enumFieldsFor(typeName);
 }
 
 /** The credential fields a `<Model>ScalarFieldEnum` can name, if it is one. */
