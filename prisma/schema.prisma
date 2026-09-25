@@ -5403,6 +5403,8 @@ model AccountDecisionRecord {
   correlationId       String   @unique
 
   opportunityId       String
+  /// Identifier of the firm-level signal this per-account decision evaluated — the same value `Trade.signalId` carries, so a decision row joins to the signal it judged and to any trade opened from that signal. Null when the writer could not resolve the originating signal, never a placeholder: an absent id must stay absent so the join reports the gap instead of matching nothing.
+  signalId            String?
   symbol              String
   assetClass          String
   signalAction        String
@@ -5441,6 +5443,7 @@ model AccountDecisionRecord {
   @@index([alpacaAccountId, createdAt])
   @@index([symbol, createdAt])
   @@index([opportunityId])
+  @@index([signalId])
   @@map("account_decision_records")
 }
 

@@ -15,6 +15,7 @@ import { logger } from './utils/logger';
   alpacaAccountId
   correlationId
   opportunityId
+  signalId
   symbol
   assetClass
   signalAction
@@ -92,6 +93,7 @@ import { logger } from './utils/logger';
                 alpacaAccountId: props.alpacaAccountId !== undefined ? props.alpacaAccountId : undefined,
   correlationId: props.correlationId !== undefined ? props.correlationId : undefined,
   opportunityId: props.opportunityId !== undefined ? props.opportunityId : undefined,
+  signalId: props.signalId !== undefined ? props.signalId : undefined,
   symbol: props.symbol !== undefined ? props.symbol : undefined,
   assetClass: props.assetClass !== undefined ? props.assetClass : undefined,
   signalAction: props.signalAction !== undefined ? props.signalAction : undefined,
@@ -273,6 +275,7 @@ import { logger } from './utils/logger';
       alpacaAccountId: prop.alpacaAccountId !== undefined ? prop.alpacaAccountId : undefined,
   correlationId: prop.correlationId !== undefined ? prop.correlationId : undefined,
   opportunityId: prop.opportunityId !== undefined ? prop.opportunityId : undefined,
+  signalId: prop.signalId !== undefined ? prop.signalId : undefined,
   symbol: prop.symbol !== undefined ? prop.symbol : undefined,
   assetClass: prop.assetClass !== undefined ? prop.assetClass : undefined,
   signalAction: prop.signalAction !== undefined ? prop.signalAction : undefined,
@@ -460,6 +463,9 @@ import { logger } from './utils/logger';
            } : undefined,
   opportunityId: props.opportunityId !== undefined ? {
             set: props.opportunityId 
+           } : undefined,
+  signalId: props.signalId !== undefined ? {
+            set: props.signalId 
            } : undefined,
   symbol: props.symbol !== undefined ? {
             set: props.symbol 
@@ -684,6 +690,9 @@ import { logger } from './utils/logger';
   opportunityId: props.opportunityId !== undefined ? {
     equals: props.opportunityId 
   } : undefined,
+  signalId: props.signalId !== undefined ? {
+    equals: props.signalId 
+  } : undefined,
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
   } : undefined,
@@ -698,6 +707,7 @@ import { logger } from './utils/logger';
         alpacaAccountId: props.alpacaAccountId !== undefined ? props.alpacaAccountId : undefined,
   correlationId: props.correlationId !== undefined ? props.correlationId : undefined,
   opportunityId: props.opportunityId !== undefined ? props.opportunityId : undefined,
+  signalId: props.signalId !== undefined ? props.signalId : undefined,
   symbol: props.symbol !== undefined ? props.symbol : undefined,
   assetClass: props.assetClass !== undefined ? props.assetClass : undefined,
   signalAction: props.signalAction !== undefined ? props.signalAction : undefined,
@@ -733,6 +743,9 @@ import { logger } from './utils/logger';
            } : undefined,
   opportunityId: props.opportunityId !== undefined ? {
             set: props.opportunityId 
+           } : undefined,
+  signalId: props.signalId !== undefined ? {
+            set: props.signalId 
            } : undefined,
   symbol: props.symbol !== undefined ? {
             set: props.symbol 
@@ -958,6 +971,9 @@ import { logger } from './utils/logger';
            } : undefined,
   opportunityId: prop.opportunityId !== undefined ? {
             set: prop.opportunityId 
+           } : undefined,
+  signalId: prop.signalId !== undefined ? {
+            set: prop.signalId 
            } : undefined,
   symbol: prop.symbol !== undefined ? {
             set: prop.symbol 
@@ -1336,6 +1352,9 @@ import { logger } from './utils/logger';
   opportunityId: props.opportunityId !== undefined ? {
     equals: props.opportunityId 
   } : undefined,
+  signalId: props.signalId !== undefined ? {
+    equals: props.signalId 
+  } : undefined,
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
   } : undefined,
@@ -1595,6 +1614,9 @@ import { logger } from './utils/logger';
   } : undefined,
   opportunityId: props.opportunityId !== undefined ? {
     equals: props.opportunityId 
+  } : undefined,
+  signalId: props.signalId !== undefined ? {
+    equals: props.signalId 
   } : undefined,
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
