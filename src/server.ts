@@ -31,6 +31,8 @@ import { graphqlRateLimiter, authRateLimiter } from './middleware/rate-limiter';
 import { createAuditLogPlugin } from './middleware/audit-logger';
 import { createTenancyScopingMiddleware } from './middleware/tenancy-scoping';
 import { createCredentialFieldGuardMiddleware } from './middleware/credential-field-guard';
+import { installMutationAuthGuard } from './middleware/mutation-auth-guard';
+import { wsActorRequest } from './middleware/trading-policy-audit';
 import { cortexAuthChecker } from './auth/cortex-auth-checker';
 import { applyCortexAuthorizationMap } from './auth/authorization-map';
 import { createHttpStatusMapperPlugin } from './plugins/http-status-mapper';
@@ -186,6 +188,21 @@ const startServer = async () => {
     // it observes + counts would-deny operations but always allows —
     // byte-identical live behaviour until enforcement is flipped on.
     authChecker: cortexAuthChecker,
+  });
+
+  // Mutation authorization: every mutation is admitted only for a principal
+  // authorised to write that model — the engine's service principal and admins
+  // everywhere, a user only on an account, row or tenant it owns — and every
+  // TradingPolicy write leaves an attributed audit row. Installed on the built
+  // schema's Mutation fields (not as a global middleware, which would tax every
+  // read field), so it covers generated and custom mutations alike on both the
+  // HTTP and WebSocket transports. Gated by `MUTATION_AUTH_MODE` (unset =
+  // `shadow`) and the per-model escalation `MUTATION_AUTH_ENFORCE_MODELS`; see
+  // src/middleware/mutation-auth-guard.ts and
+  // docs/security/2026-09-24-mutation-authorization-runbook.md.
+  const guardedMutations = installMutationAuthGuard(schema);
+  logger.info('[mutation-auth] guard installed on every root Mutation field', {
+    guardedMutations,
   });
 
   const app = express();
@@ -351,7 +368,10 @@ const startServer = async () => {
     },
     credentials: true,
     methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
+    // X-Adaptic-Change-Reason is the stated reason recorded on every
+    // TradingPolicy audit row (src/middleware/trading-policy-audit.ts); a
+    // browser caller can only send it if preflight allows it.
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-Adaptic-Change-Reason'],
     maxAge: 86400, // 24h preflight cache
   };
 
@@ -518,13 +538,19 @@ const startServer = async () => {
               userAgent: wsIdentity.userAgent,
               authHeaderPresent: authHeader.length > 0,
             });
-            return { prisma: global.prisma, user: null, principal: null };
+            return {
+              prisma: global.prisma,
+              req: wsActorRequest(ctx.extra, ctx.connectionParams),
+              user: null,
+              principal: null,
+            };
           }
 
           case 'authenticated': {
             recordAuthContextOutcome('ws', 'authenticated');
             return {
               prisma: global.prisma,
+              req: wsActorRequest(ctx.extra, ctx.connectionParams),
               user: principalToUser(decision.principal),
               principal: decision.principal,
             };

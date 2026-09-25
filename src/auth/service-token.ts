@@ -204,5 +204,5 @@ export function verifyServiceToken(token: string): BackendPrincipal | null {
     throw new AuthError('invalid_token', 'bad_audience');
   }
 
-  return { kind: 'server' };
+  return { kind: 'server', sub };
 }

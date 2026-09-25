@@ -4,6 +4,7 @@ import {
   extractUserId,
   extractRecordId,
   extractChangedFields,
+  principalMetadata,
 } from '../audit-logger';
 
 describe('parseMutationOperation', () => {
@@ -208,6 +209,50 @@ describe('extractChangedFields', () => {
     const result = extractChangedFields('CREATE', variables);
     expect(result).toEqual({
       input: { name: 'Direct Input' },
+    });
+  });
+});
+
+describe('extractChangedFields credential redaction', () => {
+  const KEY = 'PKAUDITLOGGERKEY000000';
+  const SECRET = 'audit-logger-secret-that-must-not-be-stored';
+
+  it('never copies a broker key into the audit row, at any depth or shape', () => {
+    const variables = {
+      data: {
+        APIKey: { set: KEY },
+        APISecret: SECRET,
+        label: 'kept',
+        alpacaAccounts: {
+          connectOrCreate: [{ where: { id: 'a1' }, create: { APIKey: KEY, APISecret: SECRET } }],
+        },
+      },
+      where: { id: 'a1' },
+    };
+    const stored = JSON.stringify(extractChangedFields('UPDATE', variables));
+    expect(stored).not.toContain(KEY);
+    expect(stored).not.toContain(SECRET);
+    expect(stored).toContain('kept');
+    expect(stored).toContain('[REDACTED]');
+  });
+
+  it('keeps a cleared credential visible as cleared', () => {
+    const result = extractChangedFields('UPDATE', { data: { apiKey: null }, where: { id: 'b1' } });
+    expect(result).toEqual({ where: { id: 'b1' }, data: { apiKey: null } });
+  });
+});
+
+describe('principalMetadata', () => {
+  it('names the service that wrote, which userId (UUID-only) cannot', () => {
+    expect(principalMetadata({ kind: 'server', sub: 'adaptic-engine:h:1' })).toEqual({
+      principalKind: 'server',
+      principalSub: 'adaptic-engine:h:1',
+    });
+    expect(principalMetadata({ kind: 'server' })).toEqual({ principalKind: 'server', principalSub: null });
+    expect(principalMetadata(null)).toEqual({ principalKind: 'none', principalSub: null });
+    expect(principalMetadata({ kind: 'user', sub: 'u-1', roles: [] })).toEqual({
+      principalKind: 'user',
+      principalSub: 'u-1',
     });
   });
 });
