@@ -69,6 +69,17 @@ export const MINIMUM_SERVICE_SECRET_LENGTH = 32;
 export const MAX_SERVICE_TOKEN_LIFETIME_SEC = 3600;
 
 /**
+ * How far in the future, seconds, a credential's `iat` may sit before it is
+ * refused.
+ *
+ * The lifetime ceiling is measured from `iat`, so an `iat` the verifier does
+ * not bound would let a secret holder date a token years ahead and hold a
+ * credential valid until then. One minute absorbs ordinary clock drift between
+ * a minter and this host and nothing more.
+ */
+export const MAX_SERVICE_TOKEN_CLOCK_SKEW_SEC = 60;
+
+/**
  * Resolve the dedicated service secret, or `null` when the path is not
  * provisioned.
  *
@@ -110,7 +121,10 @@ function resolveServiceSecret(): string | null {
  * @returns The verified service principal, or `null` to fall through.
  * @throws {AuthError} When the token is ours but unacceptable.
  */
-export function verifyServiceToken(token: string): BackendPrincipal | null {
+export function verifyServiceToken(
+  token: string,
+  nowMs: number = Date.now()
+): BackendPrincipal | null {
   const secret = resolveServiceSecret();
   if (secret === null) return null;
 
@@ -191,11 +205,25 @@ export function verifyServiceToken(token: string): BackendPrincipal | null {
     logger.warn('[auth] service token rejected: missing exp claim', { sub });
     throw new AuthError('invalid_token', 'malformed');
   }
-  if (
-    typeof iat === 'number' &&
-    Number.isFinite(iat) &&
-    exp - iat > MAX_SERVICE_TOKEN_LIFETIME_SEC
-  ) {
+  if (typeof iat !== 'number' || !Number.isFinite(iat)) {
+    // The lifetime ceiling is `exp - iat`. Without an `iat` there is nothing to
+    // measure it from, and a far-future `exp` would pass as a long-lived
+    // bearer — so an undated credential is refused, not waved through.
+    logger.warn('[auth] service token rejected: missing iat claim', { sub });
+    throw new AuthError('invalid_token', 'malformed');
+  }
+  const nowSec = Math.floor(nowMs / 1000);
+  if (iat > nowSec + MAX_SERVICE_TOKEN_CLOCK_SKEW_SEC) {
+    // A forward-dated `iat` moves the ceiling's window into the future with it:
+    // `exp - iat` stays small while `exp - now` is unbounded.
+    logger.warn('[auth] service token rejected: iat is in the future', {
+      sub,
+      aheadSec: iat - nowSec,
+      skewSec: MAX_SERVICE_TOKEN_CLOCK_SKEW_SEC,
+    });
+    throw new AuthError('invalid_token', 'malformed');
+  }
+  if (exp - iat > MAX_SERVICE_TOKEN_LIFETIME_SEC) {
     logger.warn('[auth] service token rejected: lifetime exceeds ceiling', {
       sub,
       lifetimeSec: exp - iat,

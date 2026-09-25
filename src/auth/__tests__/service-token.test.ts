@@ -28,6 +28,7 @@ import {
   SERVICE_TOKEN_AUDIENCE,
   MAX_SERVICE_TOKEN_LIFETIME_SEC,
   MINIMUM_SERVICE_SECRET_LENGTH,
+  MAX_SERVICE_TOKEN_CLOCK_SKEW_SEC,
 } from '../service-token';
 import { verifyBackendToken, AuthError } from '../token-verifier';
 
@@ -41,7 +42,8 @@ interface MintOptions {
   readonly audience?: string;
   readonly sub?: string | null;
   readonly lifetimeSec?: number | null;
-  readonly issuedAtSec?: number;
+  /** `null` mints a credential with no `iat` at all. */
+  readonly issuedAtSec?: number | null;
 }
 
 /**
@@ -49,18 +51,22 @@ interface MintOptions {
  * test can vary exactly one dimension at a time.
  */
 function mint(options: MintOptions = {}): string {
+  const undated = options.issuedAtSec === null;
   const nowSec = options.issuedAtSec ?? Math.floor(Date.now() / 1000);
   const payload: Record<string, unknown> = {
     iss: options.issuer ?? SERVICE_TOKEN_ISSUER,
     aud: options.audience ?? SERVICE_TOKEN_AUDIENCE,
-    iat: nowSec,
   };
+  if (!undated) payload.iat = nowSec;
   if (options.sub !== null) payload.sub = options.sub ?? 'adaptic-engine:test';
   if (options.lifetimeSec !== null) {
     payload.exp = nowSec + (options.lifetimeSec ?? 900);
   }
+  // `jsonwebtoken` stamps `iat` itself unless told not to; an undated case
+  // must really arrive undated.
   return jwt.sign(payload, options.secret ?? SERVICE_SECRET, {
     algorithm: 'HS256',
+    noTimestamp: undated,
   });
 }
 
@@ -181,6 +187,39 @@ describe('verifyServiceToken', () => {
     } catch (error) {
       expect((error as AuthError).reason).toBe('bad_audience');
     }
+  });
+
+  it('rejects an undated credential whose exp is far in the future', () => {
+    // Without `iat` the lifetime ceiling has nothing to measure from; a
+    // secret holder could otherwise mint a year-long bearer.
+    const token = mint({ issuedAtSec: null, lifetimeSec: 365 * 24 * 3600 });
+    expect(jwt.decode(token)).not.toHaveProperty('iat');
+    try {
+      verifyServiceToken(token);
+      expect.unreachable('iat-less service token must throw');
+    } catch (error) {
+      expect((error as AuthError).reason).toBe('malformed');
+    }
+  });
+
+  it('rejects a forward-dated credential that would dodge the ceiling', () => {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const token = mint({ issuedAtSec: nowSec + 30 * 24 * 3600, lifetimeSec: 900 });
+    try {
+      verifyServiceToken(token);
+      expect.unreachable('forward-dated service token must throw');
+    } catch (error) {
+      expect((error as AuthError).reason).toBe('malformed');
+    }
+  });
+
+  it('accepts an iat inside the clock-skew allowance', () => {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const token = mint({
+      issuedAtSec: nowSec + MAX_SERVICE_TOKEN_CLOCK_SKEW_SEC - 5,
+      lifetimeSec: 900,
+    });
+    expect(verifyServiceToken(token)).toEqual({ kind: 'server', sub: 'adaptic-engine:test' });
   });
 
   it('rejects an unsigned alg:none forgery', () => {
