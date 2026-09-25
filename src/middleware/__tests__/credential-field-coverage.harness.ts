@@ -33,6 +33,7 @@ import {
   GraphQLScalarType,
   getNamedType,
   graphql,
+  type GraphQLNamedType,
   type GraphQLSchema,
 } from 'graphql';
 
@@ -43,6 +44,12 @@ import {
   TradingSettingsResolver,
 } from '../../resolvers/custom';
 import type { BackendPrincipal } from '../../auth/token-verifier';
+import {
+  AUDIT_PAYLOAD_FIELDS,
+  auditPayloadEnumFieldsFor,
+  auditPayloadOutputFieldsFor,
+  auditPayloadPredicateFieldsFor,
+} from '../audit-payload-guard';
 import {
   CREDENTIAL_FIELDS,
   createCredentialFieldGuardMiddleware,
@@ -55,6 +62,16 @@ export const API_KEY = 'PKCOVERAGEKEYVALUE00000000';
 export const API_SECRET = 'coverage-secret-value-that-must-never-leak';
 /** A literal placed in a predicate; it must never be echoed back in an error. */
 export const PREDICATE_CANARY = 'predicate-canary-value-9f3c';
+
+/**
+ * Credential values inside stored AuditLog payloads, shaped like the rows the
+ * unredacted audit logger wrote: `data.APIKey.set` / `data.APISecret.set` for
+ * a broker-key update, nested `create` keys for a user create.
+ */
+export const AUDIT_KEY = 'PKAUDITCOVERAGEKEY00000000';
+export const AUDIT_SECRET = 'audit-coverage-secret-that-must-never-leak';
+export const AUDIT_NESTED_SECRET = 'audit-coverage-nested-secret-never-leaks';
+export const AUDIT_TOKEN = 'audit-coverage-oauth-access-token';
 
 /**
  * Output field names that LOOK like credentials but were reviewed and hold no
@@ -113,7 +130,82 @@ const SHAPES: ReadonlyArray<[string, string, Record<string, unknown>?]> = [
   ['mutation-oracle', Q_MUTATION_ORACLE],
 ];
 
-const SCENARIOS: ShapeScenario[] = SHAPES.flatMap(([shape, query, variables]) =>
+const AUDIT_CREATE_DATA =
+  '{ operationType: UPDATE, modelName: "AlpacaAccount", recordId: "acct-1", changedFields: {} }';
+
+/** AuditLog shapes: payload outputs on every generated read and write-return path. */
+const AUDIT_OUTPUT_SHAPES: ReadonlyArray<[string, string]> = [
+  ['audit-root', '{ auditLogs { id changedFields metadata } }'],
+  [
+    'audit-aliased-fragment',
+    '{ a: auditLogs { ...P } } fragment P on AuditLog { c: changedFields m: metadata }',
+  ],
+  ['audit-unique', '{ auditLog(where: { id: "log-1" }) { changedFields metadata } }'],
+  ['audit-get', '{ getAuditLog(where: { id: "log-1" }) { changedFields metadata } }'],
+  ['audit-first', '{ findFirstAuditLog { changedFields metadata } }'],
+  ['audit-first-or-throw', '{ findFirstAuditLogOrThrow { changedFields metadata } }'],
+  ['audit-group-by-output', '{ groupByAuditLog(by: [id]) { id changedFields metadata } }'],
+  [
+    'audit-bulk-return',
+    `mutation { createManyAndReturnAuditLog(data: [${AUDIT_CREATE_DATA}]) { id changedFields metadata } }`,
+  ],
+  [
+    'audit-create-return',
+    `mutation { createOneAuditLog(data: ${AUDIT_CREATE_DATA}) { changedFields metadata } }`,
+  ],
+  [
+    'audit-update-return',
+    'mutation { updateOneAuditLog(where: { id: "log-1" }, data: { operationName: { set: "x" } }) { changedFields metadata } }',
+  ],
+  [
+    'audit-upsert-return',
+    `mutation { upsertOneAuditLog(where: { id: "log-1" }, create: ${AUDIT_CREATE_DATA}, update: {}) { changedFields metadata } }`,
+  ],
+  [
+    'audit-delete-return',
+    'mutation { deleteOneAuditLog(where: { id: "log-1" }) { changedFields metadata } }',
+  ],
+];
+
+/** AuditLog shapes: predicates over a payload column (filter, sort, group, cursor, write oracle). */
+const AUDIT_PREDICATE_SHAPES: ReadonlyArray<[string, string, Record<string, unknown>?]> = [
+  [
+    'audit-path-predicate',
+    `{ auditLogs(where: { changedFields: { path: ["data", "APISecret", "set"], string_starts_with: "${PREDICATE_CANARY}" } }) { id } }`,
+  ],
+  [
+    'audit-variable-predicate',
+    'query Q($w: AuditLogWhereInput) { auditLogs(where: $w) { id } }',
+    { w: { AND: [{ metadata: { path: ['accessToken'], string_starts_with: 'a' } }] } },
+  ],
+  ['audit-order-by', '{ auditLogs(orderBy: [{ changedFields: asc }]) { id } }'],
+  ['audit-distinct', '{ auditLogs(distinct: [metadata]) { id } }'],
+  ['audit-group-by-payload', '{ groupByAuditLog(by: [changedFields]) { id } }'],
+  [
+    'audit-having',
+    '{ groupByAuditLog(by: [id], having: { changedFields: { path: ["data"], equals: {} } }) { id } }',
+  ],
+  [
+    'audit-cursor',
+    '{ auditLogs(cursor: { id: "log-1", changedFields: { path: ["data"], equals: {} } }) { id } }',
+  ],
+  [
+    'audit-mutation-oracle',
+    'mutation { updateManyAuditLog(where: { changedFields: { path: ["data", "APISecret", "set"], string_starts_with: "c" } }, data: { operationName: { set: "x" } }) { count } }',
+  ],
+];
+
+/** A read of AuditLog that touches no payload column: the guard must not interfere. */
+const AUDIT_CLEAN_SHAPES: ReadonlyArray<[string, string]> = [
+  ['audit-clean-fields', '{ auditLogs { id operationName modelName recordId } }'],
+];
+
+const SCENARIOS: ShapeScenario[] = [
+  ...SHAPES,
+  ...AUDIT_OUTPUT_SHAPES,
+  ...AUDIT_PREDICATE_SHAPES,
+  ...AUDIT_CLEAN_SHAPES,
+].flatMap(([shape, query, variables]) =>
   (['none', 'user', 'admin', 'server'] as const).map((principal) => ({
     name: `${shape}/${principal}`,
     query,
@@ -135,6 +227,57 @@ interface CoverageReport {
   uncoveredEnumValues: string[];
   unreviewedCredentialShapedOutputs: string[];
   guardedOutputsSeen: string[];
+  uncoveredAuditPayloadOutputs: string[];
+  uncoveredAuditPayloadPredicates: string[];
+  uncoveredAuditPayloadEnumValues: string[];
+  guardedAuditPayloadOutputsSeen: string[];
+}
+
+/** Scalars that carry a count or a flag, never a copy of a payload's content. */
+const NON_VALUE_SCALARS = new Set(['Int', 'Float', 'Boolean', 'BigInt']);
+
+/** Longest audit payload model whose name occurs in `typeName`, if any. */
+function owningAuditModel(typeName: string): string | undefined {
+  const models = [...AUDIT_PAYLOAD_FIELDS.keys()].sort((a, b) => b.length - a.length);
+  return models.find((m) => typeName.includes(m));
+}
+
+/**
+ * Every place the served schema lets a caller read (output field), filter or
+ * sort on (predicate input key) or group / distinct by (enum value) an audit
+ * payload column, that the audit payload guard does not claim.
+ */
+function walkAuditPayloadCoverage(type: GraphQLNamedType, report: CoverageReport): void {
+  const model = owningAuditModel(type.name);
+  const columns = model ? AUDIT_PAYLOAD_FIELDS.get(model) : undefined;
+  if (!columns) return;
+
+  if (type instanceof GraphQLObjectType) {
+    const claimed = auditPayloadOutputFieldsFor(type.name);
+    for (const [fieldName, field] of Object.entries(type.getFields())) {
+      if (!columns.has(fieldName)) continue;
+      const named = getNamedType(field.type);
+      if (!(named instanceof GraphQLScalarType) || NON_VALUE_SCALARS.has(named.name)) continue;
+      const ref = `${type.name}.${fieldName}`;
+      if (claimed?.has(fieldName)) report.guardedAuditPayloadOutputsSeen.push(ref);
+      else report.uncoveredAuditPayloadOutputs.push(ref);
+    }
+  } else if (type instanceof GraphQLInputObjectType) {
+    if (!/(Where|OrderBy|Having)/.test(type.name)) return;
+    const claimed = auditPayloadPredicateFieldsFor(type.name);
+    for (const fieldName of Object.keys(type.getFields())) {
+      if (columns.has(fieldName) && !claimed?.has(fieldName)) {
+        report.uncoveredAuditPayloadPredicates.push(`${type.name}.${fieldName}`);
+      }
+    }
+  } else if (type instanceof GraphQLEnumType) {
+    const claimed = auditPayloadEnumFieldsFor(type.name);
+    for (const value of type.getValues()) {
+      if (columns.has(value.name) && !claimed?.has(value.name)) {
+        report.uncoveredAuditPayloadEnumValues.push(`${type.name}.${value.name}`);
+      }
+    }
+  }
 }
 
 /** Walk the served schema and list every credential surface the guard misses. */
@@ -146,10 +289,15 @@ function walkCoverage(schema: GraphQLSchema): CoverageReport {
     uncoveredEnumValues: [],
     unreviewedCredentialShapedOutputs: [],
     guardedOutputsSeen: [],
+    uncoveredAuditPayloadOutputs: [],
+    uncoveredAuditPayloadPredicates: [],
+    uncoveredAuditPayloadEnumValues: [],
+    guardedAuditPayloadOutputsSeen: [],
   };
   for (const type of Object.values(schema.getTypeMap())) {
     if (type.name.startsWith('__')) continue;
     report.typesWalked += 1;
+    walkAuditPayloadCoverage(type, report);
     const model = owningModel(type.name);
     const credentialColumns = model ? CREDENTIAL_FIELDS.get(model) : undefined;
 
@@ -253,6 +401,52 @@ async function main(): Promise<void> {
   // Prisma fluent API. Which unique finder they chain from is a generator
   // detail (`findUnique` today, `findUniqueOrThrow` in other versions), so
   // the double serves both rather than pinning the harness to one release.
+  // Stored AuditLog rows as the unredacted audit logger wrote them.
+  const auditRows = [
+    {
+      id: 'log-1',
+      timestamp: new Date('2026-07-07T13:48:28.802Z'),
+      userId: null,
+      operationType: 'UPDATE',
+      modelName: 'AlpacaAccount',
+      recordId: 'acct-1',
+      changedFields: {
+        where: { id: 'acct-1' },
+        data: {
+          APIKey: { set: AUDIT_KEY },
+          APISecret: { set: AUDIT_SECRET },
+          realTime: { set: false },
+        },
+      },
+      operationName: 'updateOneAlpacaAccount',
+      ipAddress: null,
+      metadata: { graphqlOperationName: 'updateAlpacaAccount', accessToken: AUDIT_TOKEN },
+    },
+    {
+      id: 'log-2',
+      timestamp: new Date('2026-03-23T13:12:42.699Z'),
+      userId: null,
+      operationType: 'CREATE',
+      modelName: 'User',
+      recordId: 'u-2',
+      changedFields: {
+        input: {
+          name: 'fixture user',
+          alpacaAccounts: {
+            connectOrCreate: [
+              {
+                where: { id: 'acct-2' },
+                create: { type: 'PAPER', APIKey: AUDIT_KEY, APISecret: AUDIT_NESTED_SECRET },
+              },
+            ],
+          },
+        },
+      },
+      operationName: 'createOneUser',
+      ipAddress: null,
+      metadata: { graphqlOperationName: 'createUser' },
+    },
+  ];
   const userRelations = (): { alpacaAccounts: () => Promise<(typeof row)[]> } => ({
     alpacaAccounts: () => count([row]),
   });
@@ -267,6 +461,20 @@ async function main(): Promise<void> {
       findMany: () => count([{ id: 'u-1' }]),
       findUnique: userRelations,
       findUniqueOrThrow: userRelations,
+    },
+    auditLog: {
+      findMany: () => count(auditRows),
+      findUnique: () => count(auditRows[0]),
+      findUniqueOrThrow: () => count(auditRows[0]),
+      findFirst: () => count(auditRows[0]),
+      findFirstOrThrow: () => count(auditRows[0]),
+      groupBy: () => count(auditRows),
+      createManyAndReturn: () => count(auditRows),
+      create: () => count(auditRows[0]),
+      update: () => count(auditRows[0]),
+      upsert: () => count(auditRows[0]),
+      delete: () => count(auditRows[1]),
+      updateMany: () => count({ count: 1 }),
     },
   });
 

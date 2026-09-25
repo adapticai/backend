@@ -37,6 +37,13 @@ const HOOK_TIMEOUT_MS = HARNESS_TIMEOUT_MS + 30_000;
 const API_KEY = 'PKCOVERAGEKEYVALUE00000000';
 const API_SECRET = 'coverage-secret-value-that-must-never-leak';
 const PREDICATE_CANARY = 'predicate-canary-value-9f3c';
+/** Mirror the harness's stored AuditLog payload values (it runs out of process). */
+const AUDIT_KEY = 'PKAUDITCOVERAGEKEY00000000';
+const AUDIT_SECRET = 'audit-coverage-secret-that-must-never-leak';
+const AUDIT_NESTED_SECRET = 'audit-coverage-nested-secret-never-leaks';
+const AUDIT_TOKEN = 'audit-coverage-oauth-access-token';
+const AUDIT_VALUES = [AUDIT_KEY, AUDIT_SECRET, AUDIT_NESTED_SECRET, AUDIT_TOKEN];
+const REDACTED = '[REDACTED]';
 /** Mirrors `DOUBLE_GAP_MARKER` in the harness (it runs out of process). */
 const DOUBLE_GAP_MARKER = 'COVERAGE_HARNESS_DOUBLE_GAP';
 
@@ -47,6 +54,10 @@ interface CoverageReport {
   uncoveredEnumValues: string[];
   unreviewedCredentialShapedOutputs: string[];
   guardedOutputsSeen: string[];
+  uncoveredAuditPayloadOutputs: string[];
+  uncoveredAuditPayloadPredicates: string[];
+  uncoveredAuditPayloadEnumValues: string[];
+  guardedAuditPayloadOutputsSeen: string[];
 }
 
 interface ShapeResult {
@@ -190,6 +201,133 @@ describe('refused bodies carry no values at all', () => {
         name,
         leaksKey: false,
       });
+    }
+  });
+});
+
+const PAYLOAD_READERS_REDACTED = ['none', 'user'] as const;
+const PAYLOAD_READERS_RAW = ['admin', 'server'] as const;
+
+const AUDIT_OUTPUT_SHAPES = [
+  'audit-root',
+  'audit-aliased-fragment',
+  'audit-unique',
+  'audit-get',
+  'audit-first',
+  'audit-first-or-throw',
+  'audit-group-by-output',
+  'audit-bulk-return',
+  'audit-create-return',
+  'audit-update-return',
+  'audit-upsert-return',
+  'audit-delete-return',
+] as const;
+
+const AUDIT_PREDICATE_SHAPES = [
+  'audit-path-predicate',
+  'audit-variable-predicate',
+  'audit-order-by',
+  'audit-distinct',
+  'audit-group-by-payload',
+  'audit-having',
+  'audit-cursor',
+  'audit-mutation-oracle',
+] as const;
+
+describe('audit payload coverage', () => {
+  it('walked the AuditLog payload columns of the served schema', () => {
+    expect(coverage.guardedAuditPayloadOutputsSeen).toEqual(
+      expect.arrayContaining([
+        'AuditLog.changedFields',
+        'AuditLog.metadata',
+        'AuditLogGroupBy.changedFields',
+        'CreateManyAndReturnAuditLog.changedFields',
+      ])
+    );
+  });
+
+  it('claims every output field that returns an audit payload', () => {
+    expect(coverage.uncoveredAuditPayloadOutputs).toEqual([]);
+  });
+
+  it('claims every predicate input key over an audit payload column', () => {
+    expect(coverage.uncoveredAuditPayloadPredicates).toEqual([]);
+  });
+
+  it('claims every enum value that groups or distincts by an audit payload column', () => {
+    expect(coverage.uncoveredAuditPayloadEnumValues).toEqual([]);
+  });
+});
+
+describe('audit payload shapes (stored rows holding broker keys)', () => {
+  it.each(
+    AUDIT_OUTPUT_SHAPES.flatMap((name) => PAYLOAD_READERS_RAW.map((p) => `${name}/${p}`))
+  )('%s: read as stored (control)', (name) => {
+    const r = shape(name);
+    expect(r.codes).toEqual([]);
+    expect(AUDIT_VALUES.some((v) => r.json.includes(v))).toBe(true);
+  });
+
+  it.each(
+    AUDIT_OUTPUT_SHAPES.flatMap((name) => PAYLOAD_READERS_REDACTED.map((p) => `${name}/${p}`))
+  )('%s: served redacted, with no stored credential value in the body', (name) => {
+    const r = shape(name);
+    expect(r.codes).toEqual([]);
+    expect(r.json).toContain(REDACTED);
+    for (const value of AUDIT_VALUES) expect(r.json).not.toContain(value);
+  });
+
+  it.each(PAYLOAD_READERS_REDACTED)(
+    'audit-root/%s: everything in the payload that is not a credential is served',
+    (principal) => {
+      const body = JSON.parse(shape(`audit-root/${principal}`).json) as {
+        data: { auditLogs: Array<{ changedFields: unknown; metadata: unknown }> };
+      };
+      expect(body.data.auditLogs[0]?.changedFields).toEqual({
+        where: { id: 'acct-1' },
+        data: { APIKey: REDACTED, APISecret: REDACTED, realTime: { set: false } },
+      });
+      expect(body.data.auditLogs[0]?.metadata).toEqual({
+        graphqlOperationName: 'updateAlpacaAccount',
+        accessToken: REDACTED,
+      });
+    }
+  );
+
+  it.each(
+    AUDIT_PREDICATE_SHAPES.flatMap((name) => PAYLOAD_READERS_RAW.map((p) => `${name}/${p}`))
+  )('%s: may filter, sort or group on a payload (control)', (name) => {
+    const r = shape(name);
+    expect(r.codes).toEqual([]);
+    expect(r.resolverCalls).toBe(1);
+  });
+
+  it.each(
+    AUDIT_PREDICATE_SHAPES.flatMap((name) => PAYLOAD_READERS_REDACTED.map((p) => `${name}/${p}`))
+  )('%s: refused before the resolver touches the database', (name) => {
+    const r = shape(name);
+    expect(r.codes).toContain('FORBIDDEN');
+    expect(r.resolverCalls).toBe(0);
+    expect(r.json).not.toContain(PREDICATE_CANARY);
+  });
+
+  it.each(PAYLOAD_READERS_REDACTED)(
+    'audit-clean-fields/%s: a read that touches no payload column is untouched',
+    (principal) => {
+      const r = shape(`audit-clean-fields/${principal}`);
+      expect(r.codes).toEqual([]);
+      expect(r.json).toContain('updateOneAlpacaAccount');
+    }
+  );
+
+  it('no response to a user or anonymous principal anywhere in the battery holds a stored payload credential', () => {
+    const redactedReaders = Object.entries(shapes).filter(
+      ([name]) => name.endsWith('/none') || name.endsWith('/user')
+    );
+    expect(redactedReaders.length).toBeGreaterThanOrEqual(40);
+    for (const [name, r] of redactedReaders) {
+      const leaked = AUDIT_VALUES.filter((v) => r.json.includes(v));
+      expect({ name, leaked }).toEqual({ name, leaked: [] });
     }
   });
 });

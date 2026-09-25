@@ -36,6 +36,10 @@
  *    a key in the model's own `…Where…`, `…OrderBy…` or `…Having…` input types
  *    at any nesting depth (AND / OR / NOT, relation filters reached from other
  *    models), and a `by` / `distinct` value of the model's `ScalarFieldEnum`.
+ * 3. **Copies in audit payloads** — `AuditLog` JSON payloads hold credentials
+ *    copied from mutation variables. The same middleware serves them redacted
+ *    to user and anonymous principals and refuses those principals predicates
+ *    over them; the rules and their reasons are in `audit-payload-guard`.
  *
  * ## Modes (`CREDENTIAL_FIELD_GUARD_MODE`, read on every request)
  *
@@ -62,111 +66,31 @@ import {
 } from 'graphql';
 import { Counter } from 'prom-client';
 
+import { CREDENTIAL_FIELDS } from '../auth/credential-fields';
 import type { BackendPrincipal } from '../auth/token-verifier';
 import { metricsRegistry } from '../config/metrics';
 import { logger } from '../utils/logger';
+import {
+  auditPayloadOutputField,
+  auditPayloadEnumFieldsFor,
+  auditPayloadPredicateFieldsFor,
+  readsAuditPayloadRaw,
+  redactAuditPayload,
+} from './audit-payload-guard';
+import { indexGeneratedTypes } from './generated-type-names';
 import { GuardLogThrottle } from './guard-log-throttle';
+
+/**
+ * The stored credential columns this guard serves to a service principal
+ * only. Defined in `auth/credential-fields`, re-exported for existing callers.
+ */
+export { CREDENTIAL_FIELDS };
 
 /** The guard's operating mode. See the module doc. */
 export type CredentialFieldGuardMode = 'enforce' | 'shadow' | 'off';
 
-/**
- * Every stored credential column, by Prisma model. A column belongs here when
- * its value lets the holder act as someone: a broker or vendor API secret, an
- * OAuth access / refresh / id token, a session token, a one-time verification
- * or invite token.
- */
-export const CREDENTIAL_FIELDS: ReadonlyMap<string, ReadonlySet<string>> = new Map<
-  string,
-  ReadonlySet<string>
->([
-  ['AlpacaAccount', new Set(['APIKey', 'APISecret'])],
-  ['BrokerageAccount', new Set(['apiKey', 'apiSecret'])],
-  [
-    'LlmConfiguration',
-    new Set([
-      'openaiApiKey',
-      'anthropicApiKey',
-      'deepseekApiKey',
-      'kimiApiKey',
-      'qwenApiKey',
-      'xaiApiKey',
-      'geminiApiKey',
-      'deepinfraApiKey',
-    ]),
-  ],
-  ['User', new Set(['openaiAPIKey'])],
-  ['Account', new Set(['refresh_token', 'access_token', 'id_token'])],
-  ['LinkedProvider', new Set(['accessToken', 'refreshToken'])],
-  ['Session', new Set(['sessionToken'])],
-  ['VerificationToken', new Set(['token'])],
-  ['AccountLinkingRequest', new Set(['verificationToken'])],
-  ['InviteToken', new Set(['token'])],
-]);
-
-/**
- * Output types that carry a model's column VALUES, as name suffixes on the
- * model. The `Count` aggregate is absent on purpose: it returns how many rows
- * are non-null, never a value.
- */
-const VALUE_OUTPUT_SUFFIXES = ['', 'GroupBy', 'MinAggregate', 'MaxAggregate'] as const;
-
-/**
- * Output types that carry a model's column VALUES, as name prefixes on the
- * model. `createManyAndReturn<Model>` / `updateManyAndReturn<Model>` return
- * the written rows as their own generated type rather than as `<Model>`, so a
- * guard keyed only on the model type would serve the credential columns of
- * every row such a mutation touches — including columns the caller did not
- * write.
- */
-const VALUE_OUTPUT_PREFIXES = ['CreateManyAndReturn', 'UpdateManyAndReturn'] as const;
-
-/** Output type name → the credential fields it exposes. */
-const OUTPUT_TYPE_FIELDS: ReadonlyMap<string, ReadonlySet<string>> = new Map(
-  [...CREDENTIAL_FIELDS].flatMap(([model, fields]) => [
-    ...VALUE_OUTPUT_SUFFIXES.map(
-      (suffix) => [`${model}${suffix}`, fields] as [string, ReadonlySet<string>]
-    ),
-    ...VALUE_OUTPUT_PREFIXES.map(
-      (prefix) => [`${prefix}${model}`, fields] as [string, ReadonlySet<string>]
-    ),
-  ])
-);
-
-/**
- * Model names longest-first, so the prefix match below attributes
- * `AccountLinkingRequestWhereInput` to `AccountLinkingRequest`, not `Account`.
- */
-const MODELS_LONGEST_FIRST = [...CREDENTIAL_FIELDS.keys()].sort(
-  (a, b) => b.length - a.length
-);
-
-/**
- * Input-type name fragments that make a type a read predicate (filter, sort,
- * cursor, aggregate filter) rather than a write payload. A `…WhereUniqueInput`
- * is also how a mutation selects its row, so a credential key there is an
- * oracle on a write path too.
- */
-const PREDICATE_TYPE_FRAGMENTS = ['Where', 'OrderBy', 'Having'] as const;
-
-/**
- * The credential fields a named input type can reference, when the type is
- * one of a credential model's own predicate types; otherwise `undefined`.
- *
- * Generated names start with the model name followed by an upper-case letter
- * (`AlpacaAccountWhereInput`, `AlpacaAccountOrderByWithRelationInput`), so a
- * model named `Account` does not claim `AccountLinkingRequestWhereInput`.
- */
-function predicateFieldsFor(typeName: string): ReadonlySet<string> | undefined {
-  for (const model of MODELS_LONGEST_FIRST) {
-    if (!typeName.startsWith(model)) continue;
-    const rest = typeName.slice(model.length);
-    if (!/^[A-Z]/.test(rest)) continue;
-    if (!PREDICATE_TYPE_FRAGMENTS.some((f) => rest.includes(f))) return undefined;
-    return CREDENTIAL_FIELDS.get(model);
-  }
-  return undefined;
-}
+/** Where the generated schema exposes each credential column. */
+const CREDENTIAL_TYPES = indexGeneratedTypes(CREDENTIAL_FIELDS);
 
 /**
  * The credential fields an input type's keys can reference as a predicate,
@@ -179,7 +103,7 @@ function predicateFieldsFor(typeName: string): ReadonlySet<string> | undefined {
 export function credentialPredicateFieldsFor(
   typeName: string
 ): ReadonlySet<string> | undefined {
-  return predicateFieldsFor(typeName);
+  return CREDENTIAL_TYPES.predicateFields(typeName);
 }
 
 /**
@@ -190,7 +114,7 @@ export function credentialPredicateFieldsFor(
 export function credentialOutputFieldsFor(
   typeName: string
 ): ReadonlySet<string> | undefined {
-  return OUTPUT_TYPE_FIELDS.get(typeName);
+  return CREDENTIAL_TYPES.outputFields(typeName);
 }
 
 /**
@@ -201,19 +125,23 @@ export function credentialOutputFieldsFor(
 export function credentialEnumValuesFor(
   typeName: string
 ): ReadonlySet<string> | undefined {
-  return enumFieldsFor(typeName);
+  return CREDENTIAL_TYPES.enumFields(typeName);
 }
 
-/** The credential fields a `<Model>ScalarFieldEnum` can name, if it is one. */
-function enumFieldsFor(typeName: string): ReadonlySet<string> | undefined {
-  const suffix = 'ScalarFieldEnum';
-  if (!typeName.endsWith(suffix)) return undefined;
-  return CREDENTIAL_FIELDS.get(typeName.slice(0, -suffix.length));
+/**
+ * Every guarded column an argument names, as `TypeName.field` strings, split
+ * by the rule that governs it.
+ */
+export interface GuardedArgumentReferences {
+  /** Stored credential columns: predicates admitted for a service principal only. */
+  credential: string[];
+  /** Audit payload columns: predicates admitted for the raw-read principals only. */
+  auditPayload: string[];
 }
 
 /**
  * Walk one argument value alongside its GraphQL input type and collect every
- * place it names a credential field, as `TypeName.field` strings.
+ * place it names a guarded column.
  *
  * Type-directed rather than key-directed: a key called `token` is a
  * credential only inside a credential model's predicate type, so an unrelated
@@ -222,7 +150,7 @@ function enumFieldsFor(typeName: string): ReadonlySet<string> | undefined {
 function collectInputReferences(
   type: GraphQLInputType,
   value: unknown,
-  found: string[]
+  found: GuardedArgumentReferences
 ): void {
   if (value === null || value === undefined) return;
   const nullable = getNullableType(type);
@@ -235,23 +163,46 @@ function collectInputReferences(
   }
 
   if (nullable instanceof GraphQLEnumType) {
-    const fields = enumFieldsFor(nullable.name);
-    if (fields && typeof value === 'string' && fields.has(value)) {
-      found.push(`${nullable.name}.${value}`);
+    if (typeof value !== 'string') return;
+    if (CREDENTIAL_TYPES.enumFields(nullable.name)?.has(value)) {
+      found.credential.push(`${nullable.name}.${value}`);
+    }
+    if (auditPayloadEnumFieldsFor(nullable.name)?.has(value)) {
+      found.auditPayload.push(`${nullable.name}.${value}`);
     }
     return;
   }
 
   if (nullable instanceof GraphQLInputObjectType && typeof value === 'object') {
-    const guarded = predicateFieldsFor(nullable.name);
+    const credential = CREDENTIAL_TYPES.predicateFields(nullable.name);
+    const auditPayload = auditPayloadPredicateFieldsFor(nullable.name);
     const fieldDefs = nullable.getFields();
     for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
       if (child === undefined) continue;
-      if (guarded?.has(key)) found.push(`${nullable.name}.${key}`);
+      if (credential?.has(key)) found.credential.push(`${nullable.name}.${key}`);
+      if (auditPayload?.has(key)) found.auditPayload.push(`${nullable.name}.${key}`);
       const def = fieldDefs[key];
       if (def) collectInputReferences(def.type, child, found);
     }
   }
+}
+
+/**
+ * Every guarded column a field's arguments name. Both lists are empty when
+ * the field takes no arguments or names no guarded column.
+ */
+export function findGuardedArgumentReferences(
+  info: Pick<GraphQLResolveInfo, 'parentType' | 'fieldName'>,
+  args: Record<string, unknown>
+): GuardedArgumentReferences {
+  const found: GuardedArgumentReferences = { credential: [], auditPayload: [] };
+  if (!args || Object.keys(args).length === 0) return found;
+  const fieldDef = info.parentType.getFields()[info.fieldName];
+  if (!fieldDef) return found;
+  for (const argDef of fieldDef.args) {
+    collectInputReferences(argDef.type, args[argDef.name], found);
+  }
+  return found;
 }
 
 /**
@@ -262,21 +213,14 @@ export function findCredentialArgumentReferences(
   info: Pick<GraphQLResolveInfo, 'parentType' | 'fieldName'>,
   args: Record<string, unknown>
 ): string[] {
-  const found: string[] = [];
-  if (!args || Object.keys(args).length === 0) return found;
-  const fieldDef = info.parentType.getFields()[info.fieldName];
-  if (!fieldDef) return found;
-  for (const argDef of fieldDef.args) {
-    collectInputReferences(argDef.type, args[argDef.name], found);
-  }
-  return found;
+  return findGuardedArgumentReferences(info, args).credential;
 }
 
 /** The credential field this resolver outputs, as `TypeName.field`, if any. */
 export function findCredentialOutputField(
   info: Pick<GraphQLResolveInfo, 'parentType' | 'fieldName'>
 ): string | undefined {
-  const fields = OUTPUT_TYPE_FIELDS.get(info.parentType.name);
+  const fields = CREDENTIAL_TYPES.outputFields(info.parentType.name);
   return fields?.has(info.fieldName)
     ? `${info.parentType.name}.${info.fieldName}`
     : undefined;
@@ -313,6 +257,27 @@ export const credentialFieldAccessTotal = new Counter({
     'surface (output | argument), decision (allowed | would_deny | denied) and ' +
     'principal kind (server | admin | user | none). Only kind=server is allowed.',
   labelNames: ['surface', 'decision', 'principal_kind'] as const,
+  registers: [metricsRegistry],
+});
+
+/** What a principal that reads audit payloads redacted got. */
+type AuditPayloadDecision = 'unchanged' | 'redacted' | 'would_redact' | 'denied' | 'would_deny';
+
+/**
+ * Audit payload accesses by principals that read payloads redacted (user and
+ * anonymous). Reads (`output`) are counted by what redaction did to them;
+ * predicates (`argument`) by whether they were refused. In `shadow`,
+ * `would_redact` with `carried_value="true"` counts reads that served a stored
+ * credential value — the exposure enforcement closes.
+ */
+export const auditPayloadAccessTotal = new Counter({
+  name: 'graphql_audit_payload_access_total',
+  help:
+    'Reads of, or predicates over, AuditLog JSON payload columns on /graphql by a principal ' +
+    'that reads them redacted (user | none), by surface (output | argument), decision ' +
+    '(unchanged | redacted | would_redact | denied | would_deny), principal kind, and whether ' +
+    'a replaced value held anything (carried_value: true | false | n/a).',
+  labelNames: ['surface', 'decision', 'principal_kind', 'carried_value'] as const,
   registers: [metricsRegistry],
 });
 
@@ -367,8 +332,20 @@ function admitLogLine(scope: string, key: string, nowMs: number): boolean {
   return false;
 }
 
+/** Message for a credential column reached by a non-service principal. */
+const CREDENTIAL_ACCESS_MESSAGE =
+  '[credential-field-guard] credential access by a non-service principal';
+
+/** Message for a predicate over an audit payload by a principal that reads it redacted. */
+const AUDIT_PAYLOAD_PREDICATE_MESSAGE =
+  '[credential-field-guard] audit payload predicate by a principal that reads payloads redacted';
+
+/** Audit payload key paths one log line lists; the count is always logged. */
+const MAX_LOGGED_PATHS = 16;
+
 /** Log a denied or would-deny access at most once per caller key per window. */
 function logDecision(
+  message: string,
   decision: GuardDecision,
   surface: GuardSurface,
   references: string[],
@@ -390,7 +367,7 @@ function logDecision(
   const referenceKey = [...new Set(references)].sort().join(',');
   const key = `${decision}|${surface}|${referenceKey}|${operationName}|${userAgent}|${source.forwardedFor}`;
   if (!admitLogLine(`${principal}|${source.ip}`, key, nowMs)) return;
-  logger.warn('[credential-field-guard] credential access by a non-service principal', {
+  logger.warn(message, {
     decision,
     surface,
     references,
@@ -436,6 +413,43 @@ function logServiceRead(
     forwardedFor: source.forwardedFor,
     dedupWindowMs: LOG_THROTTLE_MS,
   });
+}
+
+/**
+ * Log an audit payload read that redaction changes, or would change, at most
+ * once per caller key per window. The line names the key paths that held
+ * credentials, never their values.
+ */
+function logAuditPayloadRead(
+  decision: AuditPayloadDecision,
+  reference: string,
+  paths: ReadonlyArray<{ path: string; carriesValue: boolean }>,
+  principal: PrincipalLabel,
+  info: Pick<GraphQLResolveInfo, 'operation'>,
+  request: GuardRequest | undefined,
+  nowMs: number
+): void {
+  const operationName = bounded(info.operation?.name?.value ?? '<unnamed>');
+  const userAgent = bounded(headerValue(request?.headers?.['user-agent']));
+  const source = callerSource(request);
+  const key = `payload|${decision}|${reference}|${operationName}|${userAgent}|${source.forwardedFor}`;
+  if (!admitLogLine(`${principal}|${source.ip}`, key, nowMs)) return;
+  logger.warn(
+    '[credential-field-guard] audit payload holding credentials read by a principal that reads payloads redacted',
+    {
+      decision,
+      reference,
+      credentialPaths: paths.slice(0, MAX_LOGGED_PATHS).map((p) => bounded(p.path)),
+      credentialPathCount: paths.length,
+      carriedValue: paths.some((p) => p.carriesValue),
+      principalKind: principal,
+      operationName,
+      ip: source.ip,
+      forwardedFor: source.forwardedFor,
+      userAgent,
+      dedupWindowMs: LOG_THROTTLE_MS,
+    }
+  );
 }
 
 /**
@@ -493,6 +507,20 @@ function forbidden(references: string[]): GraphQLError {
   );
 }
 
+function forbiddenAuditPayloadPredicate(references: string[]): GraphQLError {
+  return new GraphQLError(
+    'Forbidden: audit payload columns can be filtered, sorted or grouped on only by a ' +
+      'service or admin principal',
+    {
+      extensions: {
+        code: 'FORBIDDEN',
+        references,
+        http: { status: 403 },
+      },
+    }
+  );
+}
+
 /**
  * Create the TypeGraphQL global middleware that guards credential columns.
  *
@@ -526,29 +554,86 @@ export function createCredentialFieldGuardMiddleware(
       return proceed();
     }
 
-    const argumentRefs = findCredentialArgumentReferences(
-      info,
-      args as Record<string, unknown>
-    );
-    if (!output && argumentRefs.length === 0) return proceed();
+    const references = findGuardedArgumentReferences(info, args as Record<string, unknown>);
+    // Admins read audit payloads as stored, so only user and anonymous
+    // principals reach the payload rules below.
+    const payloadReader = !readsAuditPayloadRaw(principal);
+    const payloadOutput = payloadReader ? auditPayloadOutputField(info) : undefined;
+    const payloadRefs = payloadReader ? references.auditPayload : [];
+    if (
+      !output &&
+      references.credential.length === 0 &&
+      !payloadOutput &&
+      payloadRefs.length === 0
+    ) {
+      return proceed();
+    }
 
     const mode = resolveMode();
     if (mode === 'off') return proceed();
-
-    const surface: GuardSurface = output ? 'output' : 'argument';
-    const references = output ? [output, ...argumentRefs] : argumentRefs;
     const principalLabel: PrincipalLabel = principal?.kind ?? 'none';
-    const decision: GuardDecision = mode === 'enforce' ? 'denied' : 'would_deny';
+    const nowMs = now();
+    const refusal: GuardDecision = mode === 'enforce' ? 'denied' : 'would_deny';
 
-    credentialFieldAccessTotal.inc({
-      surface,
+    if (output || references.credential.length > 0) {
+      const surface: GuardSurface = output ? 'output' : 'argument';
+      const credentialRefs = output ? [output, ...references.credential] : references.credential;
+      credentialFieldAccessTotal.inc({
+        surface,
+        decision: refusal,
+        principal_kind: principalLabel,
+      });
+      logDecision(
+        CREDENTIAL_ACCESS_MESSAGE,
+        refusal,
+        surface,
+        credentialRefs,
+        principalLabel,
+        info,
+        context.req,
+        nowMs
+      );
+      if (mode === 'enforce') throw forbidden(credentialRefs);
+    }
+
+    if (payloadRefs.length > 0) {
+      auditPayloadAccessTotal.inc({
+        surface: 'argument',
+        decision: refusal,
+        principal_kind: principalLabel,
+        carried_value: 'n/a',
+      });
+      logDecision(
+        AUDIT_PAYLOAD_PREDICATE_MESSAGE,
+        refusal,
+        'argument',
+        payloadRefs,
+        principalLabel,
+        info,
+        context.req,
+        nowMs
+      );
+      if (mode === 'enforce') throw forbiddenAuditPayloadPredicate(payloadRefs);
+    }
+
+    if (!payloadOutput) return proceed();
+
+    const value = await proceed();
+    const { redacted, paths } = redactAuditPayload(value);
+    const decision: AuditPayloadDecision =
+      paths.length === 0 ? 'unchanged' : mode === 'enforce' ? 'redacted' : 'would_redact';
+    auditPayloadAccessTotal.inc({
+      surface: 'output',
       decision,
       principal_kind: principalLabel,
+      carried_value: String(paths.some((p) => p.carriesValue)),
     });
-    logDecision(decision, surface, references, principalLabel, info, context.req, now());
-
-    if (mode === 'enforce') throw forbidden(references);
-    return proceed();
+    if (paths.length > 0) {
+      logAuditPayloadRead(decision, payloadOutput, paths, principalLabel, info, context.req, nowMs);
+    }
+    // Under enforce the redacted copy is served even when no path was found:
+    // the copy is what the rule promises, the path list only describes it.
+    return mode === 'enforce' ? redacted : value;
   };
 }
 
