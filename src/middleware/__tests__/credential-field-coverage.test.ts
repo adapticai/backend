@@ -21,10 +21,18 @@
  * - no refused response body carries a credential value or echoes the
  *   caller's predicate literal.
  */
-import { execFileSync } from 'node:child_process';
-import path from 'node:path';
-
 import { beforeAll, describe, expect, it } from 'vitest';
+
+import { runTsNodeHarness } from './ts-node-harness';
+
+/**
+ * The harness builds the full served schema: about a minute of CPU, and
+ * several minutes of wall clock on a loaded machine.
+ */
+const HARNESS_TIMEOUT_MS = 300_000;
+
+/** Headroom so the harness's own timeout, not the hook's, reports a hang. */
+const HOOK_TIMEOUT_MS = HARNESS_TIMEOUT_MS + 30_000;
 
 const API_KEY = 'PKCOVERAGEKEYVALUE00000000';
 const API_SECRET = 'coverage-secret-value-that-must-never-leak';
@@ -56,27 +64,14 @@ function shape(name: string): ShapeResult {
   return r;
 }
 
-beforeAll(() => {
-  const root = path.resolve(__dirname, '../../..');
-  const stdout = execFileSync(
-    path.join(root, 'node_modules/.bin/ts-node'),
-    ['--transpile-only', 'src/middleware/__tests__/credential-field-coverage.harness.ts'],
-    {
-      cwd: root,
-      encoding: 'utf8',
-      env: { ...process.env, LOG_LEVEL: 'error' },
-      maxBuffer: 64 * 1024 * 1024,
-    }
-  );
-  const match = /<<<RESULTS>>>(.*)<<<END>>>/s.exec(stdout);
-  if (!match) throw new Error(`harness printed no results:\n${stdout.slice(-2000)}`);
-  const parsed = JSON.parse(match[1]) as {
+beforeAll(async () => {
+  const parsed = await runTsNodeHarness<{
     coverage: CoverageReport;
     shapes: Record<string, ShapeResult>;
-  };
+  }>('src/middleware/__tests__/credential-field-coverage.harness.ts', HARNESS_TIMEOUT_MS);
   coverage = parsed.coverage;
   shapes = parsed.shapes;
-}, 300_000);
+}, HOOK_TIMEOUT_MS);
 
 describe('harness integrity', () => {
   it('every resolver the battery reached found its Prisma method on the double', () => {

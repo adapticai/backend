@@ -12,9 +12,6 @@
  * that must return the value: "the secret did not appear" means nothing
  * unless the same harness demonstrably delivers it when access is allowed.
  */
-import { execFileSync } from 'node:child_process';
-import path from 'node:path';
-
 import { beforeAll, describe, expect, it } from 'vitest';
 import { buildSchema as buildSdlSchema } from 'graphql';
 
@@ -22,6 +19,13 @@ import {
   findCredentialArgumentReferences,
   getCredentialFieldGuardMode,
 } from '../credential-field-guard';
+import { runTsNodeHarness } from './ts-node-harness';
+
+/** Wall-clock budget for the harness (it builds two generated models). */
+const HARNESS_TIMEOUT_MS = 150_000;
+
+/** Headroom so the harness's own timeout, not the hook's, reports a hang. */
+const HOOK_TIMEOUT_MS = HARNESS_TIMEOUT_MS + 30_000;
 
 const API_KEY = 'PKGUARDTESTKEYVALUE0000000';
 const API_SECRET = 'guard-test-secret-value-that-must-never-leak';
@@ -41,22 +45,12 @@ function scenario(name: string): ScenarioResult {
   return r;
 }
 
-beforeAll(() => {
-  const root = path.resolve(__dirname, '../../..');
-  const stdout = execFileSync(
-    path.join(root, 'node_modules/.bin/ts-node'),
-    ['--transpile-only', 'src/middleware/__tests__/credential-field-guard.harness.ts'],
-    {
-      cwd: root,
-      encoding: 'utf8',
-      env: { ...process.env, LOG_LEVEL: 'error' },
-      maxBuffer: 64 * 1024 * 1024,
-    }
+beforeAll(async () => {
+  results = await runTsNodeHarness<Record<string, ScenarioResult>>(
+    'src/middleware/__tests__/credential-field-guard.harness.ts',
+    HARNESS_TIMEOUT_MS
   );
-  const match = /<<<RESULTS>>>(.*)<<<END>>>/s.exec(stdout);
-  if (!match) throw new Error(`harness printed no results:\n${stdout.slice(-2000)}`);
-  results = JSON.parse(match[1]) as Record<string, ScenarioResult>;
-}, 180_000);
+}, HOOK_TIMEOUT_MS);
 
 describe('output surface', () => {
   it('returns the credential to a service principal (control)', () => {
