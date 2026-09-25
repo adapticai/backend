@@ -65,6 +65,7 @@ import { Counter } from 'prom-client';
 import type { BackendPrincipal } from '../auth/token-verifier';
 import { metricsRegistry } from '../config/metrics';
 import { logger } from '../utils/logger';
+import { GuardLogThrottle } from './guard-log-throttle';
 
 /** The guard's operating mode. See the module doc. */
 export type CredentialFieldGuardMode = 'enforce' | 'shadow' | 'off';
@@ -315,13 +316,56 @@ export const credentialFieldAccessTotal = new Counter({
   registers: [metricsRegistry],
 });
 
+/**
+ * Longest caller-supplied value (forwarded chain, user agent, operation name,
+ * service subject) a log line or throttle key keeps, in characters.
+ */
+const MAX_ATTRIBUTION_LENGTH = 256;
+
+/** Truncate a caller-supplied value so a padded one cannot bloat the log or the throttle. */
+function bounded(value: string): string {
+  return value.slice(0, MAX_ATTRIBUTION_LENGTH);
+}
+
 /** Throttle window for the identity log line, per distinct caller key. */
 const LOG_THROTTLE_MS = 10 * 60 * 1000;
 
-/** Most distinct caller keys the throttle remembers before it resets. */
-const LOG_THROTTLE_MAX_KEYS = 5_000;
+/**
+ * Distinct caller keys one scope (principal kind plus connection address) may
+ * log per window. Well above the handful of callers one edge address carries;
+ * a scope that spends it is rotating caller-supplied values, and says so.
+ */
+const LOG_KEYS_PER_SCOPE = 256;
 
-const lastLoggedAt = new Map<string, number>();
+/** Distinct scopes the throttle tracks per window. */
+const LOG_MAX_SCOPES = 64;
+
+const logThrottle = new GuardLogThrottle({
+  windowMs: LOG_THROTTLE_MS,
+  keysPerScope: LOG_KEYS_PER_SCOPE,
+  maxScopes: LOG_MAX_SCOPES,
+});
+
+/**
+ * Charge one decision line to the throttle. Returns whether to write the line;
+ * when the scope has just spent its budget, writes the scope's single overflow
+ * notice instead and returns false.
+ */
+function admitLogLine(scope: string, key: string, nowMs: number): boolean {
+  const verdict = logThrottle.admit(scope, key, nowMs);
+  if (verdict.action === 'log') return true;
+  if (verdict.action === 'overflow') {
+    logger.warn('[credential-field-guard] decision log budget spent for a caller scope', {
+      scope: verdict.scope,
+      keysPerScope: LOG_KEYS_PER_SCOPE,
+      dedupWindowMs: LOG_THROTTLE_MS,
+      consequence:
+        'further distinct callers in this scope are not logged until the window ends; ' +
+        'the decision counters still count every access',
+    });
+  }
+  return false;
+}
 
 /** Log a denied or would-deny access at most once per caller key per window. */
 function logDecision(
@@ -333,26 +377,26 @@ function logDecision(
   request: GuardRequest | undefined,
   nowMs: number
 ): void {
-  const operationName = info.operation?.name?.value ?? '<unnamed>';
-  const userAgent = headerValue(request?.headers?.['user-agent']);
+  const operationName = bounded(info.operation?.name?.value ?? '<unnamed>');
+  const userAgent = bounded(headerValue(request?.headers?.['user-agent']));
   // The source is part of the key: two callers sending the same operation
   // with the same user agent (every Node `fetch` sends `node`) are different
   // callers, and a key without the source logs only the first of them per
   // window — which is exactly the attribution a pre-enforcement review of the
-  // would-deny set depends on.
+  // would-deny set depends on. The connection address scopes the key's budget
+  // (the caller cannot set it); the forwarded chain, which the caller can,
+  // only distinguishes keys inside that budget.
   const source = callerSource(request);
-  const key = `${decision}|${surface}|${principal}|${references.join(',')}|${operationName}|${userAgent}|${source.ip}|${source.forwardedFor}`;
-  const previous = lastLoggedAt.get(key);
-  if (previous !== undefined && nowMs - previous < LOG_THROTTLE_MS) return;
-  if (lastLoggedAt.size >= LOG_THROTTLE_MAX_KEYS) lastLoggedAt.clear();
-  lastLoggedAt.set(key, nowMs);
+  const referenceKey = [...new Set(references)].sort().join(',');
+  const key = `${decision}|${surface}|${referenceKey}|${operationName}|${userAgent}|${source.forwardedFor}`;
+  if (!admitLogLine(`${principal}|${source.ip}`, key, nowMs)) return;
   logger.warn('[credential-field-guard] credential access by a non-service principal', {
     decision,
     surface,
     references,
     principalKind: principal,
     operationName,
-    ip: request?.ip,
+    ip: source.ip,
     forwardedFor: source.forwardedFor,
     userAgent,
     dedupWindowMs: LOG_THROTTLE_MS,
@@ -378,27 +422,21 @@ function logServiceRead(
   request: GuardRequest | undefined,
   nowMs: number
 ): void {
-  const operationName = info.operation?.name?.value ?? '<unnamed>';
-  const caller = sub ?? '<unattributed>';
+  const operationName = bounded(info.operation?.name?.value ?? '<unnamed>');
+  const caller = bounded(sub ?? '<unattributed>');
   const source = callerSource(request);
-  const key = `allowed|${caller}|${reference}|${operationName}|${source.ip}|${source.forwardedFor}`;
-  const previous = lastLoggedAt.get(key);
-  if (previous !== undefined && nowMs - previous < LOG_THROTTLE_MS) return;
-  if (lastLoggedAt.size >= LOG_THROTTLE_MAX_KEYS) lastLoggedAt.clear();
-  lastLoggedAt.set(key, nowMs);
+  const key = `allowed|${caller}|${reference}|${operationName}|${source.forwardedFor}`;
+  if (!admitLogLine(`server|${source.ip}`, key, nowMs)) return;
   logger.info('[credential-field-guard] credential read by a service principal', {
     decision: 'allowed',
     serviceSub: caller,
     reference,
     operationName,
-    ip: request?.ip,
+    ip: source.ip,
     forwardedFor: source.forwardedFor,
     dedupWindowMs: LOG_THROTTLE_MS,
   });
 }
-
-/** Longest `X-Forwarded-For` chain the log keeps, in characters. */
-const MAX_FORWARDED_FOR_LENGTH = 256;
 
 /**
  * Where a request came from, as far as this process can tell.
@@ -408,14 +446,12 @@ const MAX_FORWARDED_FOR_LENGTH = 256;
  * service log the same handful of addresses), so on its own it cannot tell
  * callers apart. The raw `X-Forwarded-For` chain carries the hops the edge
  * saw. It is caller-supplied at its left end, so it is attribution evidence
- * for an operator reading the log, never an identity the guard decides on;
- * it is truncated so a padded header cannot bloat the log or the throttle.
+ * for an operator reading the log, never an identity the guard decides on.
  */
 function callerSource(request: GuardRequest | undefined): { ip: string; forwardedFor: string } {
-  const forwardedFor = headerValue(request?.headers?.['x-forwarded-for']);
   return {
-    ip: request?.ip ?? '<none>',
-    forwardedFor: forwardedFor.slice(0, MAX_FORWARDED_FOR_LENGTH),
+    ip: bounded(request?.ip ?? '<none>'),
+    forwardedFor: bounded(headerValue(request?.headers?.['x-forwarded-for'])),
   };
 }
 
@@ -518,5 +554,5 @@ export function createCredentialFieldGuardMiddleware(
 
 /** @internal Test hook: forget the log throttle state. */
 export function resetCredentialFieldGuardLogThrottle(): void {
-  lastLoggedAt.clear();
+  logThrottle.reset();
 }

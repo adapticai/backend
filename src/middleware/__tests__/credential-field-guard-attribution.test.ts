@@ -53,21 +53,48 @@ function schemaFor(mode: CredentialFieldGuardMode): ReturnType<typeof buildSchem
   return schema;
 }
 
+const schemas = new Map<CredentialFieldGuardMode, ReturnType<typeof buildSchema>>();
+
+/** One schema per mode: the flood cases below execute thousands of requests. */
+function cachedSchema(mode: CredentialFieldGuardMode): ReturnType<typeof buildSchema> {
+  let schema = schemas.get(mode);
+  if (!schema) {
+    schema = schemaFor(mode);
+    schemas.set(mode, schema);
+  }
+  return schema;
+}
+
 async function resolveSecret(
   mode: 'enforce' | 'shadow',
   principal: BackendPrincipal | null,
   ip: string,
   forwardedFor?: string,
-  operationName = 'findManyAlpacaAccount'
+  operationName = 'findManyAlpacaAccount',
+  userAgent = 'node'
 ): Promise<void> {
-  const headers: Record<string, string> = { 'user-agent': 'node' };
+  const headers: Record<string, string> = { 'user-agent': userAgent };
   if (forwardedFor !== undefined) headers['x-forwarded-for'] = forwardedFor;
   const context: CredentialFieldGuardContext = { principal, req: { ip, headers } };
   await graphql({
-    schema: schemaFor(mode),
+    schema: cachedSchema(mode),
     source: `query ${operationName} { alpacaAccounts { id APISecret } }`,
     contextValue: context,
   });
+}
+
+/**
+ * More distinct keys than the pre-bound throttle held before it cleared its
+ * whole map (5,000), so the flood cases exercise that clear as well as the
+ * bound that replaced it.
+ */
+const FLOOD_REQUESTS = 6_000;
+
+/** One caller rotating `X-Forwarded-For` on every request from one edge address. */
+async function floodFromEdge(edge: string): Promise<void> {
+  for (let i = 0; i < FLOOD_REQUESTS; i += 1) {
+    await resolveSecret('shadow', null, edge, `10.${i >> 16}.${(i >> 8) & 255}.${i & 255}, ${edge}`);
+  }
 }
 
 type LogCall = [string, Record<string, unknown>?];
@@ -157,5 +184,59 @@ describe('credential-field guard decision log attribution', () => {
     await resolveSecret('enforce', { kind: 'server' }, '10.0.0.4');
 
     expect(guardLines(info).map((l) => l.serviceSub)).toEqual(['<unattributed>']);
+  });
+
+  describe('a caller rotating X-Forwarded-For', () => {
+    const EDGE = '152.233.12.241';
+    const OTHER_EDGE = '152.233.13.7';
+
+    const decisionLines = (): Record<string, unknown>[] =>
+      (warn.mock.calls as LogCall[])
+        .filter(([message]) => message.includes('credential access by a non-service principal'))
+        .map(([, meta]) => meta ?? {});
+    const budgetNotices = (): Record<string, unknown>[] =>
+      (warn.mock.calls as LogCall[])
+        .filter(([message]) => message.includes('decision log budget spent'))
+        .map(([, meta]) => meta ?? {});
+
+    it('logs at most its scope budget plus one notice, not one line per request', async () => {
+      await floodFromEdge(EDGE);
+
+      expect(decisionLines().length).toBeLessThanOrEqual(256);
+      expect(budgetNotices()).toEqual([expect.objectContaining({ scope: `none|${EDGE}` })]);
+    });
+
+    it("does not erase the throttle state of a caller on another edge address", async () => {
+      await resolveSecret('shadow', null, OTHER_EDGE, `198.51.100.7, ${OTHER_EDGE}`);
+      await floodFromEdge(EDGE);
+      await resolveSecret('shadow', null, OTHER_EDGE, `198.51.100.7, ${OTHER_EDGE}`);
+
+      const other = decisionLines().filter((l) => l.ip === OTHER_EDGE);
+      expect(other).toHaveLength(1);
+    });
+
+    it('does not erase the throttle state of a caller already logged on the same edge', async () => {
+      await resolveSecret('shadow', null, EDGE, `198.51.100.7, ${EDGE}`);
+      await floodFromEdge(EDGE);
+      await resolveSecret('shadow', null, EDGE, `198.51.100.7, ${EDGE}`);
+
+      const legit = decisionLines().filter((l) => l.forwardedFor === `198.51.100.7, ${EDGE}`);
+      expect(legit).toHaveLength(1);
+    });
+
+    it('cannot spend the service-read budget of the edge it floods', async () => {
+      await floodFromEdge(EDGE);
+      await resolveSecret('enforce', { kind: 'server', sub: 'adaptic-audit:laptop:9' }, EDGE);
+
+      expect(guardLines(info).map((l) => l.serviceSub)).toEqual(['adaptic-audit:laptop:9']);
+    });
+  });
+
+  it('bounds a padded user agent and operation name in the line it logs', async () => {
+    await resolveSecret('shadow', null, '152.233.12.241', undefined, `Q${'x'.repeat(5_000)}`, 'u'.repeat(5_000));
+
+    const [line] = guardLines(warn);
+    expect(String(line?.userAgent).length).toBeLessThanOrEqual(256);
+    expect(String(line?.operationName).length).toBeLessThanOrEqual(256);
   });
 });
