@@ -61,6 +61,7 @@ import {
   decideWsAuth,
   unauthenticatedWsError,
 } from './auth/ws-auth-context';
+import { refuseNonSubscriptionOperation } from './auth/ws-subscription-only';
 import {
   recordShadowAuthMiss,
   recordAuthContextOutcome,
@@ -500,6 +501,11 @@ const startServer = async () => {
   useServer(
     {
       schema,
+      // Subscriptions only. A query or mutation executed over the socket would
+      // run outside Apollo's pipeline (audit trail, validation, complexity and
+      // rate limits), so it is refused before any context is built; HTTP
+      // /graphql serves it instead. See src/auth/ws-subscription-only.ts.
+      onSubscribe: refuseNonSubscriptionOperation,
       context: async (ctx, _msg, args) => {
         // Ensure we're using the global prisma instance for WebSocket connections too
         if (!global.prisma) {
