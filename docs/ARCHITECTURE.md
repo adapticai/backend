@@ -81,6 +81,7 @@ src/
   middleware/
     auth.ts                 # JWT Bearer token authentication
     audit-logger.ts         # Apollo plugin for mutation audit logging
+    audit-log-write-redaction.ts  # Prisma extension: credential redaction on every AuditLog write
     input-validator.ts      # Input validation for GraphQL mutations
     graphql-validation-plugin.ts  # Schema-level GraphQL validation
     rate-limiter.ts         # Rate limiting (auth/unauth split)
@@ -450,6 +451,7 @@ startServer()
 | Query Complexity      | Auth/unauth complexity limits                      | `src/middleware/query-complexity.ts`          |
 | Error Sanitization    | Strip stack traces in production                   | `src/plugins/error-sanitizer.ts`              |
 | Audit Logging         | All mutations logged to AuditLog model             | `src/middleware/audit-logger.ts`              |
+| Audit Write Redaction | Credentials redacted from every AuditLog write     | `src/middleware/audit-log-write-redaction.ts` |
 | Soft Deletes          | deletedAt on User, AlpacaAccount, Trade, Action    | `src/middleware/soft-delete.ts`               |
 | Database Constraints  | CHECK constraints on prices, quantities, strings   | Prisma migration                              |
 | Allocation Validation | Sum validation for allocation percentages          | `src/validators/allocation-validator.ts`      |

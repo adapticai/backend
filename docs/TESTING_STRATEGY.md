@@ -80,6 +80,7 @@ Reports are generated in `./coverage/` in text, JSON, LCOV, and HTML formats.
 - `error-sanitizer.test.ts` -- verifies error messages are sanitized before reaching clients
 - `query-depth-limiter.test.ts` -- tests GraphQL query depth limiting
 - `audit-logger.test.ts` -- tests request/response audit logging middleware
+- `audit-log-write-redaction.test.ts` -- every AuditLog write path stores credentials redacted, through the server's own Prisma client (an out-of-process harness drives the generated resolvers and records what would reach the query engine; no database is contacted)
 - `soft-delete.test.ts` -- tests Prisma middleware for soft-delete behavior
 
 ## What to Test When Making Changes
