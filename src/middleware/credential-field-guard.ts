@@ -494,6 +494,19 @@ export interface CredentialFieldGuardOptions {
   now?: () => number;
 }
 
+/**
+ * What a refused credential reader should do next. The refusal is a
+ * deliberate, recorded control rather than a fault, and the text says so:
+ * callers who read it as an outage will otherwise ask for the guard to be
+ * relaxed instead of presenting a service identity.
+ */
+export const CREDENTIAL_READ_REMEDY =
+  'Refused deliberately: since 2026-09-26 14:00Z stored broker credentials are readable ' +
+  'only by a verified service principal (a control on the risk register). Run operator ' +
+  'tools through the service-identity wrapper (scripts/account-audit/run-with-identity.mjs ' +
+  'in the mono repo), or request a service principal from research engineering. Do not ask ' +
+  'for this guard to be returned to shadow.';
+
 function forbidden(references: string[]): GraphQLError {
   return new GraphQLError(
     'Forbidden: stored credentials are readable only by a service principal',
@@ -501,6 +514,7 @@ function forbidden(references: string[]): GraphQLError {
       extensions: {
         code: 'FORBIDDEN',
         references,
+        remedy: CREDENTIAL_READ_REMEDY,
         http: { status: 403 },
       },
     }
