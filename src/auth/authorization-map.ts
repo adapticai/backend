@@ -53,12 +53,24 @@ export const IR_MODELS: readonly EnhanceModelName[] = [
 /**
  * Models whose READ actions are decorated as well as their deletes.
  *
- * These three answer to anyone today. A read-only probe of the deployed API
+ * These four answer to anyone today. A read-only probe of the deployed API
  * with no Authorization header returns a real organisation name, a real user's
  * email address, and a real membership row, so the standing escalation is not
  * theoretical. They were outside the checker entirely: `_all` covers the five
  * investor-relations models, everything else got delete coverage only, and a
  * query the checker never runs for is a query it cannot even count.
+ *
+ * `AuditLog` joined them on 2026-09-26, on the same admission criterion and by
+ * measurement rather than by inspection. It is the largest of the four by some
+ * distance and the only one carrying correlatable personal data: a census of
+ * the anonymously readable rows found, across roughly 70,000 rows, at most five
+ * distinct email identities, 33 distinct IP addresses, at most four person
+ * names and two user agents. Report that as a small number of data subjects
+ * with a great many records about each, NOT as a large exposure — the row count
+ * is a true number answering a question nobody asked. Note also that 27,964
+ * `accountName` rows, first classified as an account label, were hash-matched
+ * in-database against the users table to three real email addresses, so
+ * per-subject completeness is higher than a field-name reading suggests.
  *
  * Decorating them changes NO behaviour while the checker is in shadow — a
  * would-deny is logged and counted and then allowed. What it changes is that
@@ -70,6 +82,7 @@ export const TENANT_SCOPED_READ_MODELS: readonly EnhanceModelName[] = [
   'Organization',
   'OrgMembership',
   'User',
+  'AuditLog',
 ];
 
 /**
