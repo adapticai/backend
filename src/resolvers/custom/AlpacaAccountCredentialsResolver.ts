@@ -44,6 +44,10 @@ export const alpacaCredentialAccessTotal = new Counter({
   registers: [metricsRegistry],
 });
 
+function recordCredentialAccess(outcome: CredentialAccessOutcome): void {
+  alpacaCredentialAccessTotal.inc({ outcome });
+}
+
 /**
  * Whether the given principal is the trusted server-to-server caller. Mirrors the
  * `server`-kind bypass in {@link cortexAuthChecker} and the tenancy-scoping
@@ -101,7 +105,7 @@ export class AlpacaAccountCredentialsResolver {
     const principal = ctx.principal ?? null;
 
     if (!isServerPrincipal(principal)) {
-      alpacaCredentialAccessTotal.inc({ outcome: 'denied_non_server' });
+      recordCredentialAccess('denied_non_server');
       logger.warn(
         '[cortex-credentials] denied non-server access to alpacaAccountCredentials',
         {
@@ -130,7 +134,7 @@ export class AlpacaAccountCredentialsResolver {
     });
 
     if (!account) {
-      alpacaCredentialAccessTotal.inc({ outcome: 'not_found' });
+      recordCredentialAccess('not_found');
       logger.warn(
         '[cortex-credentials] server requested credentials for unknown account',
         { accountId }
@@ -138,7 +142,7 @@ export class AlpacaAccountCredentialsResolver {
       return null;
     }
 
-    alpacaCredentialAccessTotal.inc({ outcome: 'granted' });
+    recordCredentialAccess('granted');
     logger.info('[cortex-credentials] server credential read', {
       accountId: account.id,
     });
