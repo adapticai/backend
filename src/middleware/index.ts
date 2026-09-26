@@ -42,6 +42,14 @@ export {
   extractChangedFields,
 } from './audit-logger';
 
+// Export AuditLog write redaction (applied to the server's Prisma client by
+// `withClientGuards` in src/prismaClient.ts)
+export {
+  withAuditLogWriteRedaction,
+  redactAuditLogWriteArgs,
+  ROW_PAYLOAD_ARGS,
+} from './audit-log-write-redaction';
+
 // Export soft-delete utilities
 export {
   SOFT_DELETE_MODELS,

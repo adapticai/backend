@@ -5,9 +5,11 @@
  * The audit trail records what a mutation asked for, and a mutation that
  * writes a broker key carries the key in its arguments. An audit row is read
  * by far more people and processes than the credential column itself, so a
- * credential copied into one is a second, unguarded copy of the secret. A
- * payload bound for `AuditLog.changedFields` / `metadata` should pass through
- * here before it is stored, and the audit payload guard
+ * credential copied into one is a second, unguarded copy of the secret. Every
+ * `AuditLog` write passes through here before it is stored, whoever makes it:
+ * the server's Prisma client applies it to each row an `AuditLog` operation
+ * writes (`middleware/audit-log-write-redaction`), so a writer that forgets to
+ * redact cannot store a key. The audit payload guard
  * (`middleware/audit-payload-guard`) applies the same rule when a row is read,
  * which also covers rows stored before any writer redacted.
  *
