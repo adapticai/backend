@@ -17,3 +17,5 @@ export {
   OrgTradingDefaultsPayload,
   FundTradingOverridesPayload,
 } from './TradingSettingsResolver';
+export { AlpacaAccountCredentialsResolver } from './AlpacaAccountCredentialsResolver';
+export { AlpacaAccountCredentials } from './AlpacaAccountCredentials';
