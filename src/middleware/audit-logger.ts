@@ -1,11 +1,12 @@
 /**
  * Audit Logging Middleware
  *
- * Captures all GraphQL mutations and records an append-only audit trail.
- * Each audit log entry includes: user ID (from JWT context), timestamp,
- * operation type, model name, record ID, and changed fields. The changed
- * fields are the executed field's own arguments, each under its schema path,
- * with stored-credential values redacted.
+ * Captures every generated write mutation (a create, update, upsert or
+ * delete of a Prisma model, except the excluded models below) and records an
+ * append-only audit trail. Each audit log entry includes: user ID (from JWT
+ * context), timestamp, operation type, model name, record ID, and changed
+ * fields. The changed fields are the executed field's own arguments, each
+ * under its schema path, with stored-credential values redacted.
  *
  * This middleware is implemented as an Apollo Server plugin that intercepts
  * mutation operations and logs them to the AuditLog table.

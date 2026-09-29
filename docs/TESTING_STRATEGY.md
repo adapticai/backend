@@ -79,8 +79,10 @@ Reports are generated in `./coverage/` in text, JSON, LCOV, and HTML formats.
 - `connection-pool.test.ts` -- tests Prisma connection pool configuration and behavior
 - `error-sanitizer.test.ts` -- verifies error messages are sanitized before reaching clients
 - `query-depth-limiter.test.ts` -- tests GraphQL query depth limiting
-- `audit-logger.test.ts` -- tests request/response audit logging middleware
-- `audit-log-write-redaction.test.ts` -- every AuditLog write path stores credentials redacted, through the server's own Prisma client (an out-of-process harness drives the generated resolvers and records what would reach the query engine; no database is contacted)
+- `audit-logger.test.ts` -- tests request/response audit logging middleware, including that every mutation the generator emits resolves onto the model it writes
+- `audit-logger-plugin.test.ts` -- the audit plugin inside a real Apollo pipeline: each argument is recorded under its schema path (so a credential is redacted whatever the operation calls its variable, and inline arguments are recorded), only the executed operation's fields are audited, and the generated client's canonical documents store byte-identical rows
+- `audit-log-write-redaction.test.ts` -- every AuditLog write path stores credentials redacted, through the server's own Prisma client (an out-of-process harness drives the generated resolvers and records what would reach the query engine; no database is contacted), for every credential shape (named column, variable-named, nested JSON, inline arguments) on every generated write, with credential-free rows byte-identical
+- `credential-redaction.test.ts` (in `src/auth/__tests__`) -- the redaction vocabulary names every credential-shaped column in `prisma/schema.prisma`, and only columns the schema has
 - `soft-delete.test.ts` -- tests Prisma middleware for soft-delete behavior
 
 ## What to Test When Making Changes

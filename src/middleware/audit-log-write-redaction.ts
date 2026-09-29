@@ -26,6 +26,19 @@
  * recognised by the arguments it carries rather than by its name, so a write
  * operation Prisma adds later is covered without an edit here.
  *
+ * ## Why redaction by key name is enough here
+ *
+ * The rule recognises a credential by the name of the key that holds it, so
+ * it holds when every recorded value sits under its column's own name. The
+ * audit plugin, the one writer that records what callers send, resolves each
+ * mutation's arguments from the executed field, so a credential passed as
+ * `APIKey: $key` is recorded at `input.APIKey` rather than under the
+ * operation's variable name; and the vocabulary is held to every
+ * credential-shaped column in the Prisma schema by its own test. A caller
+ * that writes an audit row directly and stores a credential under a name that
+ * is no credential column's is not recognised: no rule keyed on names can see
+ * it, and one keyed on value shapes would rewrite credential-free rows.
+ *
  * ## What it leaves alone
  *
  * A column value with no credential-named key ({@link credentialKeyPaths} is

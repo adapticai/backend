@@ -450,7 +450,7 @@ startServer()
 | Query Depth Limiting  | Configurable max depth (default: 10)               | `src/plugins/query-depth-limiter.ts`          |
 | Query Complexity      | Auth/unauth complexity limits                      | `src/middleware/query-complexity.ts`          |
 | Error Sanitization    | Strip stack traces in production                   | `src/plugins/error-sanitizer.ts`              |
-| Audit Logging         | All mutations logged to AuditLog model             | `src/middleware/audit-logger.ts`              |
+| Audit Logging         | Generated writes logged, arguments by schema path  | `src/middleware/audit-logger.ts`              |
 | Audit Write Redaction | Credentials redacted from every AuditLog write     | `src/middleware/audit-log-write-redaction.ts` |
 | Soft Deletes          | deletedAt on User, AlpacaAccount, Trade, Action    | `src/middleware/soft-delete.ts`               |
 | Database Constraints  | CHECK constraints on prices, quantities, strings   | Prisma migration                              |
@@ -587,7 +587,10 @@ Vitest with v8 coverage provider. Configuration in `vitest.config.ts`:
 
 | Test File                                       | Tests | Domain                        |
 | ----------------------------------------------- | ----- | ----------------------------- |
-| `src/middleware/__tests__/audit-logger.test.ts` | 25    | Audit logging plugin          |
+| `src/middleware/__tests__/audit-logger.test.ts` | --    | Audit logging plugin          |
+| `src/middleware/__tests__/audit-logger-plugin.test.ts` | -- | Audit rows by schema path |
+| `src/middleware/__tests__/audit-log-write-redaction.test.ts` | -- | AuditLog write redaction |
+| `src/auth/__tests__/credential-redaction.test.ts` | -- | Redaction vocabulary vs schema |
 | `src/middleware/__tests__/soft-delete.test.ts`  | 21    | Soft delete utilities         |
 | `src/tests/connection-pool.test.ts`             | 10    | Connection pool configuration |
 | `src/tests/graphql-validation-plugin.test.ts`   | --    | GraphQL validation            |
