@@ -69,6 +69,9 @@ describe('DB_SUCCESS_FRESHNESS_MS', () => {
     expect(DB_SUCCESS_FRESHNESS_MS).toBe(
       (MAX_HEARTBEAT_FAILURES - 0.5) * HEARTBEAT_INTERVAL_MS
     );
+    // This value pin is the assertion that discriminates. The relation above
+    // recomputes the definition from the same constants, so it can't fail.
+    // If the heartbeat constants change, update 75_000 deliberately; don't delete it.
     expect(DB_SUCCESS_FRESHNESS_MS).toBe(75_000);
   });
 
