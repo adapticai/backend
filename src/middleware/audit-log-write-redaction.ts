@@ -39,14 +39,24 @@
  * is no credential column's is not recognised: no rule keyed on names can see
  * it, and one keyed on value shapes would rewrite credential-free rows.
  *
- * ## What it leaves alone
+ * ## What it leaves alone, and what it replaces without a credential
  *
- * A column value with no credential-named key ({@link credentialKeyPaths} is
- * empty) is passed on exactly as received, so a row without a credential is
- * written as the unextended client would write it — including Prisma's
- * `DbNull` / `JsonNull` sentinels and `Date` values, which a redaction pass
- * would otherwise turn into `{}` and an ISO string. Reads, deletes and filters
- * carry no row payload and pass through untouched.
+ * A column value in which redaction would replace nothing
+ * ({@link credentialKeyPaths} is empty) is passed on exactly as received, so
+ * a row without a credential is written as the unextended client would write
+ * it — including Prisma's `DbNull` / `JsonNull` sentinels and `Date` values,
+ * which a redaction pass would otherwise turn into `{}` and an ISO string. A
+ * credential key that holds nothing (absent, `null`, or an update's
+ * `{ set: null }`) replaces nothing, so a clear stays visible as a clear.
+ * Reads, deletes and filters carry no row payload and pass through untouched.
+ *
+ * The redaction walks a value only to a fixed depth (`MAX_DEPTH` in
+ * `auth/credential-redaction`): whatever sits 12 or more levels inside a
+ * column value cannot be inspected, so it is replaced with the placeholder
+ * whether or not it holds a credential, and that column is not passed on
+ * unchanged. Treating a value it cannot inspect as a credential is the
+ * fail-closed choice, and it is the same limit the audit plugin, the
+ * TradingPolicy trail and the read guard apply.
  *
  * @module middleware/audit-log-write-redaction
  */

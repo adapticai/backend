@@ -81,6 +81,13 @@ function containsSecret(value: unknown): boolean {
   return SECRETS.some((secret) => serialised.includes(secret));
 }
 
+/** `leaf` wrapped in `depth` levels of `{ level: … }`. */
+function nest(depth: number, leaf: unknown): unknown {
+  let value = leaf;
+  for (let level = 0; level < depth; level += 1) value = { level: value };
+  return value;
+}
+
 // -----------------------------------------------------------------------------
 // 1. The argument rewrite
 // -----------------------------------------------------------------------------
@@ -143,6 +150,19 @@ describe('redactAuditLogWriteArgs', () => {
     const changedFields = { where: { id: 'ba-1' }, data: { apiKey: { set: null }, apiSecret: { set: null } } };
     const args = { data: { ...PLAIN_ROW, changedFields } };
     expect(redactAuditLogWriteArgs(args)).toBe(args);
+  });
+
+  it('replaces what sits 12 or more levels inside a column value, which the redaction cannot inspect, credential or not', () => {
+    const LEAF = 'plain-value-without-a-credential';
+    const within = { data: { ...PLAIN_ROW, changedFields: { shallow: { note: 'kept' }, deep: nest(10, LEAF) } } };
+    expect(redactAuditLogWriteArgs(within)).toBe(within);
+
+    const changedFields = { shallow: { note: 'kept' }, deep: nest(11, LEAF) };
+    const past = { data: { ...PLAIN_ROW, changedFields } };
+    const out = redactAuditLogWriteArgs(past);
+    expect(out).not.toBe(past);
+    expect(out.data.changedFields).toEqual({ shallow: { note: 'kept' }, deep: nest(11, REDACTED) });
+    expect(JSON.stringify(out)).not.toContain(LEAF);
   });
 
   it('hands on a write without a credential as the same object', () => {
