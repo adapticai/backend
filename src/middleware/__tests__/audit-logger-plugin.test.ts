@@ -68,6 +68,14 @@ const TYPE_DEFS = `#graphql
     apiKey: NullableStringFieldUpdateOperationsInput
     apiSecret: NullableStringFieldUpdateOperationsInput
   }
+  input BrokerageAccountCreateManyInput {
+    provider: BrokerageProvider
+    type: BrokerageAccountType
+    apiKey: String
+    apiSecret: String
+    fundId: String!
+  }
+  input SessionCreateManyInput { sessionToken: String!, userId: String!, expires: String! }
   input BrokerageAccountWhereUniqueInput { id: String }
   input BrokerageAccountWhereInput {
     fundId: StringFilter
@@ -100,6 +108,8 @@ const TYPE_DEFS = `#graphql
   input AlertWhereUniqueInput { id: String }
 
   type BrokerageAccount { id: String!, updatedAt: String }
+  type CreateManyAndReturnBrokerageAccount { id: String! }
+  type CreateManyAndReturnSession { id: String! }
   type User { id: String! }
   type Alert { id: String! }
   type AffectedRowsOutput { count: Int! }
@@ -116,6 +126,14 @@ const TYPE_DEFS = `#graphql
       data: BrokerageAccountUpdateManyMutationInput!
       where: BrokerageAccountWhereInput
     ): AffectedRowsOutput!
+    createManyAndReturnBrokerageAccount(
+      data: [BrokerageAccountCreateManyInput!]!
+      skipDuplicates: Boolean
+    ): [CreateManyAndReturnBrokerageAccount!]!
+    createManyAndReturnSession(
+      data: [SessionCreateManyInput!]!
+      skipDuplicates: Boolean
+    ): [CreateManyAndReturnSession!]!
     createOneUser(data: UserCreateInput!): User!
     createOneAlert(data: AlertCreateInput!): Alert!
     createManyAlert(data: [AlertCreateManyInput!]!, skipDuplicates: Boolean): AffectedRowsOutput!
@@ -144,6 +162,8 @@ const RESOLVERS = {
       id: args.where?.id ?? 'ba-updated',
     }),
     updateManyBrokerageAccount: (): { count: number } => ({ count: 1 }),
+    createManyAndReturnBrokerageAccount: (): Array<{ id: string }> => [{ id: 'ba-many-1' }],
+    createManyAndReturnSession: (): Array<{ id: string }> => [{ id: 'session-many-1' }],
     createOneUser: (): { id: string } => ({ id: 'user-created' }),
     createOneAlert: (): { id: string } => ({ id: 'alert-created' }),
     createManyAlert: (): { count: number } => ({ count: 2 }),
@@ -513,6 +533,40 @@ describe('audit rows cover exactly the fields the operation executed', () => {
     expect(rows[0].changedFields).toEqual({
       input: { message: 'm', alpacaAccount: { connect: {} } },
     });
+  });
+});
+
+describe('audit rows name the model a createManyAndReturn field writes', () => {
+  it('labels a createManyAndReturn row with its own model and redacts it like any create', async () => {
+    const rows = await audit(
+      `mutation M($f: String!, $k: String!, $s: String!) {
+        createManyAndReturnBrokerageAccount(data: [{ fundId: $f, apiKey: $k, apiSecret: $s }]) { id }
+      }`,
+      { f: 'fund-1', k: FAKE_KEY, s: FAKE_SECRET }
+    );
+
+    expectNoCredentialValue(rows);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      operationType: 'CREATE',
+      modelName: 'BrokerageAccount',
+      operationName: 'createManyAndReturnBrokerageAccount',
+    });
+    expect(rows[0].changedFields).toEqual({
+      input: [{ fundId: 'fund-1', apiKey: REDACTED, apiSecret: REDACTED }],
+    });
+  });
+
+  it('does not audit createManyAndReturn of an excluded model', async () => {
+    // Session is excluded because its rows are bearer tokens; the
+    // createManyAndReturn field must fall under the same exclusion as
+    // createOne and createMany.
+    const rows = await audit(
+      `mutation M($data: [SessionCreateManyInput!]!) { createManyAndReturnSession(data: $data) { id } }`,
+      { data: [{ sessionToken: FAKE_SECRET, userId: 'user-1', expires: '2026-10-01T00:00:00.000Z' }] }
+    );
+
+    expect(rows).toEqual([]);
   });
 });
 

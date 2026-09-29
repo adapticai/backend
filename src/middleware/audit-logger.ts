@@ -16,7 +16,7 @@ import type {
   GraphQLRequestContext,
   GraphQLRequestListener,
 } from '@apollo/server';
-import type { PrismaClient } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
 import {
   valueFromASTUntyped,
   type DirectiveNode,
@@ -27,6 +27,7 @@ import {
   type SelectionSetNode,
 } from 'graphql';
 import { redactCredentials } from '../auth/credential-redaction';
+import { classifyMutationField, type MutationAction } from '../auth/mutation-authorization';
 import type { BackendPrincipal } from '../auth/token-verifier';
 import { logger } from '../utils/logger';
 
@@ -66,51 +67,51 @@ const EXCLUDED_MODELS = new Set([
   'Authenticator',
 ]);
 
+/** Every Prisma model name; a generated write mutation names exactly one. */
+const PRISMA_MODELS: ReadonlySet<string> = new Set(Object.values(Prisma.ModelName));
+
 /**
- * Extracts the model name and operation type from a GraphQL mutation operation name.
- * TypeGraphQL-Prisma generates mutations with names like:
- *   createOneUser, updateOneUser, deleteOneUser,
- *   createManyUser, updateManyUser, deleteManyUser,
- *   upsertOneUser
+ * The audit operation type recorded for each generated write. An upsert is
+ * recorded as a CREATE whose `changedFields.input` holds its `where`, `create`
+ * and `update` arguments.
+ */
+const AUDIT_OPERATION_TYPES: Readonly<Record<MutationAction, MutationAuditData['operationType']>> = {
+  create: 'CREATE',
+  upsert: 'CREATE',
+  update: 'UPDATE',
+  delete: 'DELETE',
+};
+
+/**
+ * Resolves a mutation field onto the model it writes and the audit operation
+ * type. TypeGraphQL-Prisma generates, per model, `createOne`, `createMany`,
+ * `createManyAndReturn`, `updateOne`, `updateMany`, `upsertOne`, `deleteOne`
+ * and `deleteMany` followed by the model name.
+ *
+ * The field is read with the classifier the mutation-authorization guard uses
+ * (`classifyMutationField`): prefixes are matched longest first and the
+ * remainder must be a Prisma model, so the audit row names the model the
+ * guard authorised. A leading-prefix match alone reads
+ * `createManyAndReturnSession` as `createMany` of a model `AndReturnSession`,
+ * which mislabels the row and lets the write of an excluded model (whose
+ * payload carries its tokens) into the audit trail.
  *
  * @param operationName - The name of the GraphQL field being executed
- * @returns Parsed mutation data or null if not a recognized mutation pattern
+ * @param models - Every Prisma model name; defaults to the generated client's
+ * @returns Parsed mutation data, or null for a field that is not a generated
+ *   write of a model
  */
 function parseMutationOperation(
-  operationName: string
+  operationName: string,
+  models: ReadonlySet<string> = PRISMA_MODELS
 ): MutationAuditData | null {
-  const createPattern = /^(createOne|createMany|upsertOne)(\w+)$/;
-  const updatePattern = /^(updateOne|updateMany|upsertOne)(\w+)$/;
-  const deletePattern = /^(deleteOne|deleteMany)(\w+)$/;
-
-  let match = createPattern.exec(operationName);
-  if (match) {
-    return {
-      operationType: 'CREATE',
-      modelName: match[2],
-      operationName,
-    };
-  }
-
-  match = updatePattern.exec(operationName);
-  if (match) {
-    return {
-      operationType: 'UPDATE',
-      modelName: match[2],
-      operationName,
-    };
-  }
-
-  match = deletePattern.exec(operationName);
-  if (match) {
-    return {
-      operationType: 'DELETE',
-      modelName: match[2],
-      operationName,
-    };
-  }
-
-  return null;
+  const target = classifyMutationField(operationName, models);
+  if (target.action === 'custom') return null;
+  return {
+    operationType: AUDIT_OPERATION_TYPES[target.action],
+    modelName: target.model,
+    operationName,
+  };
 }
 
 /**

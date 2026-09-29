@@ -1,3 +1,6 @@
+import { readdirSync, readFileSync } from 'fs';
+import { join, resolve } from 'path';
+import { Prisma } from '@prisma/client';
 import { describe, it, expect } from 'vitest';
 import {
   parseMutationOperation,
@@ -6,6 +9,61 @@ import {
   extractChangedFields,
   principalMetadata,
 } from '../audit-logger';
+
+/** TypeGraphQL-Prisma's output: one `crud/<Model>/<Model>CrudResolver.ts` per model. */
+const CRUD_RESOLVERS = resolve(__dirname, '../../generated/typegraphql-prisma/resolvers/crud');
+
+/** The audit operation type each generated write prefix is recorded under. */
+const PREFIX_OPERATION_TYPES: ReadonlyArray<readonly [string, 'CREATE' | 'UPDATE' | 'DELETE']> = [
+  ['createManyAndReturn', 'CREATE'],
+  ['createMany', 'CREATE'],
+  ['createOne', 'CREATE'],
+  ['upsertOne', 'CREATE'],
+  ['updateMany', 'UPDATE'],
+  ['updateOne', 'UPDATE'],
+  ['deleteMany', 'DELETE'],
+  ['deleteOne', 'DELETE'],
+];
+
+/** Every mutation field the generator emitted, with the model folder it was emitted under. */
+function generatedMutations(): Array<{ model: string; field: string }> {
+  return readdirSync(CRUD_RESOLVERS, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .flatMap(({ name: model }) => {
+      const source = readFileSync(join(CRUD_RESOLVERS, model, `${model}CrudResolver.ts`), 'utf8');
+      return [...source.matchAll(/@TypeGraphQL\.Mutation\([\s\S]*?\}\)\s*async (\w+)\(/g)].map(
+        ([, field]) => ({ model, field })
+      );
+    });
+}
+
+describe('parseMutationOperation against the generated schema', () => {
+  const mutations = generatedMutations();
+
+  it('reads every model the generator emitted mutations for', () => {
+    // A parser that found nothing would pass the check below.
+    const models = new Set(mutations.map(({ model }) => model));
+    expect(models).toEqual(new Set(Object.values(Prisma.ModelName)));
+    expect(mutations.length).toBe(models.size * PREFIX_OPERATION_TYPES.length);
+  });
+
+  it('resolves every generated CRUD mutation onto the model it writes', () => {
+    const wrong = mutations.flatMap(({ model, field }) => {
+      const [, operationType] = PREFIX_OPERATION_TYPES.find(([prefix]) => field === `${prefix}${model}`) ?? [];
+      const parsed = parseMutationOperation(field);
+      const expected = { operationType, modelName: model, operationName: field };
+      return JSON.stringify(parsed) === JSON.stringify(expected)
+        ? []
+        : [`${field}: ${JSON.stringify(parsed)}`];
+    });
+    expect(wrong).toEqual([]);
+  });
+
+  it('does not read a CRUD-shaped name of no model as a model', () => {
+    expect(parseMutationOperation('createManyAndReturnNotAModel')).toBeNull();
+    expect(parseMutationOperation('updateOneNotAModel')).toBeNull();
+  });
+});
 
 describe('parseMutationOperation', () => {
   it('should parse createOne operations', () => {
