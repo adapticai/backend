@@ -17,6 +17,15 @@
  *    the wiring (both client assignment sites), who can reach each write
  *    mutation, and that the payloads the engine and platform write today reach
  *    the engine byte-identical.
+ * 4. The acceptance matrix, through the same harness: every credential shape
+ *    (named column, variable-named, nested JSON, inline GraphQL arguments) on
+ *    every generated write, both as a credential model's write the audit
+ *    plugin records and as a direct AuditLog write, plus credentials nested in
+ *    a relation write; and credential-free writes of credential models, which
+ *    must store the row main's recorder stored, byte for byte. The harness
+ *    derives each expected row from its scenario template, which marks the
+ *    credential columns, so the expectation never comes from the redaction
+ *    vocabulary under test.
  *
  * No layer contacts a database: the capture returns a synthetic row instead
  * of executing, and the datasource points at a closed local port.
@@ -338,10 +347,32 @@ interface HarnessScenario {
   unguarded: HarnessCapture[];
 }
 
+type CredentialShape = 'named-column' | 'variable-named' | 'nested-json' | 'graphql-args';
+
+interface HarnessMatrixCase {
+  path: 'plugin' | 'direct';
+  field: string;
+  shape: CredentialShape | 'nested-relation';
+  model: string;
+  operation: string;
+  auditType?: 'CREATE' | 'UPDATE';
+  expected: unknown;
+  query: string;
+  result: HarnessScenario;
+}
+
+interface HarnessCredentialFreeCase {
+  variables: Record<string, unknown>;
+  operationType: 'CREATE' | 'UPDATE' | 'DELETE';
+  result: HarnessScenario;
+}
+
 interface HarnessOutput {
   singletonIsDefaultExport: boolean;
   reconnect: { available: boolean; replaced: boolean; result: HarnessScenario | null };
   results: Record<string, HarnessScenario>;
+  matrix: HarnessMatrixCase[];
+  credentialFree: Record<string, HarnessCredentialFreeCase>;
 }
 
 const HARNESS_TIMEOUT_MS = 240_000;
@@ -500,6 +531,165 @@ describe('writes without a credential are unchanged', () => {
     expect(sentinels.bytes).toContain('{"$sentinel":"JsonNull"}');
     const [dates] = auditWrites(scenario('direct/non-json-values').production);
     expect(dates.bytes).toContain('"changedFields":{"at":{"$date":"2026-09-26T16:00:00.000Z"}');
+  });
+});
+
+// -----------------------------------------------------------------------------
+// 4. The acceptance matrix: every credential shape on every write
+// -----------------------------------------------------------------------------
+
+const SHAPES: readonly CredentialShape[] = ['named-column', 'variable-named', 'nested-json', 'graphql-args'];
+
+/** A credential model's generated writes, each recorded by the audit plugin. */
+const PLUGIN_FIELDS = [
+  'createOneAlpacaAccount',
+  'createManyAlpacaAccount',
+  'createManyAndReturnAlpacaAccount',
+  'updateOneAlpacaAccount',
+  'updateManyAlpacaAccount',
+  'upsertOneAlpacaAccount',
+] as const;
+
+/** Writes of a model with no credential on its own row, carrying one in a nested relation write. */
+const NESTED_RELATION_FIELDS = ['createOneUser', 'updateOneUser', 'upsertOneUser'] as const;
+
+const DIRECT_FIELDS = GRAPHQL_WRITES;
+
+function matrixCase(path: HarnessMatrixCase['path'], field: string, shape: HarnessMatrixCase['shape']): HarnessMatrixCase {
+  const found = harness.matrix.filter((c) => c.path === path && c.field === field && c.shape === shape);
+  if (found.length !== 1) throw new Error(`harness produced ${found.length} results for ${path} ${field} ${shape}`);
+  return found[0];
+}
+
+/**
+ * The audit plugin's row for another model's write: the credential reached
+ * that model's own write, and the audit row records the write's arguments
+ * under their schema paths with every credential column redacted.
+ */
+function expectPluginRow(c: HarnessMatrixCase): void {
+  const r = c.result;
+  expect(r.status).toBe(200);
+  expect(r.errors).toEqual([]);
+  // The credential went where it belongs: the model's own write carries it,
+  // so the scenario really sent one.
+  const modelWrites = r.production.filter((w) => w.model !== 'AuditLog');
+  expect(modelWrites.map((w) => `${w.model}.${w.operation}`)).toEqual([`${c.model}.${c.operation}`]);
+  expect(containsSecret(modelWrites[0].args)).toBe(true);
+  // The audit trail gets exactly one row and no secret, through either
+  // client: the recorder redacts it itself, and the guard again.
+  for (const captures of [r.production, r.unguarded]) {
+    const audits = auditWrites(captures);
+    expect(audits.map((w) => w.operation)).toEqual(['create']);
+    expect(containsSecret(audits[0].args)).toBe(false);
+  }
+  const row = (auditWrites(r.production)[0].args as { data: Record<string, unknown> }).data;
+  expect(row).toMatchObject({ modelName: c.model, operationType: c.auditType, operationName: c.field });
+  expect(row.changedFields).toEqual(c.expected);
+}
+
+/**
+ * A direct write through a generated AuditLog mutation: the rows reach the
+ * write carrying the credential, and the server's client stores each one
+ * with every credential column redacted and everything else as sent.
+ */
+function expectDirectRows(c: HarnessMatrixCase): void {
+  const r = c.result;
+  expect(r.status).toBe(200);
+  expect(r.errors).toEqual([]);
+  // Through a client without the guard, the write stores the secret: the
+  // payload reached it, and only the server client's guard removes it.
+  expect(auditWrites(r.unguarded).some((w) => containsSecret(w.args))).toBe(true);
+  // AuditLog writes are not themselves audited, so the resolver's write is
+  // the only one, and it stores exactly the redacted rows.
+  const writes = auditWrites(r.production);
+  expect(writes.map((w) => w.operation)).toEqual([c.operation]);
+  expect(containsSecret(writes[0].args)).toBe(false);
+  expect(rowsOf(writes[0])).toEqual(c.expected);
+}
+
+/** Every (field, shape) pair, as `it.each` tuples. */
+function crossShapes(fields: readonly string[]): Array<[string, CredentialShape]> {
+  return fields.flatMap((field) => SHAPES.map((shape): [string, CredentialShape] => [field, shape]));
+}
+
+describe('every credential shape on every write is stored redacted', () => {
+  it.each(crossShapes(PLUGIN_FIELDS))(
+    '[plugin] %s · %s: the audit row records it redacted under its schema path',
+    (field, shape) => {
+      expectPluginRow(matrixCase('plugin', field, shape));
+    }
+  );
+
+  it.each([...NESTED_RELATION_FIELDS])(
+    '[plugin] %s · nested-relation: a credential nested in a relation write is recorded redacted',
+    (field) => {
+      expectPluginRow(matrixCase('plugin', field, 'nested-relation'));
+    }
+  );
+
+  it.each(crossShapes(DIRECT_FIELDS))(
+    '[direct] %s · %s: every row it writes stores the credential redacted',
+    (field, shape) => {
+      expectDirectRows(matrixCase('direct', field, shape));
+    }
+  );
+
+  it('covers every case the harness ran, and nothing it did not', () => {
+    const expected = [
+      ...PLUGIN_FIELDS.flatMap((field) => SHAPES.map((shape) => `plugin ${field} ${shape}`)),
+      ...NESTED_RELATION_FIELDS.map((field) => `plugin ${field} nested-relation`),
+      ...DIRECT_FIELDS.flatMap((field) => SHAPES.map((shape) => `direct ${field} ${shape}`)),
+    ];
+    expect(harness.matrix.map((c) => `${c.path} ${c.field} ${c.shape}`).sort()).toEqual(expected.sort());
+  });
+});
+
+/**
+ * Main's recorder: the request's variables map, cut by operation type. For a
+ * document that names each variable after the argument it fills, as the
+ * generated client's do, the row this change stores must match it byte for
+ * byte.
+ */
+function variablesMapChangedFields(
+  operationType: 'CREATE' | 'UPDATE' | 'DELETE',
+  variables: Record<string, unknown>
+): Record<string, unknown> {
+  const fields =
+    operationType === 'CREATE'
+      ? { input: variables.data || variables }
+      : operationType === 'UPDATE'
+        ? { where: variables.where || {}, data: variables.data || {} }
+        : { where: variables.where || {} };
+  return redactCredentials(fields) as Record<string, unknown>;
+}
+
+describe('credential-free writes of credential models are stored byte-identical', () => {
+  const FIELDS = [
+    'updateOneAlpacaAccount',
+    'updateManyAlpacaAccount',
+    'createOneUser',
+    'upsertOneUser',
+    'deleteOneAlpacaAccount',
+  ];
+
+  it.each(FIELDS)('[plugin] no credential: %s stores the byte-identical row', (field) => {
+    const free = harness.credentialFree[field];
+    if (!free) throw new Error(`harness produced no credential-free result for ${field}`);
+    expect(free.result.status).toBe(200);
+    expect(free.result.errors).toEqual([]);
+    const guarded = auditWrites(free.result.production);
+    expect(guarded).toHaveLength(1);
+    // The persistence guard hands the row on unchanged ...
+    expect(guarded.map((w) => w.bytes)).toEqual(auditWrites(free.result.unguarded).map((w) => w.bytes));
+    // ... and the recorder stores what main's variables-map recorder stored.
+    const row = (guarded[0].args as { data: { changedFields: unknown } }).data;
+    expect(JSON.stringify(row.changedFields)).toBe(
+      JSON.stringify(variablesMapChangedFields(free.operationType, free.variables))
+    );
+  });
+
+  it('covers every credential-free write the harness ran', () => {
+    expect(Object.keys(harness.credentialFree).sort()).toEqual([...FIELDS].sort());
   });
 });
 
