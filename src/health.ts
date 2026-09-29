@@ -1,5 +1,10 @@
 import { Request, Response, Router } from 'express';
-import prisma, { getLastQuerySucceededAt } from './prismaClient';
+import prisma, {
+  getLastQuerySucceededAt,
+  HEARTBEAT_INTERVAL_MS,
+  MAX_HEARTBEAT_FAILURES,
+  resolveStatementTimeoutMs,
+} from './prismaClient';
 import { logger } from './utils/logger';
 
 const SERVICE_NAME = 'backend-legacy';
@@ -47,12 +52,57 @@ type DatabaseCheck = 'recent-query' | 'probe';
  * How recently a query must have completed for `/health` to accept it as
  * proof the database is answering, without issuing a query of its own.
  *
- * Two heartbeat intervals (30s each) plus slack. The heartbeat runs through the
- * same client, so an idle process still refreshes this; and a saturated pool
- * still completes queries (each is bounded by the 30s statement timeout), so
- * saturation alone does not let it go stale.
+ * Derived from the heartbeat rather than set by hand: it tolerates every
+ * heartbeat but the last before reconnection being missed, plus half an
+ * interval of slack — `(MAX_HEARTBEAT_FAILURES - 0.5) * HEARTBEAT_INTERVAL_MS`,
+ * 75s at the current 3 x 30s. That keeps it longer than one heartbeat interval,
+ * so an idle process that the heartbeat keeps refreshing never goes stale, and
+ * shorter than the reconnect point, so a database that has stopped answering
+ * reads as disconnected before the heartbeat gives up on the client.
+ *
+ * A saturated pool still completes queries, each bounded by the statement
+ * timeout, so saturation alone does not let it go stale — provided that
+ * timeout is shorter than this window (see
+ * {@link warnIfStatementTimeoutDefeatsFreshness}).
  */
-export const DB_SUCCESS_FRESHNESS_MS = 75_000;
+export const DB_SUCCESS_FRESHNESS_MS =
+  (MAX_HEARTBEAT_FAILURES - 0.5) * HEARTBEAT_INTERVAL_MS;
+
+/**
+ * Warn when the configured statement timeout is not shorter than the
+ * freshness window.
+ *
+ * The case for trusting a recent success under saturation is that every query
+ * on a busy pool finishes or fails within the statement timeout, so completed
+ * queries keep arriving inside {@link DB_SUCCESS_FRESHNESS_MS}. A timeout at or
+ * above the window breaks that: a pool full of long-running statements can go
+ * a whole window without a completion and `/health` would fall back to a probe
+ * that cannot get a connection. A value that is not a positive integer (unset
+ * timeouts parse from the default; `0` disables the timeout in Postgres) is
+ * treated the same way, since it bounds nothing.
+ *
+ * @param statementTimeoutMs - The resolved statement timeout (injectable for tests).
+ * @returns True if a warning was logged.
+ */
+export function warnIfStatementTimeoutDefeatsFreshness(
+  statementTimeoutMs: number = resolveStatementTimeoutMs()
+): boolean {
+  if (
+    Number.isFinite(statementTimeoutMs) &&
+    statementTimeoutMs > 0 &&
+    statementTimeoutMs < DB_SUCCESS_FRESHNESS_MS
+  ) {
+    return false;
+  }
+  logger.warn(
+    'DATABASE_STATEMENT_TIMEOUT_MS is not shorter than the /health freshness window — a saturated pool can read as disconnected',
+    {
+      statementTimeoutMs,
+      freshnessWindowMs: DB_SUCCESS_FRESHNESS_MS,
+    }
+  );
+  return true;
+}
 
 /**
  * Budget for the fallback probe when no recent success exists. Well under the
@@ -191,6 +241,8 @@ async function checkDatabase(): Promise<'connected' | 'disconnected'> {
  * accessible without authentication.
  */
 export function createHealthRouter(): Router {
+  warnIfStatementTimeoutDefeatsFreshness();
+
   const router = Router();
 
   router.get('/livez', (_req: Request, res: Response): void => {

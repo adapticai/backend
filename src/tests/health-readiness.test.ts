@@ -14,7 +14,10 @@ const mocks = vi.hoisted(() => ({
   pinnedQueryRaw: vi.fn(),
 }));
 
-vi.mock('../prismaClient', () => ({
+// The heartbeat constants and statement-timeout resolver stay real: the
+// freshness window is derived from them, and the tests below pin that.
+vi.mock('../prismaClient', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../prismaClient')>()),
   default: { $queryRaw: mocks.pinnedQueryRaw },
   getLastQuerySucceededAt: () => mocks.lastSuccess,
 }));
@@ -24,7 +27,14 @@ import {
   createHealthRouter,
   DB_SUCCESS_FRESHNESS_MS,
   HEALTH_PROBE_TIMEOUT_MS,
+  warnIfStatementTimeoutDefeatsFreshness,
 } from '../health';
+import {
+  DEFAULT_STATEMENT_TIMEOUT_MS,
+  HEARTBEAT_INTERVAL_MS,
+  MAX_HEARTBEAT_FAILURES,
+} from '../prismaClient';
+import { logger } from '../utils/logger';
 
 /**
  * A `$queryRaw` that does not settle until the test ends — a pool with no free
@@ -52,6 +62,102 @@ afterEach(async () => {
   // Let the released probe's settle handlers run before the next test.
   await new Promise((resolve) => setImmediate(resolve));
   delete (globalThis as { prisma?: unknown }).prisma;
+});
+
+describe('DB_SUCCESS_FRESHNESS_MS', () => {
+  it('is derived from the heartbeat: 75s at the current 3 x 30s', () => {
+    expect(DB_SUCCESS_FRESHNESS_MS).toBe(
+      (MAX_HEARTBEAT_FAILURES - 0.5) * HEARTBEAT_INTERVAL_MS
+    );
+    expect(DB_SUCCESS_FRESHNESS_MS).toBe(75_000);
+  });
+
+  it('outlasts one heartbeat interval, so an idle process the heartbeat refreshes stays fresh', () => {
+    expect(DB_SUCCESS_FRESHNESS_MS).toBeGreaterThan(HEARTBEAT_INTERVAL_MS);
+  });
+
+  it('expires before the heartbeat reconnects, so a dead database reads as disconnected first', () => {
+    expect(DB_SUCCESS_FRESHNESS_MS).toBeLessThan(
+      MAX_HEARTBEAT_FAILURES * HEARTBEAT_INTERVAL_MS
+    );
+  });
+
+  it('is longer than the default statement timeout, which the saturation argument relies on', () => {
+    expect(DEFAULT_STATEMENT_TIMEOUT_MS).toBeLessThan(DB_SUCCESS_FRESHNESS_MS);
+  });
+});
+
+describe('warnIfStatementTimeoutDefeatsFreshness', () => {
+  const savedTimeout = process.env.DATABASE_STATEMENT_TIMEOUT_MS;
+  let warn: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    warn = vi.spyOn(logger, 'warn').mockImplementation(() => logger);
+  });
+
+  afterEach(() => {
+    warn.mockRestore();
+    if (savedTimeout === undefined) {
+      delete process.env.DATABASE_STATEMENT_TIMEOUT_MS;
+    } else {
+      process.env.DATABASE_STATEMENT_TIMEOUT_MS = savedTimeout;
+    }
+  });
+
+  it('stays quiet when the timeout is shorter than the window', () => {
+    expect(warnIfStatementTimeoutDefeatsFreshness(30_000)).toBe(false);
+    expect(
+      warnIfStatementTimeoutDefeatsFreshness(DB_SUCCESS_FRESHNESS_MS - 1)
+    ).toBe(false);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('warns when the timeout equals the window', () => {
+    expect(
+      warnIfStatementTimeoutDefeatsFreshness(DB_SUCCESS_FRESHNESS_MS)
+    ).toBe(true);
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('DATABASE_STATEMENT_TIMEOUT_MS'),
+      {
+        statementTimeoutMs: DB_SUCCESS_FRESHNESS_MS,
+        freshnessWindowMs: DB_SUCCESS_FRESHNESS_MS,
+      }
+    );
+  });
+
+  it('warns when the timeout exceeds the window', () => {
+    expect(warnIfStatementTimeoutDefeatsFreshness(120_000)).toBe(true);
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('warns on a timeout that bounds nothing (0 disables it, NaN is unparseable)', () => {
+    expect(warnIfStatementTimeoutDefeatsFreshness(0)).toBe(true);
+    expect(warnIfStatementTimeoutDefeatsFreshness(Number.NaN)).toBe(true);
+    expect(warn).toHaveBeenCalledTimes(2);
+  });
+
+  it('reads DATABASE_STATEMENT_TIMEOUT_MS from the environment by default', () => {
+    process.env.DATABASE_STATEMENT_TIMEOUT_MS = '90000';
+    expect(warnIfStatementTimeoutDefeatsFreshness()).toBe(true);
+    expect(warn).toHaveBeenCalledWith(expect.any(String), {
+      statementTimeoutMs: 90_000,
+      freshnessWindowMs: DB_SUCCESS_FRESHNESS_MS,
+    });
+
+    warn.mockClear();
+    delete process.env.DATABASE_STATEMENT_TIMEOUT_MS;
+    expect(warnIfStatementTimeoutDefeatsFreshness()).toBe(false);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('runs when the health router is created at startup', () => {
+    process.env.DATABASE_STATEMENT_TIMEOUT_MS = '75000';
+    createHealthRouter();
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('DATABASE_STATEMENT_TIMEOUT_MS'),
+      expect.objectContaining({ statementTimeoutMs: 75_000 })
+    );
+  });
 });
 
 describe('checkDatabaseReadiness', () => {

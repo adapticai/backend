@@ -146,13 +146,30 @@ export function withFindManyGuard(client: PrismaClient): PrismaClient {
 }
 
 /** Default statement timeout (30s) prevents hung queries from blocking pool slots indefinitely */
-const DEFAULT_STATEMENT_TIMEOUT_MS = 30000;
+export const DEFAULT_STATEMENT_TIMEOUT_MS = 30000;
 
 /** Heartbeat interval: how often we verify the DB connection is alive */
-const HEARTBEAT_INTERVAL_MS = 30000;
+export const HEARTBEAT_INTERVAL_MS = 30000;
 
 /** Consecutive heartbeat failures before triggering client reconnection */
-const MAX_HEARTBEAT_FAILURES = 3;
+export const MAX_HEARTBEAT_FAILURES = 3;
+
+/**
+ * Resolve the per-statement timeout appended to a direct Postgres URL.
+ *
+ * Parsed exactly as the URL builder has always parsed it, so a value that is
+ * not a positive integer comes back as-is (NaN, 0, negative) for the caller to
+ * judge rather than being silently replaced.
+ *
+ * @returns The statement timeout in milliseconds.
+ */
+export function resolveStatementTimeoutMs(): number {
+  return parseInt(
+    process.env.DATABASE_STATEMENT_TIMEOUT_MS ||
+      String(DEFAULT_STATEMENT_TIMEOUT_MS),
+    10
+  );
+}
 
 /** Heartbeat query timeout (5s) — shorter than pool timeout to detect issues early */
 const HEARTBEAT_TIMEOUT_MS = 5000;
@@ -283,11 +300,7 @@ function buildDatabaseUrl(): string {
     environment: process.env.NODE_ENV || 'development',
   });
 
-  const statementTimeoutMs = parseInt(
-    process.env.DATABASE_STATEMENT_TIMEOUT_MS ||
-      String(DEFAULT_STATEMENT_TIMEOUT_MS),
-    10
-  );
+  const statementTimeoutMs = resolveStatementTimeoutMs();
 
   return `${baseUrl}${separator}connection_limit=${poolSize}&pool_timeout=${Math.floor(poolTimeout / 1000)}&statement_timeout=${statementTimeoutMs}&idle_in_transaction_session_timeout=${statementTimeoutMs}`;
 }
