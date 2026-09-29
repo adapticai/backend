@@ -55,6 +55,39 @@ export function resolveFindManyTake(): number {
   return parsed;
 }
 
+/** Wall-clock ms of the most recent query that completed successfully, or undefined before the first. */
+let lastQuerySucceededAt: number | undefined;
+
+/**
+ * When a query on this process's Prisma client last completed successfully.
+ *
+ * This is the evidence `/health` uses for "the database is answering this
+ * process". It is recorded as a side effect of ordinary traffic and of the
+ * heartbeat, so reading it never needs a pool connection — which is the point:
+ * a pool that is saturated but still completing work keeps this fresh, and a
+ * database that has stopped answering lets it go stale.
+ *
+ * @returns Epoch milliseconds of the last success, or undefined if none yet.
+ */
+export function getLastQuerySucceededAt(): number | undefined {
+  return lastQuerySucceededAt;
+}
+
+/**
+ * Run a query and stamp the success time if it resolves.
+ *
+ * A rejected query leaves the stamp alone; any completed round trip, including
+ * one issued by a caller that has since given up waiting on it, refreshes it.
+ *
+ * @param run - Executes the underlying operation.
+ * @returns Whatever the operation returned.
+ */
+export async function stampQuerySuccess<T>(run: () => Promise<T>): Promise<T> {
+  const result = await run();
+  lastQuerySucceededAt = Date.now();
+  return result;
+}
+
 /**
  * Apply the unqualified-`findMany` ceiling to a Prisma client.
  *
@@ -74,7 +107,18 @@ export function resolveFindManyTake(): number {
  */
 export function withFindManyGuard(client: PrismaClient): PrismaClient {
   const ceiling = resolveFindManyTake();
-  const extended = client.$extends({
+  // The success stamp rides this wrapper because it is the one applied at both
+  // client assignment sites (initial and reconnect), so the stamp survives a
+  // reconnect without the reconnect path having to know about it.
+  const stamped = client.$extends({
+    name: 'query-success-stamp',
+    query: {
+      async $allOperations({ args, query }) {
+        return stampQuerySuccess<unknown>(() => query(args));
+      },
+    },
+  }) as unknown as PrismaClient;
+  const extended = stamped.$extends({
     name: 'find-many-ceiling',
     query: {
       $allModels: {
@@ -102,13 +146,30 @@ export function withFindManyGuard(client: PrismaClient): PrismaClient {
 }
 
 /** Default statement timeout (30s) prevents hung queries from blocking pool slots indefinitely */
-const DEFAULT_STATEMENT_TIMEOUT_MS = 30000;
+export const DEFAULT_STATEMENT_TIMEOUT_MS = 30000;
 
 /** Heartbeat interval: how often we verify the DB connection is alive */
-const HEARTBEAT_INTERVAL_MS = 30000;
+export const HEARTBEAT_INTERVAL_MS = 30000;
 
 /** Consecutive heartbeat failures before triggering client reconnection */
-const MAX_HEARTBEAT_FAILURES = 3;
+export const MAX_HEARTBEAT_FAILURES = 3;
+
+/**
+ * Resolve the per-statement timeout appended to a direct Postgres URL.
+ *
+ * Parsed exactly as the URL builder has always parsed it, so a value that is
+ * not a positive integer comes back as-is (NaN, 0, negative) for the caller to
+ * judge rather than being silently replaced.
+ *
+ * @returns The statement timeout in milliseconds.
+ */
+export function resolveStatementTimeoutMs(): number {
+  return parseInt(
+    process.env.DATABASE_STATEMENT_TIMEOUT_MS ||
+      String(DEFAULT_STATEMENT_TIMEOUT_MS),
+    10
+  );
+}
 
 /** Heartbeat query timeout (5s) — shorter than pool timeout to detect issues early */
 const HEARTBEAT_TIMEOUT_MS = 5000;
@@ -239,11 +300,7 @@ function buildDatabaseUrl(): string {
     environment: process.env.NODE_ENV || 'development',
   });
 
-  const statementTimeoutMs = parseInt(
-    process.env.DATABASE_STATEMENT_TIMEOUT_MS ||
-      String(DEFAULT_STATEMENT_TIMEOUT_MS),
-    10
-  );
+  const statementTimeoutMs = resolveStatementTimeoutMs();
 
   return `${baseUrl}${separator}connection_limit=${poolSize}&pool_timeout=${Math.floor(poolTimeout / 1000)}&statement_timeout=${statementTimeoutMs}&idle_in_transaction_session_timeout=${statementTimeoutMs}`;
 }
