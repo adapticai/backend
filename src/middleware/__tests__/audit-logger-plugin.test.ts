@@ -390,19 +390,21 @@ describe('audit rows record each argument under its schema path', () => {
     });
   });
 
-  it('records a credential revoke with the filter it applied to', async () => {
+  it('records a credential revoke as a clear, with the filter it applied to', async () => {
     const rows = await audit(BROKER_CREDENTIAL_CLEAR, {
       fundIds: ['fund-1', 'fund-2'],
       provider: 'ALPACA',
     });
 
+    // A clear holds no value, so it is kept: redacting it would store the
+    // revoke exactly as a key rotation is stored.
     expect(rows[0].changedFields).toEqual({
       where: {
         fundId: { in: ['fund-1', 'fund-2'] },
         provider: { equals: 'ALPACA' },
         deletedAt: { equals: null },
       },
-      data: { apiKey: REDACTED, apiSecret: REDACTED },
+      data: { apiKey: { set: null }, apiSecret: { set: null } },
     });
   });
 

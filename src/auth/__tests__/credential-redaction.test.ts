@@ -1,5 +1,6 @@
 /**
- * The redaction vocabulary against the Prisma schema.
+ * The redaction vocabulary against the Prisma schema, and what redaction keeps
+ * visible.
  *
  * Redaction is directed by key name and matches exact-case, so it protects a
  * stored column only when that column's field name is in the vocabulary. The
@@ -8,13 +9,18 @@
  * vocabulary that has to be complete. The served-schema coverage harness
  * checks output fields; this checks every column, including one a generator
  * directive might hide from output while it stays writable.
+ *
+ * A credential value that holds nothing is kept, so an audit row tells a
+ * clear from a set: a bare `null`, and the `{ set: null }` an update clears a
+ * column with. Anything else under a credential key is replaced, and
+ * `credentialKeyPaths` reports exactly the locations redaction changes.
  */
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { describe, expect, it } from 'vitest';
 
 import { CREDENTIAL_FIELDS } from '../credential-fields';
-import { REDACTED, redactCredentials } from '../credential-redaction';
+import { REDACTED, credentialKeyPaths, redactCredentials } from '../credential-redaction';
 
 const SCHEMA_PATH = resolve(__dirname, '../../../prisma/schema.prisma');
 
@@ -87,6 +93,68 @@ describe('credential vocabulary covers the schema', () => {
           input: { [field]: REDACTED, nested: [{ [field]: REDACTED }] },
         });
       }
+    }
+  });
+});
+
+/** `leaf` wrapped in `depth` levels of `{ level: … }`. */
+function nest(depth: number, leaf: unknown): unknown {
+  let value = leaf;
+  for (let level = 0; level < depth; level += 1) value = { level: value };
+  return value;
+}
+
+describe('a credential value that holds nothing stays visible', () => {
+  // The platform's broker-key revoke, as the audit plugin records its data.
+  const CLEAR = { data: { apiKey: { set: null }, apiSecret: { set: null } } };
+  const ROTATE = { data: { apiKey: { set: 'k' }, apiSecret: { set: 's' } } };
+
+  it("keeps an update's { set: null } clear as it keeps a bare null, so a revoke never reads as a rotation", () => {
+    expect(redactCredentials(CLEAR)).toEqual(CLEAR);
+    expect(credentialKeyPaths(CLEAR)).toEqual([]);
+    expect(redactCredentials(ROTATE)).toEqual({ data: { apiKey: REDACTED, apiSecret: REDACTED } });
+    expect(JSON.stringify(redactCredentials(CLEAR))).not.toBe(JSON.stringify(redactCredentials(ROTATE)));
+    expect(redactCredentials({ apiKey: { set: undefined }, APISecret: null })).toEqual({
+      apiKey: { set: undefined },
+      APISecret: null,
+    });
+  });
+
+  it('replaces every other value under a credential key, including an empty set, a list and a wrapper with more than set', () => {
+    const replaced: unknown[] = [
+      { set: '' },
+      { set: 'k' },
+      { set: [] },
+      { set: ['k'] },
+      { set: { set: null } },
+      { set: null, note: 'k' },
+      {},
+      new Date('2026-09-29T00:00:00.000Z'),
+      '',
+      0,
+      false,
+    ];
+    for (const value of replaced) {
+      expect(redactCredentials({ apiKey: value }), String(JSON.stringify(value))).toEqual({ apiKey: REDACTED });
+      expect(credentialKeyPaths({ apiKey: value }).map(({ path }) => path), String(JSON.stringify(value))).toEqual(['apiKey']);
+    }
+  });
+
+  it('reports a location exactly when redaction changes the payload, clears and the depth limit included', () => {
+    const fixtures: unknown[] = [
+      CLEAR,
+      ROTATE,
+      { data: { apiKey: { set: null }, label: { set: 'x' } } },
+      { data: { apiKey: { set: null, note: 'k' } } },
+      { input: { alpacaAccounts: { create: [{ APIKey: { set: null } }, { APISecret: 'x' }] } } },
+      nest(10, { apiKey: { set: null } }),
+      nest(11, { apiKey: { set: null } }),
+      nest(11, 'plain'),
+      nest(12, 'plain'),
+    ];
+    for (const fixture of fixtures) {
+      const unchanged = JSON.stringify(redactCredentials(fixture)) === JSON.stringify(fixture);
+      expect({ fixture, unchanged }).toEqual({ fixture, unchanged: credentialKeyPaths(fixture).length === 0 });
     }
   });
 });

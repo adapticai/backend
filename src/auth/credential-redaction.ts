@@ -38,9 +38,35 @@ export const CREDENTIAL_KEY_NAMES: ReadonlySet<string> = new Set(
 );
 
 /**
+ * Whether `value` is Prisma's field-update form of an absent value: an object
+ * whose only key is `set`, holding `null` or nothing. `{ set: null }` is how a
+ * Prisma update clears a nullable column, and the generated CRUD functions
+ * send every clear in that form (`removeUndefinedProps` in `src/utils.ts`
+ * keeps it for that reason), so it is the same statement as a bare `null`.
+ */
+function isClearingUpdate(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const keys = Object.keys(value);
+  if (keys.length !== 1 || keys[0] !== 'set') return false;
+  const assigned = (value as Record<string, unknown>).set;
+  return assigned === null || assigned === undefined;
+}
+
+/**
+ * Whether a credential key's value holds nothing: absent, `null`, or a
+ * clearing update ({@link isClearingUpdate}). Such a value discloses nothing,
+ * and replacing it would make a revoke read like a rotation.
+ */
+function holdsNoValue(value: unknown): boolean {
+  if (value === null || value === undefined) return true;
+  return isClearingUpdate(value);
+}
+
+/**
  * A deep copy of `value` with every credential-named key's value replaced by
- * {@link REDACTED}. An absent or null credential value is kept as-is, so the
- * audit row still shows whether a credential was set, cleared or untouched.
+ * {@link REDACTED}. A credential value that holds nothing (absent, `null`, or
+ * an update's `{ set: null }`) is kept as-is, so the audit row still shows
+ * whether a credential was set, cleared or untouched.
  *
  * @param value - Any JSON-shaped value.
  * @returns The redacted copy.
@@ -54,7 +80,7 @@ export function redactCredentials(value: unknown, depth = 0): unknown {
   const out: Record<string, unknown> = {};
   for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
     out[key] =
-      CREDENTIAL_KEY_NAMES.has(key) && child !== null && child !== undefined
+      CREDENTIAL_KEY_NAMES.has(key) && !holdsNoValue(child)
         ? REDACTED
         : redactCredentials(child, depth + 1);
   }
@@ -75,9 +101,10 @@ export interface CredentialKeyPath {
 
 /**
  * Every place {@link redactCredentials} replaces a value in `value`, in
- * traversal order. It walks by the same rules (credential key names, the null
- * exemption, the depth limit), so it is empty exactly when redaction leaves
- * the payload as it was. Paths name keys only, never values.
+ * traversal order. It walks by the same rules (credential key names, the
+ * exemption for a value that holds nothing, the depth limit), so it is empty
+ * exactly when redaction leaves the payload as it was. Paths name keys only,
+ * never values.
  *
  * @param value - Any JSON-shaped value.
  * @returns The replaced locations.
@@ -90,7 +117,7 @@ export function credentialKeyPaths(value: unknown, depth = 0, path = ''): Creden
   }
   if (typeof value !== 'object' || value instanceof Date) return [];
   return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) =>
-    CREDENTIAL_KEY_NAMES.has(key) && child !== null && child !== undefined
+    CREDENTIAL_KEY_NAMES.has(key) && !holdsNoValue(child)
       ? [{ path: joinPath(path, key), carriesValue: carriesValue(child) }]
       : credentialKeyPaths(child, depth + 1, joinPath(path, key))
   );

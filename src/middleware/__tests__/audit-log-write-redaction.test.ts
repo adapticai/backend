@@ -139,6 +139,12 @@ describe('redactAuditLogWriteArgs', () => {
     expect(redactAuditLogWriteArgs(args)).toBe(args);
   });
 
+  it("keeps an update's { set: null } credential clear visible, handing the write on as the same object", () => {
+    const changedFields = { where: { id: 'ba-1' }, data: { apiKey: { set: null }, apiSecret: { set: null } } };
+    const args = { data: { ...PLAIN_ROW, changedFields } };
+    expect(redactAuditLogWriteArgs(args)).toBe(args);
+  });
+
   it('hands on a write without a credential as the same object', () => {
     const create = { data: { ...PLAIN_ROW } };
     const many = { data: [{ ...PLAIN_ROW }, { ...PLAIN_ROW }] };
