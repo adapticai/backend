@@ -8,6 +8,7 @@ import { PrismaClient } from '@prisma/client';
 // plugin and server context injection. Revisit if we adopt per-query
 // caching strategies.
 import { logger } from './utils/logger';
+import { withAuditLogWriteRedaction } from './middleware/audit-log-write-redaction';
 
 /**
  * Define the global type for PrismaClient to use across environments
@@ -99,6 +100,23 @@ export function withFindManyGuard(client: PrismaClient): PrismaClient {
   // same delegates; the assertion states that, and is confined to this one
   // boundary rather than spread across every consumer.
   return extended as unknown as PrismaClient;
+}
+
+/**
+ * Apply every guard the server's Prisma client carries: the unqualified
+ * `findMany` ceiling, and credential redaction on every `AuditLog` write
+ * (`./middleware/audit-log-write-redaction`), so a row written by any caller —
+ * a generated mutation, a plugin, a guard — stores no credential value.
+ *
+ * Both client assignment sites call this and nothing else. A guard installed
+ * only on the initial client silently disappears on the first reconnect,
+ * which is precisely when the process is already unhealthy.
+ *
+ * @param client - The client to wrap.
+ * @returns The client with every guard applied.
+ */
+export function withClientGuards(client: PrismaClient): PrismaClient {
+  return withAuditLogWriteRedaction(withFindManyGuard(client));
 }
 
 /** Default statement timeout (30s) prevents hung queries from blocking pool slots indefinitely */
@@ -360,7 +378,7 @@ if (!global.prisma) {
   // Applied at BOTH assignment sites. A guard installed only on the initial
   // client silently disappears on the first reconnect, which is precisely when
   // the process is already unhealthy.
-  global.prisma = withFindManyGuard(client);
+  global.prisma = withClientGuards(client);
 }
 
 // Initialize a singleton PrismaClient with a connection pool that persists across requests
@@ -420,7 +438,14 @@ async function heartbeat(): Promise<void> {
   }
 }
 
-async function reconnectPrisma(): Promise<void> {
+/**
+ * Replace the global client with a fresh one, dropping every pooled
+ * connection. Called by the heartbeat after repeated failures.
+ *
+ * @internal Exported so the reconnect path's guards can be exercised by a
+ * test without failing the heartbeat three times.
+ */
+export async function reconnectPrisma(): Promise<void> {
   if (isReconnecting) return;
   isReconnecting = true;
 
@@ -464,7 +489,7 @@ async function reconnectPrisma(): Promise<void> {
       });
     });
 
-    global.prisma = withFindManyGuard(newClient);
+    global.prisma = withClientGuards(newClient);
     heartbeatFailures = 0;
     logger.info('Prisma client reconnected successfully');
   } catch (error) {

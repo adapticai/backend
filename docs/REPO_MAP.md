@@ -61,6 +61,7 @@ backend-legacy/
     middleware/
       auth.ts                  - JWT authentication middleware
       audit-logger.ts          - Apollo plugin for audit logging
+      audit-log-write-redaction.ts - Prisma client extension redacting credentials from every AuditLog write
       graphql-validation-plugin.ts - GraphQL request validation plugin
       input-validator.ts       - Input sanitization and validation middleware
       query-complexity.ts      - Query complexity analysis and limiting

@@ -1,3 +1,6 @@
+import { readdirSync, readFileSync } from 'fs';
+import { join, resolve } from 'path';
+import { Prisma } from '@prisma/client';
 import { describe, it, expect } from 'vitest';
 import {
   parseMutationOperation,
@@ -6,6 +9,61 @@ import {
   extractChangedFields,
   principalMetadata,
 } from '../audit-logger';
+
+/** TypeGraphQL-Prisma's output: one `crud/<Model>/<Model>CrudResolver.ts` per model. */
+const CRUD_RESOLVERS = resolve(__dirname, '../../generated/typegraphql-prisma/resolvers/crud');
+
+/** The audit operation type each generated write prefix is recorded under. */
+const PREFIX_OPERATION_TYPES: ReadonlyArray<readonly [string, 'CREATE' | 'UPDATE' | 'DELETE']> = [
+  ['createManyAndReturn', 'CREATE'],
+  ['createMany', 'CREATE'],
+  ['createOne', 'CREATE'],
+  ['upsertOne', 'CREATE'],
+  ['updateMany', 'UPDATE'],
+  ['updateOne', 'UPDATE'],
+  ['deleteMany', 'DELETE'],
+  ['deleteOne', 'DELETE'],
+];
+
+/** Every mutation field the generator emitted, with the model folder it was emitted under. */
+function generatedMutations(): Array<{ model: string; field: string }> {
+  return readdirSync(CRUD_RESOLVERS, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .flatMap(({ name: model }) => {
+      const source = readFileSync(join(CRUD_RESOLVERS, model, `${model}CrudResolver.ts`), 'utf8');
+      return [...source.matchAll(/@TypeGraphQL\.Mutation\([\s\S]*?\}\)\s*async (\w+)\(/g)].map(
+        ([, field]) => ({ model, field })
+      );
+    });
+}
+
+describe('parseMutationOperation against the generated schema', () => {
+  const mutations = generatedMutations();
+
+  it('reads every model the generator emitted mutations for', () => {
+    // A parser that found nothing would pass the check below.
+    const models = new Set(mutations.map(({ model }) => model));
+    expect(models).toEqual(new Set(Object.values(Prisma.ModelName)));
+    expect(mutations.length).toBe(models.size * PREFIX_OPERATION_TYPES.length);
+  });
+
+  it('resolves every generated CRUD mutation onto the model it writes', () => {
+    const wrong = mutations.flatMap(({ model, field }) => {
+      const [, operationType] = PREFIX_OPERATION_TYPES.find(([prefix]) => field === `${prefix}${model}`) ?? [];
+      const parsed = parseMutationOperation(field);
+      const expected = { operationType, modelName: model, operationName: field };
+      return JSON.stringify(parsed) === JSON.stringify(expected)
+        ? []
+        : [`${field}: ${JSON.stringify(parsed)}`];
+    });
+    expect(wrong).toEqual([]);
+  });
+
+  it('does not read a CRUD-shaped name of no model as a model', () => {
+    expect(parseMutationOperation('createManyAndReturnNotAModel')).toBeNull();
+    expect(parseMutationOperation('updateOneNotAModel')).toBeNull();
+  });
+});
 
 describe('parseMutationOperation', () => {
   it('should parse createOne operations', () => {
@@ -166,23 +224,23 @@ describe('extractRecordId', () => {
   });
 });
 
-describe('extractChangedFields', () => {
+describe('extractChangedFields (the audited field\'s arguments, by schema name)', () => {
   it('should extract input data for CREATE operations', () => {
-    const variables = {
+    const args = {
       data: { name: 'John', email: 'john@example.com' },
     };
-    const result = extractChangedFields('CREATE', variables);
+    const result = extractChangedFields('CREATE', args);
     expect(result).toEqual({
       input: { name: 'John', email: 'john@example.com' },
     });
   });
 
   it('should extract where and data for UPDATE operations', () => {
-    const variables = {
+    const args = {
       where: { id: 'abc-123' },
       data: { name: 'Updated Name' },
     };
-    const result = extractChangedFields('UPDATE', variables);
+    const result = extractChangedFields('UPDATE', args);
     expect(result).toEqual({
       where: { id: 'abc-123' },
       data: { name: 'Updated Name' },
@@ -190,26 +248,28 @@ describe('extractChangedFields', () => {
   });
 
   it('should extract where clause for DELETE operations', () => {
-    const variables = {
+    const args = {
       where: { id: 'abc-123' },
     };
-    const result = extractChangedFields('DELETE', variables);
+    const result = extractChangedFields('DELETE', args);
     expect(result).toEqual({
       where: { id: 'abc-123' },
     });
   });
 
-  it('should return empty object for null variables', () => {
+  it('should return empty object for null arguments', () => {
     expect(extractChangedFields('CREATE', null)).toEqual({});
     expect(extractChangedFields('UPDATE', undefined)).toEqual({});
   });
 
-  it('should use entire variables as input when data field is missing for CREATE', () => {
-    const variables = { name: 'Direct Input' };
-    const result = extractChangedFields('CREATE', variables);
-    expect(result).toEqual({
-      input: { name: 'Direct Input' },
-    });
+  it('should use all arguments as input when there is no data argument (upsert)', () => {
+    const args = {
+      where: { id: 'u1' },
+      create: { name: 'Direct Input' },
+      update: { name: { set: 'Direct Input' } },
+    };
+    const result = extractChangedFields('CREATE', args);
+    expect(result).toEqual({ input: args });
   });
 });
 
@@ -218,7 +278,7 @@ describe('extractChangedFields credential redaction', () => {
   const SECRET = 'audit-logger-secret-that-must-not-be-stored';
 
   it('never copies a broker key into the audit row, at any depth or shape', () => {
-    const variables = {
+    const args = {
       data: {
         APIKey: { set: KEY },
         APISecret: SECRET,
@@ -229,7 +289,7 @@ describe('extractChangedFields credential redaction', () => {
       },
       where: { id: 'a1' },
     };
-    const stored = JSON.stringify(extractChangedFields('UPDATE', variables));
+    const stored = JSON.stringify(extractChangedFields('UPDATE', args));
     expect(stored).not.toContain(KEY);
     expect(stored).not.toContain(SECRET);
     expect(stored).toContain('kept');
