@@ -103,14 +103,19 @@ export async function stampQuerySuccess<T>(run: () => Promise<T>): Promise<T> {
  * to give the call site an explicit `take` before the ceiling has to decide
  * anything.
  *
+ * The same wrapper records when each operation last completed successfully
+ * ({@link stampQuerySuccess}), the evidence `/health` reads through
+ * {@link getLastQuerySucceededAt}.
+ *
  * @param client - The client to wrap.
- * @returns The client with the ceiling applied.
+ * @returns The client with the ceiling and the success stamp applied.
  */
 export function withFindManyGuard(client: PrismaClient): PrismaClient {
   const ceiling = resolveFindManyTake();
-  // The success stamp rides this wrapper because it is the one applied at both
-  // client assignment sites (initial and reconnect), so the stamp survives a
-  // reconnect without the reconnect path having to know about it.
+  // The success stamp rides this wrapper because every client this process
+  // installs passes through it: `withClientGuards`, which both client
+  // assignment sites (initial and reconnect) call, applies it, so the stamp
+  // survives a reconnect without the reconnect path having to know about it.
   const stamped = client.$extends({
     name: 'query-success-stamp',
     query: {
@@ -148,9 +153,11 @@ export function withFindManyGuard(client: PrismaClient): PrismaClient {
 
 /**
  * Apply every guard the server's Prisma client carries: the unqualified
- * `findMany` ceiling, and credential redaction on every `AuditLog` write
- * (`./middleware/audit-log-write-redaction`), so a row written by any caller —
- * a generated mutation, a plugin, a guard — stores no credential value.
+ * `findMany` ceiling and the query-success stamp `/health` reads (both from
+ * {@link withFindManyGuard}), and credential redaction on every `AuditLog`
+ * write (`./middleware/audit-log-write-redaction`), so a row written by any
+ * caller — a generated mutation, a plugin, a guard — stores no credential
+ * value.
  *
  * Both client assignment sites call this and nothing else. A guard installed
  * only on the initial client silently disappears on the first reconnect,

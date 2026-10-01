@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 const itUrl = process.env.HEALTH_IT_DATABASE_URL;
 if (itUrl) {
@@ -32,14 +32,28 @@ describe('stampQuerySuccess', () => {
   it('leaves the stamp alone when the query rejects', async () => {
     const { stampQuerySuccess, getLastQuerySucceededAt } =
       await import('../prismaClient');
-    await stampQuerySuccess(async () => 'rows');
-    const stamped = getLastQuerySucceededAt();
-    await expect(
-      stampQuerySuccess(async () => {
-        throw new Error('P2024: Timed out fetching a new connection');
-      })
-    ).rejects.toThrow('P2024');
-    expect(getLastQuerySucceededAt()).toBe(stamped);
+    // Two calls a few microseconds apart usually share a millisecond, so a
+    // stamp written by the rejected query would read the same as the one it
+    // overwrote. Pinning the clock to a later instant for the rejection makes
+    // any write by it visible. Both instants lie in the past, so the stamp this
+    // leaves behind can never satisfy a later test's "stamped since" check.
+    const succeededAt = Date.UTC(2020, 0, 1);
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      vi.setSystemTime(succeededAt);
+      await stampQuerySuccess(async () => 'rows');
+      expect(getLastQuerySucceededAt()).toBe(succeededAt);
+
+      vi.setSystemTime(succeededAt + 60_000);
+      await expect(
+        stampQuerySuccess(async () => {
+          throw new Error('P2024: Timed out fetching a new connection');
+        })
+      ).rejects.toThrow('P2024');
+      expect(getLastQuerySucceededAt()).toBe(succeededAt);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

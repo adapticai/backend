@@ -30,6 +30,15 @@ TypeGraphQL API gateway that is the system of record for Tier B domain data.
 `stable-api.adaptic.ai` is a kept-alive compatibility alias for the same
 service. Prefer `api.adaptic.ai` in anything written from here on.
 
+`/health` answers 503 only when the database has stopped answering this
+process, not when the pool is busy. A query that completed within the last 75 s
+(`DB_SUCCESS_FRESHNESS_MS` in `src/health.ts`, derived from the heartbeat)
+counts as proof and no query is issued. Without one, a single `SELECT 1` probes
+the live client, bounded at 2 s. The body's `databaseCheck` (`recent-query` or
+`probe`) and `lastQuerySucceededSecondsAgo` say which evidence decided it.
+`/readyz` still probes with `SELECT 1` on every call, and `/livez` never
+touches the database.
+
 > **`wss.adaptic.ai` is the BACKEND**, not the engine. It previously resolved to
 > the engine; under the current scheme the engine's WebSocket is
 > `engine-wss.adaptic.ai`. Treat every `wss.adaptic.ai` reference in older code
