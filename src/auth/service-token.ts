@@ -80,30 +80,146 @@ export const MAX_SERVICE_TOKEN_LIFETIME_SEC = 3600;
 export const MAX_SERVICE_TOKEN_CLOCK_SKEW_SEC = 60;
 
 /**
- * Resolve the dedicated service secret, or `null` when the path is not
+ * Which configured secret proved a credential's signature.
+ *
+ * `primary` is `BACKEND_SERVICE_JWT_SECRET`; `previous` is the optional
+ * `BACKEND_SERVICE_JWT_SECRET_PREVIOUS` that exists only for the length of a
+ * rotation.
+ */
+export type ServiceKeySlot = 'primary' | 'previous';
+
+/**
+ * Validate one raw secret value, or `null` when it cannot serve as one.
+ *
+ * @param name - Env var name, for the operator-facing log line.
+ * @param raw - The raw env value.
+ * @returns The trimmed secret, or `null` when unset, blank, or too short.
+ */
+function readSecret(name: string, raw: string | undefined): string | null {
+  if (typeof raw !== 'string') return null;
+  const secret = raw.trim();
+  if (secret.length === 0) return null;
+  if (secret.length < MINIMUM_SERVICE_SECRET_LENGTH) {
+    logger.error(
+      `[auth] ${name} is set but shorter than the minimum ` +
+        `${MINIMUM_SERVICE_SECRET_LENGTH} characters; it will not be used to verify service tokens.`,
+      { secretLength: secret.length }
+    );
+    return null;
+  }
+  return secret;
+}
+
+/**
+ * Resolve the service secrets to try, in order, or `null` when the path is not
  * provisioned.
  *
  * Read per call rather than cached at import so an operator rotating the
  * Railway variable takes effect on the next request rather than the next
  * restart — the same discipline `SERVER_AUTH_TOKEN` already follows.
  *
- * @returns The secret, or `null` when unset, blank, or too short to be one.
+ * WHY A SECOND SLOT. With one secret, rotation means every minter and this
+ * verifier must change at the same instant or service calls fail in between.
+ * `BACKEND_SERVICE_JWT_SECRET_PREVIOUS` lets the verifier accept the outgoing
+ * key while minters move to the new one, so the swap is: set PREVIOUS to the
+ * current value and the primary to the new one, move the minters, watch the
+ * `previous` log line drain to zero, then unset PREVIOUS.
+ *
+ * The previous slot never stands alone: with no valid primary the whole path
+ * stays disabled, so an operator cannot half-finish a rotation into a state
+ * where only the retiring key is honoured.
+ *
+ * @returns The slots to try, primary first, or `null` when unprovisioned.
  */
-function resolveServiceSecret(): string | null {
-  const raw = process.env.BACKEND_SERVICE_JWT_SECRET;
-  if (typeof raw !== 'string') return null;
-  const secret = raw.trim();
-  if (secret.length === 0) return null;
-  if (secret.length < MINIMUM_SERVICE_SECRET_LENGTH) {
-    logger.error(
-      '[auth] BACKEND_SERVICE_JWT_SECRET is set but shorter than the minimum ' +
-        `${MINIMUM_SERVICE_SECRET_LENGTH} characters; the service-principal path is DISABLED. ` +
-        'Service callers will be rejected until a long enough secret is provisioned.',
-      { secretLength: secret.length }
-    );
+function resolveServiceSecrets(): Array<{ slot: ServiceKeySlot; secret: string }> | null {
+  const primary = readSecret(
+    'BACKEND_SERVICE_JWT_SECRET',
+    process.env.BACKEND_SERVICE_JWT_SECRET
+  );
+  if (primary === null) {
+    if (process.env.BACKEND_SERVICE_JWT_SECRET_PREVIOUS?.trim()) {
+      logger.error(
+        '[auth] BACKEND_SERVICE_JWT_SECRET_PREVIOUS is set without a valid ' +
+          'BACKEND_SERVICE_JWT_SECRET; the service-principal path is DISABLED. ' +
+          'The previous slot only extends a provisioned primary, it never replaces one.'
+      );
+    } else if (process.env.BACKEND_SERVICE_JWT_SECRET?.trim()) {
+      logger.error(
+        '[auth] the service-principal path is DISABLED. ' +
+          'Service callers will be rejected until a long enough secret is provisioned.'
+      );
+    }
     return null;
   }
-  return secret;
+
+  const slots: Array<{ slot: ServiceKeySlot; secret: string }> = [
+    { slot: 'primary', secret: primary },
+  ];
+  const previous = readSecret(
+    'BACKEND_SERVICE_JWT_SECRET_PREVIOUS',
+    process.env.BACKEND_SERVICE_JWT_SECRET_PREVIOUS
+  );
+  // Equal to the primary adds nothing; skip it so the log never claims a
+  // `previous` verification that was really the primary.
+  if (previous !== null && previous !== primary) {
+    slots.push({ slot: 'previous', secret: previous });
+  }
+  return slots;
+}
+
+/**
+ * Verify a token's signature and bound claims against one secret.
+ *
+ * @returns The payload, or `null` when the signature is not this secret's.
+ * @throws {AuthError} When the signature matched but the token is unacceptable.
+ */
+function verifyAgainst(token: string, secret: string): jwt.JwtPayload | null {
+  try {
+    // Algorithm pinned to HS256 for the same reason path 2 pins it: an
+    // unpinned verify accepts `alg: "none"` on some versions, which turns a
+    // forged unsigned token into an authenticated service principal.
+    const verified = jwt.verify(token, secret, {
+      algorithms: ['HS256'],
+      issuer: SERVICE_TOKEN_ISSUER,
+      audience: SERVICE_TOKEN_AUDIENCE,
+    });
+    if (typeof verified === 'string') {
+      throw new AuthError('invalid_token', 'malformed');
+    }
+    return verified;
+  } catch (error: unknown) {
+    if (error instanceof AuthError) throw error;
+
+    // A valid signature with an expired `exp` is unambiguously our token:
+    // `jsonwebtoken` checks the signature before the claims, so reaching
+    // TokenExpiredError proves the secret matched. Report the real reason.
+    if (error instanceof TokenExpiredError) {
+      throw new AuthError('invalid_token', 'expired');
+    }
+
+    if (error instanceof JsonWebTokenError) {
+      const message = (error.message || '').toLowerCase();
+      // Signature mismatch means this is simply not this secret's credential —
+      // the caller tries the next slot, then falls through to the app-JWT and
+      // Google paths.
+      if (
+        message.includes('invalid signature') ||
+        message.includes('invalid algorithm')
+      ) {
+        return null;
+      }
+      // Signature matched but a bound claim did not. That IS a service token
+      // aimed at the wrong recipient; reject it rather than fall through.
+      if (message.includes('audience') || message.includes('issuer')) {
+        logger.warn('[auth] service token rejected: claim binding mismatch', {
+          errorMessage: error.message,
+        });
+        throw new AuthError('invalid_token', 'bad_audience');
+      }
+      return null;
+    }
+    return null;
+  }
 }
 
 /**
@@ -125,16 +241,17 @@ export function verifyServiceToken(
   token: string,
   nowMs: number = Date.now()
 ): BackendPrincipal | null {
-  const secret = resolveServiceSecret();
-  if (secret === null) return null;
+  const slots = resolveServiceSecrets();
+  if (slots === null) return null;
 
   // A service secret set equal to the user-session secret would let any
   // end-user JWT that carries our issuer/audience become a `server` principal,
   // which bypasses every tenancy scope and role gate. Refuse rather than
-  // silently operate with the separation collapsed.
-  if (secret === jwtSecret) {
+  // silently operate with the separation collapsed. This holds for the
+  // previous slot too: a rotation must not reopen the hole.
+  if (slots.some(({ secret }) => secret === jwtSecret)) {
     logger.error(
-      '[auth] BACKEND_SERVICE_JWT_SECRET is identical to JWT_SECRET. ' +
+      '[auth] BACKEND_SERVICE_JWT_SECRET (or its _PREVIOUS slot) is identical to JWT_SECRET. ' +
         'These MUST be distinct secrets — sharing them collapses the ' +
         'separation between end-user and service identity. Refusing to ' +
         'verify service tokens until they differ.'
@@ -142,52 +259,16 @@ export function verifyServiceToken(
     throw new AuthError('invalid_token', 'misconfigured');
   }
 
-  let payload: jwt.JwtPayload;
-  try {
-    // Algorithm pinned to HS256 for the same reason path 2 pins it: an
-    // unpinned verify accepts `alg: "none"` on some versions, which turns a
-    // forged unsigned token into an authenticated service principal.
-    const verified = jwt.verify(token, secret, {
-      algorithms: ['HS256'],
-      issuer: SERVICE_TOKEN_ISSUER,
-      audience: SERVICE_TOKEN_AUDIENCE,
-    });
-    if (typeof verified === 'string') {
-      throw new AuthError('invalid_token', 'malformed');
+  let payload: jwt.JwtPayload | null = null;
+  let keySlot: ServiceKeySlot = 'primary';
+  for (const { slot, secret } of slots) {
+    payload = verifyAgainst(token, secret);
+    if (payload !== null) {
+      keySlot = slot;
+      break;
     }
-    payload = verified;
-  } catch (error: unknown) {
-    if (error instanceof AuthError) throw error;
-
-    // A valid signature with an expired `exp` is unambiguously our token:
-    // `jsonwebtoken` checks the signature before the claims, so reaching
-    // TokenExpiredError proves the secret matched. Report the real reason.
-    if (error instanceof TokenExpiredError) {
-      throw new AuthError('invalid_token', 'expired');
-    }
-
-    if (error instanceof JsonWebTokenError) {
-      const message = (error.message || '').toLowerCase();
-      // Signature mismatch means this is simply not a service credential —
-      // fall through so the app-JWT and Google paths get their turn.
-      if (
-        message.includes('invalid signature') ||
-        message.includes('invalid algorithm')
-      ) {
-        return null;
-      }
-      // Signature matched but a bound claim did not. That IS a service token
-      // aimed at the wrong recipient; reject it rather than fall through.
-      if (message.includes('audience') || message.includes('issuer')) {
-        logger.warn('[auth] service token rejected: claim binding mismatch', {
-          errorMessage: error.message,
-        });
-        throw new AuthError('invalid_token', 'bad_audience');
-      }
-      return null;
-    }
-    return null;
   }
+  if (payload === null) return null;
 
   const sub = typeof payload.sub === 'string' ? payload.sub.trim() : '';
   if (sub.length === 0) {
@@ -231,6 +312,13 @@ export function verifyServiceToken(
     });
     throw new AuthError('invalid_token', 'bad_audience');
   }
+
+  // Which key verified is the rotation's progress signal: once `previous`
+  // stops appearing, every minter is on the new key and the slot can go.
+  // `previous` logs at info so it shows under any production LOG_LEVEL short
+  // of warn; `primary` is the steady state and stays at debug.
+  const keyLog = keySlot === 'previous' ? logger.info : logger.debug;
+  keyLog('[auth] service token verified', { sub, keySlot });
 
   return { kind: 'server', sub };
 }
