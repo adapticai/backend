@@ -143,11 +143,6 @@ function resolveServiceSecrets(): Array<{ slot: ServiceKeySlot; secret: string }
           'BACKEND_SERVICE_JWT_SECRET; the service-principal path is DISABLED. ' +
           'The previous slot only extends a provisioned primary, it never replaces one.'
       );
-    } else if (process.env.BACKEND_SERVICE_JWT_SECRET?.trim()) {
-      logger.error(
-        '[auth] the service-principal path is DISABLED. ' +
-          'Service callers will be rejected until a long enough secret is provisioned.'
-      );
     }
     return null;
   }
