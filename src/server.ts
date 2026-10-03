@@ -17,6 +17,10 @@ import { buildSchema } from 'type-graphql';
 import { GraphQLError } from 'graphql';
 import { resolvers } from './generated/typegraphql-prisma';
 import {
+  withoutServerOnlyResolvers,
+  withoutServerOnlySchemaSurface,
+} from './config/server-only-models';
+import {
   BrokerageAccountCredentialStatusResolver,
   OptionsGreeksHistoryCustomResolver,
   TradingSettingsResolver,
@@ -159,9 +163,12 @@ const startServer = async () => {
     }
   );
 
-  const schema = await buildSchema({
+  // Server-only models (the trade restatement ledger) get no GraphQL surface:
+  // their resolvers are dropped here and any residual field or input that
+  // references them is stripped from the built schema.
+  const schema = withoutServerOnlySchemaSurface(await buildSchema({
     resolvers: [
-      ...resolvers,
+      ...withoutServerOnlyResolvers(resolvers),
       OptionsGreeksHistoryCustomResolver,
       TradingSettingsResolver,
       BrokerageAccountCredentialStatusResolver,
@@ -188,7 +195,7 @@ const startServer = async () => {
     // it observes + counts would-deny operations but always allows —
     // byte-identical live behaviour until enforcement is flipped on.
     authChecker: cortexAuthChecker,
-  });
+  }));
 
   // Mutation authorization: every mutation is admitted only for a principal
   // authorised to write that model — the engine's service principal and admins
