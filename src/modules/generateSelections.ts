@@ -3,6 +3,7 @@ import path from 'path';
 import { getDMMF } from '@prisma/internals';
 import { DMMF } from '@prisma/generator-helper';
 import { logger } from '../utils/logger';
+import { isServerOnlyModel } from '../config/server-only-models';
 
 const SCHEMA_PATH = path.join(__dirname, '../../prisma/schema.prisma');
 const OUTPUT_DIR = path.join(__dirname, '../../src/generated/selectionSets');
@@ -167,9 +168,13 @@ const main = async () => {
     const dmmf = await getDMMF({ datamodel: schema });
     const enumNames = new Set(dmmf.datamodel.enums.map((e) => e.name));
     const cache = new Map<string, string>();
+    // Server-only models have no GraphQL type to select from.
+    const models = dmmf.datamodel.models.filter(
+      (model) => !isServerOnlyModel(model.name)
+    );
 
     // Generate selection sets
-    for (const model of dmmf.datamodel.models) {
+    for (const model of models) {
       const selectionSet = generateSelectionSet(
         model,
         dmmf,
@@ -187,12 +192,12 @@ const main = async () => {
     }
 
     // Generate index file
-    const imports = dmmf.datamodel.models
+    const imports = models
       .map((model) => `import { ${model.name} } from './${model.name}';`)
       .join('\n');
 
     const exports = `export const selectionSets: Record<string, string> = {
-${dmmf.datamodel.models.map((model) => `  ${model.name},`).join('\n')}
+${models.map((model) => `  ${model.name},`).join('\n')}
 };\n\nexport default selectionSets;\n`;
 
     await fs.writeFile(INDEX_FILE, `${imports}\n\n${exports}`, 'utf-8');
