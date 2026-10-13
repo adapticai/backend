@@ -4532,8 +4532,8 @@ model TradeAuditEvent {
   /// Symbol being traded
   symbol String @db.VarChar(50)
 
-  /// Account identifier
-  accountId String @db.VarChar(255)
+  /// Account the event belongs to: an adaptic Account id or a broker account id, the key named by eventData.accountIdSource. Null when the event is not account-scoped. An unattributed row is null, never a placeholder string, because a placeholder in an id column joins rows that share nothing.
+  accountId String? @db.VarChar(255)
 
   /// Trade identifier (optional)
   tradeId String? @db.VarChar(255)
