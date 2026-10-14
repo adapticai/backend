@@ -1,0 +1,35 @@
+-- TradeAuditEvent.accountId admits NULL.
+--
+-- An audit row that is not account-scoped (a system start, an auth event, a
+-- fleet-wide halt) has no account, and the honest value for "no account" is
+-- NULL. While the column was NOT NULL the writer had to put a placeholder string
+-- in it instead, and a placeholder in an id column is worse than an empty one:
+-- it joins every unattributed row to every other, and a reader filtering on the
+-- column sees a value where the fact is an absence. The writer already carries
+-- the provenance in eventData.accountIdSource ("unknown" for these rows); this
+-- lets the column say the same thing.
+--
+-- Widening only. DROP NOT NULL changes catalog metadata and rewrites no row,
+-- and it is a no-op on a column that already admits NULL, so a re-run is safe.
+-- Existing rows keep the values they were written with: audit rows are
+-- immutable, and a signed row's signature covers its accountId, so rewriting a
+-- historical placeholder would break the evidence it is meant to protect.
+-- Rows written before this migration can still carry '*'; rows written after
+-- the engine stops sending it carry NULL. A count of unattributed rows over a
+-- window spanning the change reads both: "accountId" IS NULL OR "accountId" = '*'.
+--
+-- Reversal, should it ever be needed, is the inverse statement, valid only once
+-- no row holds NULL:
+--   ALTER TABLE "trade_audit_events" ALTER COLUMN "accountId" SET NOT NULL;
+--
+-- The DDL is the verbatim output of the DB-free
+--   prisma migrate diff --from-schema-datamodel <pre-change schema> \
+--                       --to-schema-datamodel prisma/schema.prisma --script
+--
+-- ORDERING NOTE FOR THE DEPLOY: this migration and the backend API that serves
+-- the widened GraphQL input must be live BEFORE any engine build sends
+-- accountId: null. Against the previous schema the input field is String!, and
+-- a null in one row of a createMany rejects the whole batch.
+
+-- AlterTable
+ALTER TABLE "trade_audit_events" ALTER COLUMN "accountId" DROP NOT NULL;

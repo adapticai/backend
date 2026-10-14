@@ -74,7 +74,29 @@ export const IR_MODELS: readonly EnhanceModelName[] = [
  *
  * Decorating them changes NO behaviour while the checker is in shadow — a
  * would-deny is logged and counted and then allowed. What it changes is that
- * the exposure becomes measurable. Enforcement cannot be argued from a
+ * the exposure becomes measurable.
+ *
+ * `Fund` joined them on 2026-09-27, and it is the one admission that corrects a
+ * belief rather than adding a surface. The exposure is an unauthenticated
+ * request receiving HTTP 200 with every fund's P&L — measured on the deployed
+ * API by Sophie Nguyen at 02:42Z and independently by James Kirkland at
+ * 09:46:56Z, not inferred from the schema. `Fund` carries `aum`,
+ * `navPerShare` and `highWaterMarkNav`.
+ *
+ * The belief it corrects: this gap was being treated as something the
+ * `CORTEX_AUTHCHECKER_ENFORCE` flip would close. **It would not have.** `Fund`
+ * was in neither list, so its reads were never decorated, so the checker never
+ * ran for them — and per the paragraph above, a query the checker never runs
+ * for is a query it cannot even count. Waiting for the enforcement flip would
+ * have closed the four models here and left every fund's P&L answering to
+ * anyone, with nothing in the would-deny ratio to show it. Coverage and
+ * enforcement are separate axes and only one of them was being tracked.
+ *
+ * `FundAssignment` is a candidate and is deliberately NOT admitted here. It
+ * reveals which accounts belong to which fund, which is structural rather than
+ * P&L, and no anonymous probe of it has been run. Admitting it on inspection
+ * would break the criterion this list is built on — by measurement, not by
+ * reading the schema. Measure it, then admit it. Enforcement cannot be argued from a
  * would-deny ratio that reflects only surfaces nobody ever authenticated to,
  * and the measurement has to exist before the decision does.
  */
@@ -83,6 +105,7 @@ export const TENANT_SCOPED_READ_MODELS: readonly EnhanceModelName[] = [
   'OrgMembership',
   'User',
   'AuditLog',
+  'Fund',
 ];
 
 /**

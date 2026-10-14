@@ -9,19 +9,26 @@ name: CI - Backend Legacy
 on:
   pull_request:
     branches: [main, develop, stable-release]
+    # scripts/** and vitest.config.ts are inputs to the test suite: scripts/ci
+    # holds the publish workflow's registry checks and their tests, so a change
+    # there must run the gate that proves them.
     paths:
       - 'src/**'
       - 'prisma/**'
+      - 'scripts/**'
       - 'package.json'
       - 'tsconfig.json'
+      - 'vitest.config.ts'
       - '.github/workflows/**'
   push:
     branches: [main, stable-release]
     paths:
       - 'src/**'
       - 'prisma/**'
+      - 'scripts/**'
       - 'package.json'
       - 'tsconfig.json'
+      - 'vitest.config.ts'
       - '.github/workflows/**'
 
 jobs:

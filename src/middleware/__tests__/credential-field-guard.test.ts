@@ -16,6 +16,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { buildSchema as buildSdlSchema } from 'graphql';
 
 import {
+  CREDENTIAL_READ_REMEDY,
   findCredentialArgumentReferences,
   getCredentialFieldGuardMode,
 } from '../credential-field-guard';
@@ -69,6 +70,21 @@ describe('output surface', () => {
       expect(r.json).not.toContain(API_KEY);
     }
   );
+
+  it('a refused read carries extensions.remedy; code and status are unchanged', () => {
+    const body = JSON.parse(scenario('output/none').json) as {
+      errors?: Array<{ extensions?: Record<string, unknown> }>;
+    };
+    const refusal = (body.errors ?? []).find((e) => e.extensions?.code === 'FORBIDDEN');
+    expect(refusal?.extensions).toMatchObject({
+      code: 'FORBIDDEN',
+      http: { status: 403 },
+      remedy: CREDENTIAL_READ_REMEDY,
+    });
+    expect(CREDENTIAL_READ_REMEDY).toMatch(/deliberately/);
+    expect(CREDENTIAL_READ_REMEDY).toMatch(/since 2026-09-26/);
+    expect(CREDENTIAL_READ_REMEDY).toMatch(/run-with-identity\.mjs/);
+  });
 
   it('leaves non-credential fields readable for an unauthenticated caller', () => {
     const r = scenario('output/non-credential-none');

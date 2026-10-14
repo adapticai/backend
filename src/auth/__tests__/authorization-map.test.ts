@@ -182,9 +182,13 @@ describe('read coverage on the tenant-scoped models', () => {
     return entry && typeof entry === 'object' ? Object.keys(entry) : [];
   }
 
-  it('names exactly the four models observed answering unauthenticated', () => {
+  it('names exactly the models observed answering unauthenticated', () => {
+    // Exact, sorted, and deliberately not a length check: this list may only
+    // grow by measurement, so a change here has to be an explicit decision
+    // rather than a count that quietly absorbs one.
     expect([...TENANT_SCOPED_READ_MODELS].sort()).toEqual([
       'AuditLog',
+      'Fund',
       'OrgMembership',
       'Organization',
       'User',
@@ -207,6 +211,9 @@ describe('read coverage on the tenant-scoped models', () => {
     expect(actionsFor('OrgMembership')).toContain('orgMemberships');
     // The exact query the anonymous probe issues against the personal data.
     expect(actionsFor('AuditLog')).toContain('auditLogs');
+    // And the one that returned HTTP 200 with every fund's P&L to a request
+    // carrying no Authorization header.
+    expect(actionsFor('Fund')).toContain('funds');
   });
 
   it('keeps delete coverage alongside the reads rather than replacing it', () => {

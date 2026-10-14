@@ -4,6 +4,7 @@ import { getDMMF } from '@prisma/internals';
 import { DMMF } from '@prisma/generator-helper';
 import pluralize from 'pluralize';
 import { logger } from '../utils/logger';
+import { isServerOnlyModel } from '../config/server-only-models';
 
 const SCHEMA_PATH = path.join(__dirname, '../../prisma/schema.prisma');
 const OUTPUT_DIR = path.join(__dirname, '../../src/generated/typeStrings');
@@ -355,7 +356,12 @@ const generateTypeStrings = async () => {
     ];
 
     const enumsMap = new Map(allEnums.map((e) => [e.name, e]));
-    const models = new Map(dmmf.datamodel.models.map((m) => [m.name, m]));
+    // Server-only models are not part of the published surface, so no typeString either.
+    const models = new Map(
+      dmmf.datamodel.models
+        .filter((m) => !isServerOnlyModel(m.name))
+        .map((m) => [m.name, m])
+    );
 
     const exportStatements: string[] = [];
 

@@ -31,6 +31,7 @@ import {
   MAX_SERVICE_TOKEN_CLOCK_SKEW_SEC,
 } from '../service-token';
 import { verifyBackendToken, AuthError } from '../token-verifier';
+import { logger } from '../../utils/logger';
 
 /** A service secret distinct from the user-session secret, per the contract. */
 const SERVICE_SECRET =
@@ -236,6 +237,134 @@ describe('verifyServiceToken', () => {
       { algorithm: 'none' }
     );
     expect(verifyServiceToken(forged)).toBeNull();
+  });
+});
+
+describe('verifyServiceToken — rotation (previous-key slot)', () => {
+  /** The key minters are moving away from during a rotation. */
+  const OUTGOING_SECRET =
+    'outgoing-service-secret-for-suite-only-being-rotated-out-now';
+
+  beforeEach(() => {
+    process.env.BACKEND_SERVICE_JWT_SECRET = SERVICE_SECRET;
+    process.env.BACKEND_SERVICE_JWT_SECRET_PREVIOUS = OUTGOING_SECRET;
+  });
+
+  afterEach(() => {
+    delete process.env.BACKEND_SERVICE_JWT_SECRET;
+    delete process.env.BACKEND_SERVICE_JWT_SECRET_PREVIOUS;
+    vi.restoreAllMocks();
+  });
+
+  it('accepts a credential signed with the new primary key', () => {
+    expect(verifyServiceToken(mint())).toEqual({
+      kind: 'server',
+      sub: 'adaptic-engine:test',
+    });
+  });
+
+  it('accepts a credential still signed with the outgoing key', () => {
+    expect(verifyServiceToken(mint({ secret: OUTGOING_SECRET }))).toEqual({
+      kind: 'server',
+      sub: 'adaptic-engine:test',
+    });
+  });
+
+  it('logs which key verified, so the outgoing key can be seen to drain', () => {
+    const info = vi.spyOn(logger, 'info').mockImplementation(() => undefined);
+    const debug = vi.spyOn(logger, 'debug').mockImplementation(() => undefined);
+
+    verifyServiceToken(mint({ secret: OUTGOING_SECRET, sub: 'engine:old' }));
+    expect(info).toHaveBeenCalledWith('[auth] service token verified', {
+      sub: 'engine:old',
+      keySlot: 'previous',
+    });
+
+    verifyServiceToken(mint({ sub: 'engine:new' }));
+    expect(debug).toHaveBeenCalledWith('[auth] service token verified', {
+      sub: 'engine:new',
+      keySlot: 'primary',
+    });
+    expect(info).toHaveBeenCalledTimes(1);
+  });
+
+  it('applies every claim check to outgoing-key credentials too', () => {
+    const staleIat = Math.floor(Date.now() / 1000) - 7200;
+    expect(() =>
+      verifyServiceToken(
+        mint({ secret: OUTGOING_SECRET, issuedAtSec: staleIat, lifetimeSec: 900 })
+      )
+    ).toThrow(AuthError);
+    expect(() =>
+      verifyServiceToken(mint({ secret: OUTGOING_SECRET, audience: 'elsewhere' }))
+    ).toThrow(AuthError);
+    expect(() =>
+      verifyServiceToken(
+        mint({ secret: OUTGOING_SECRET, lifetimeSec: MAX_SERVICE_TOKEN_LIFETIME_SEC + 60 })
+      )
+    ).toThrow(AuthError);
+  });
+
+  it('still falls through for a token signed with neither key', () => {
+    expect(
+      verifyServiceToken(mint({ secret: 'attacker-supplied-secret-value-xxxx' }))
+    ).toBeNull();
+  });
+
+  it('stops accepting the outgoing key the moment the slot is unset', () => {
+    const token = mint({ secret: OUTGOING_SECRET });
+    delete process.env.BACKEND_SERVICE_JWT_SECRET_PREVIOUS;
+    expect(verifyServiceToken(token)).toBeNull();
+  });
+
+  it('never lets the previous slot stand in for a missing primary', () => {
+    delete process.env.BACKEND_SERVICE_JWT_SECRET;
+    expect(verifyServiceToken(mint({ secret: OUTGOING_SECRET }))).toBeNull();
+  });
+
+  it('never lets the previous slot stand in for a too-short primary', () => {
+    process.env.BACKEND_SERVICE_JWT_SECRET = 'x'.repeat(
+      MINIMUM_SERVICE_SECRET_LENGTH - 1
+    );
+    expect(verifyServiceToken(mint({ secret: OUTGOING_SECRET }))).toBeNull();
+  });
+
+  it('ignores a too-short previous value rather than weakening', () => {
+    process.env.BACKEND_SERVICE_JWT_SECRET_PREVIOUS = 'y'.repeat(
+      MINIMUM_SERVICE_SECRET_LENGTH - 1
+    );
+    expect(
+      verifyServiceToken(mint({ secret: 'y'.repeat(MINIMUM_SERVICE_SECRET_LENGTH - 1) }))
+    ).toBeNull();
+    expect(verifyServiceToken(mint())).toEqual({
+      kind: 'server',
+      sub: 'adaptic-engine:test',
+    });
+  });
+
+  it('reports the primary slot when previous is set to the same value', () => {
+    process.env.BACKEND_SERVICE_JWT_SECRET_PREVIOUS = SERVICE_SECRET;
+    const info = vi.spyOn(logger, 'info').mockImplementation(() => undefined);
+    vi.spyOn(logger, 'debug').mockImplementation(() => undefined);
+    expect(verifyServiceToken(mint())).not.toBeNull();
+    expect(info).not.toHaveBeenCalled();
+  });
+
+  it('refuses to operate when the previous slot equals the user secret', () => {
+    process.env.BACKEND_SERVICE_JWT_SECRET_PREVIOUS = TEST_JWT_SECRET;
+    try {
+      verifyServiceToken(mint({ secret: TEST_JWT_SECRET }));
+      expect.unreachable('a previous slot equal to JWT_SECRET must throw');
+    } catch (error) {
+      expect(error).toBeInstanceOf(AuthError);
+      expect((error as AuthError).reason).toBe('misconfigured');
+    }
+  });
+
+  it('promotes an outgoing-key credential end to end', async () => {
+    await expect(
+      verifyBackendToken(mint({ secret: OUTGOING_SECRET }))
+    ).resolves.toEqual({ kind: 'server', sub: 'adaptic-engine:test' });
   });
 });
 
