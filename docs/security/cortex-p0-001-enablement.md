@@ -24,14 +24,54 @@ migration, spelled out below.
 
 ---
 
+## Re-verified against `main`: the exposure is already closed, by another mechanism
+
+This section was written when the credential columns resolved for any caller the
+`/graphql` context admitted. That is no longer the state of the tree, and the
+sequence below must be read against what actually shipped before any of it is
+executed.
+
+`src/middleware/credential-field-guard.ts` is installed as the FIRST global
+middleware in `src/server.ts` and serves a stored credential — and admits a
+filter, sort, `groupBy` or `_min`/`_max` over one — only to a verified
+`kind: "server"` principal. Its mode is `CREDENTIAL_FIELD_GUARD_MODE`, and
+`enforce` is both the default and what any unset or unrecognised value resolves
+to. It covers 24 columns across 10 models (`src/auth/credential-fields.ts`),
+including the eight `LlmConfiguration` vendor keys, `BrokerageAccount`,
+`InviteToken` and the audit-payload copies — a superset of the fields the
+excision workstream was scoped to remove, plus the predicate surface that
+hiding a field does not close.
+
+Three consequences for the plan below:
+
+1. **Excision is no longer the mechanism that closes the exposure**, so its
+   ordering dependency is no longer on the critical path. The guard protects the
+   columns in place, and in place is where the engine already reads them.
+2. **Excision is now the more disruptive of the two options.** The generated
+   selection sets name `AlpacaAccount.APIKey` (see
+   `src/generated/selectionSets/AlpacaAccount.ts:4`); they are generated from
+   `prisma/schema.prisma`, so excising at the GraphQL layer alone leaves every
+   published `adaptic.*` operation selecting a field the server no longer
+   serves, and a GraphQL validation error rejects the WHOLE operation rather
+   than nulling the field. A `GQL.SKIP` + regenerate + publish + coordinated
+   consumer bump is the only ordering that does not break the fleet.
+3. **The server-only resolver this PR adds has no consumer.** No call site in
+   `engine/src` or `platform/` names `alpacaAccountCredentials`. It is a second
+   credential read path, gated on the same `kind: "server"` bar the guard
+   already applies to the ordinary fields, serving nothing. Whether to keep it
+   as the seam for a future excision, or to close it and treat the guard as the
+   terminal answer, is the decision the reviewer who owns this PR's hold is
+   being asked to make.
+
 ## Why ordering matters
 
 The engine authenticates to Alpaca with credentials it reads **today** as
-ordinary GraphQL fields (`AlpacaAccount.APIKey`, `AlpacaAccount.APISecret`). Those
-fields are selectable by any authenticated caller — that is the exposure
-CORTEX-P0-001 closes. But they cannot simply be hidden: the moment `GQL.SKIP` is
-applied and the package regenerated, the engine's credential read returns
-`undefined` and **every account stops trading**.
+ordinary GraphQL fields (`AlpacaAccount.APIKey`, `AlpacaAccount.APISecret`).
+Those fields are served to the engine's service principal and refused to every
+other principal by the credential-field guard described above. They cannot
+simply be hidden: the moment `GQL.SKIP` is applied and the package regenerated,
+the engine's credential read returns `undefined` and **every account stops
+trading**.
 
 Therefore the safe path is: build a replacement fetch path FIRST, move the engine
 onto it, and only THEN remove the old fields. The same logic applies to any
