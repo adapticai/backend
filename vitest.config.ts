@@ -4,7 +4,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
+    // scripts/** holds CI tooling the publish workflow executes; its tests run
+    // in the same gate as the package's own.
+    include: ['src/**/*.test.ts', 'src/**/*.spec.ts', 'scripts/**/*.test.ts'],
     exclude: ['node_modules', 'dist', 'src/generated/**', 'src/modules/**'],
     testTimeout: 10000,
     hookTimeout: 10000,
