@@ -4,6 +4,7 @@ import fs from 'fs';
 import { generateModelFunctions } from './generator';
 import { exit } from 'process';
 import { logger } from '../utils/logger';
+import { isServerOnlyModel } from '../config/server-only-models';
 
 // Define paths
 const MODELS_PATH = path.join(
@@ -152,6 +153,11 @@ modelFiles.forEach((file) => {
   const modelName = path.basename(file, '.ts');
   const capitalModelName =
     modelName.charAt(0).toUpperCase() + modelName.slice(1);
+
+  // Server-only models have no GraphQL surface, so no client functions either.
+  if (isServerOnlyModel(capitalModelName)) {
+    return;
+  }
 
   const modelFunctions = generateModelFunctions(
     capitalModelName,

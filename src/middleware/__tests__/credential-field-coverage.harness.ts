@@ -39,6 +39,10 @@ import {
 
 import { resolvers } from '../../generated/typegraphql-prisma';
 import {
+  withoutServerOnlyResolvers,
+  withoutServerOnlySchemaSurface,
+} from '../../config/server-only-models';
+import {
   BrokerageAccountCredentialStatusResolver,
   OptionsGreeksHistoryCustomResolver,
   TradingSettingsResolver,
@@ -478,16 +482,17 @@ async function main(): Promise<void> {
     },
   });
 
-  const schema = await buildSchema({
+  // Same assembly as src/server.ts, server-only models excluded.
+  const schema = withoutServerOnlySchemaSurface(await buildSchema({
     resolvers: [
-      ...resolvers,
+      ...withoutServerOnlyResolvers(resolvers),
       OptionsGreeksHistoryCustomResolver,
       TradingSettingsResolver,
       BrokerageAccountCredentialStatusResolver,
     ],
     validate: false,
     globalMiddlewares: [createCredentialFieldGuardMiddleware({ modeProvider: () => 'enforce' })],
-  });
+  }));
 
   const coverage = walkCoverage(schema);
 

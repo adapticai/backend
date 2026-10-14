@@ -2197,6 +2197,10 @@ model Trade {
   /// Relation to the owning Strategy. Kept out of the generated selection sets (GQL.SKIP) so adding it does not widen every existing Trade query; consumers join on `strategyId`. TYPESTRING.SKIP=true GQL.SKIP=true
   strategyRef Strategy? @relation(fields: [strategyId], references: [id], onDelete: Restrict)
 
+  /// Ledger of operator restatements applied to this trade row (see TradeRestatement). Server-only: omitted from every GraphQL type and input, from the generated selection sets and from typeStrings. Read it with Prisma or SQL. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// @TypeGraphQL.omit(output: true, input: true)
+  restatements TradeRestatement[]
+
   @@index([strategyId])
   @@index([alpacaAccountId])
   @@index([alpacaAccountId, status])
@@ -4512,6 +4516,82 @@ model SignalLineage {
   @@index([pnlPercentage])
   @@index([dataQuality])
   @@map("signal_lineage")
+}
+
+// Ledger of operator restatements of trades rows. One row per (trade, restatement run). Written by the restatement
+// script in the SAME transaction as the UPDATE of trades it records, so the ledger and the book cannot disagree.
+// SERVER-ONLY: never exposed on the GraphQL API. Its generated resolvers are filtered out of the schema in
+// src/server.ts and the CRUD/selection/typeString generators skip it (src/config/server-only-models.ts).
+model TradeRestatement {
+  /// Unique identifier for the ledger row. Defaulted by the database because the writers are SQL scripts, not the Prisma client.
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  /// The restated trade.
+  tradeId String @db.Uuid
+
+  /// Copy of trades.alpacaAccountId at restatement time, so per-book counts tie out without a join.
+  alpacaAccountId String @db.Uuid
+
+  /// Reference of the restatement run, e.g. RST-2026-10-03-ENTRYBASIS-ADAPTIC or roster-flap-2026-10-02.
+  restatementRef String
+
+  /// Instant the restatement transaction ran (UTC, written as now() AT TIME ZONE 'UTC').
+  runAt DateTime
+
+  /// Names of the trades columns this run changed, e.g. {entryPrice,pnlAmount}. The revert restores exactly these.
+  fieldsChanged String[]
+
+  /// The whole trades row before the update (to_jsonb(trades.*)), read inside the restating transaction.
+  priorRow Json
+
+  /// entryPrice before / after. NULL pair when the run did not restate it.
+  priorEntryPrice Float?
+  newEntryPrice   Float?
+
+  /// pnlAmount before / after.
+  priorPnlAmount Float?
+  newPnlAmount   Float?
+
+  /// entryQty before / after.
+  priorEntryQty Float?
+  newEntryQty   Float?
+
+  /// entryValue before / after.
+  priorEntryValue Float?
+  newEntryValue   Float?
+
+  /// exitQty before / after.
+  priorExitQty Float?
+  newExitQty   Float?
+
+  /// status before / after.
+  priorStatus TradeStatus?
+  newStatus   TradeStatus?
+
+  /// Evidence for the new values: broker fill/order ids, VWAP, filled qty, the P&L rule applied, source file.
+  basis Json
+
+  /// Who signed off the restatement.
+  approvedBy String
+
+  /// Database role that executed it. Defaults to the session role; scripts may record a person instead.
+  executedBy String @default(dbgenerated("CURRENT_USER"))
+
+  /// When this row was reverted (prior values restored). NULL while the restatement stands.
+  revertedAt DateTime?
+
+  /// Who reverted it. Set if and only if revertedAt is set (CHECK constraint in the migration).
+  revertedBy String?
+
+  /// Timestamp when the ledger row was written.
+  createdAt DateTime @default(now())
+
+  trade Trade @relation(fields: [tradeId], references: [id], onDelete: Restrict)
+
+  /// A re-run of the same restatement cannot double-record a trade. The leading tradeId column also serves as the tradeId index.
+  @@unique([tradeId, restatementRef])
+  @@index([restatementRef])
+  @@map(name: "trade_restatements")
 }
 
 // Trade Audit Events - Comprehensive audit trail for all trading decisions
