@@ -17,3 +17,9 @@ export {
   OrgTradingDefaultsPayload,
   FundTradingOverridesPayload,
 } from './TradingSettingsResolver';
+export {
+  AccountEquityCurveResolver,
+  AccountEquityCurve,
+  EquityCurvePoint,
+  MarketTapeBar,
+} from './AccountEquityCurveResolver';
