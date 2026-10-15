@@ -13,14 +13,43 @@
  * @module resolvers/custom/account-audit-read
  */
 import { GraphQLError } from 'graphql';
+import jwt from 'jsonwebtoken';
 
-import type { BackendPrincipal } from '../../auth/token-verifier';
+import { logger } from '../../utils/logger';
 
 /** `sub` prefix the audit toolkit mints (`adaptic-audit:<who>@<host>:<pid>`). */
 export const AUDIT_SUBJECT_PREFIX = 'adaptic-audit:';
 
 /** Env var holding the comma-separated operators admitted to the audit-read role. */
 export const AUDIT_READ_OPERATORS_ENV = 'AUDIT_READ_OPERATORS';
+
+/** Env var holding the HS256 secret that signs audit-read tokens, and nothing else. */
+export const AUDIT_READ_JWT_SECRET_ENV = 'AUDIT_READ_JWT_SECRET';
+
+/**
+ * Request header the audit token travels in.
+ *
+ * Not `Authorization`: the shared verifier would refuse a token it cannot
+ * verify with HTTP 401 before any resolver ran, and teaching it this secret
+ * would make audit-read one more way to become a `server` principal. A
+ * separate header keeps the two trust roots apart.
+ */
+export const AUDIT_READ_TOKEN_HEADER = 'x-adaptic-audit-token';
+
+/** Issuer every audit-read token must carry. */
+export const AUDIT_READ_ISSUER = 'adaptic-audit';
+
+/** Audience every audit-read token must carry. */
+export const AUDIT_READ_AUDIENCE = 'adaptic-backend:audit-read';
+
+/** Minimum length for the audit-read secret, in characters. */
+export const MINIMUM_AUDIT_SECRET_LENGTH = 32;
+
+/** Largest lifetime (`exp - iat`) honoured on an audit-read token, seconds. */
+export const MAX_AUDIT_TOKEN_LIFETIME_SEC = 900;
+
+/** How far in the future an `iat` may sit before the token is refused, seconds. */
+export const MAX_AUDIT_TOKEN_CLOCK_SKEW_SEC = 60;
 
 /** SIP history on a non-real-time key lags by this long; the freshest window comes from IEX. */
 export const SIP_DELAY_MS = 16 * 60_000;
@@ -36,10 +65,7 @@ export const MAX_TAPE_SYMBOLS = 20;
 
 const PAGE_LIMIT = 10_000;
 const MAX_PAGES = 50;
-const TRADE_HOSTS = {
-  PAPER: 'https://paper-api.alpaca.markets',
-  LIVE: 'https://api.alpaca.markets',
-} as const;
+const PAPER_TRADE_HOST = 'https://paper-api.alpaca.markets';
 const DATA_HOST = 'https://data.alpaca.markets';
 
 /** The stored account fields a read needs. Never returned to the caller. */
@@ -59,31 +85,87 @@ export type AlpacaFetch = (url: string, init: { headers: Record<string, string> 
 }>;
 
 /**
+ * The audit-read token from a request's headers, or null when absent.
+ *
+ * A repeated header arrives as an array and is refused rather than guessed at.
+ */
+export function auditTokenFromHeaders(
+  headers: Record<string, string | string[] | undefined> | undefined
+): string | null {
+  const raw = headers?.[AUDIT_READ_TOKEN_HEADER];
+  if (typeof raw !== 'string') return null;
+  const token = raw.trim();
+  return token.length > 0 ? token : null;
+}
+
+/**
  * The audit-read role, enforced in the resolver.
  *
- * Fail-closed on purpose. A `server` principal otherwise bypasses every role
- * gate and `@Authorized()` is shadow-first, so neither can carry this. Admitted:
- * a verified service principal whose `sub` is `adaptic-audit:<who>@…` with
- * `<who>` listed in `AUDIT_READ_OPERATORS`. An unset or empty list admits
- * nobody; the engine's own service credential is not admitted.
+ * Fail-closed, and independent of the request's principal. A `server`
+ * principal otherwise bypasses every role gate and `@Authorized()` is
+ * shadow-first, so neither can carry this; and any holder of the shared
+ * service secret can mint a `server` principal with whatever `sub` it likes.
+ * So the caller must present a token signed with `AUDIT_READ_JWT_SECRET`, a
+ * secret with no other use, bound to this issuer and audience, short-lived,
+ * whose `sub` is `adaptic-audit:<who>@…` with `<who>` in
+ * `AUDIT_READ_OPERATORS`. A token signed with any other secret is refused
+ * whatever its `sub` says. An unset secret or an empty list admits nobody.
  *
- * @param principal - The verified caller, or null/undefined when anonymous.
- * @param env - Environment to read the operator list from.
+ * @param token - The raw audit-read token, or null/undefined when absent.
+ * @param env - Environment to read the secret and operator list from.
+ * @param nowSec - Current time, seconds since the epoch.
  * @returns The operator the read is attributed to.
- * @throws {GraphQLError} `UNAUTHENTICATED` without a principal, `FORBIDDEN` otherwise.
+ * @throws {GraphQLError} `UNAUTHENTICATED` without a token, `FORBIDDEN` otherwise.
  */
 export function assertAuditRead(
-  principal: BackendPrincipal | null | undefined,
-  env: Record<string, string | undefined> = process.env
+  token: string | null | undefined,
+  env: Record<string, string | undefined> = process.env,
+  nowSec: number = Math.floor(Date.now() / 1000)
 ): string {
-  if (!principal) {
+  if (!token) {
     throw new GraphQLError('Authentication required', { extensions: { code: 'UNAUTHENTICATED' } });
   }
   const forbidden = (): never => {
     throw new GraphQLError('audit-read role required', { extensions: { code: 'FORBIDDEN' } });
   };
-  if (principal.kind !== 'server') return forbidden();
-  const sub = principal.sub ?? '';
+
+  const secret = (env[AUDIT_READ_JWT_SECRET_ENV] ?? '').trim();
+  if (secret.length < MINIMUM_AUDIT_SECRET_LENGTH) {
+    if (secret.length > 0) {
+      logger.error(`[audit-read] ${AUDIT_READ_JWT_SECRET_ENV} is shorter than ${MINIMUM_AUDIT_SECRET_LENGTH} characters; audit reads are disabled.`);
+    }
+    return forbidden();
+  }
+  // Equal to any other trust root collapses the separation this secret exists for.
+  const others = [
+    env.BACKEND_SERVICE_JWT_SECRET,
+    env.BACKEND_SERVICE_JWT_SECRET_PREVIOUS,
+    env.JWT_SECRET,
+    env.NEXTAUTH_SECRET,
+  ].map((v) => (v ?? '').trim());
+  if (others.includes(secret)) {
+    logger.error(`[audit-read] ${AUDIT_READ_JWT_SECRET_ENV} equals another auth secret; audit reads are disabled until it is distinct.`);
+    return forbidden();
+  }
+
+  let payload: jwt.JwtPayload;
+  try {
+    const verified = jwt.verify(token, secret, {
+      algorithms: ['HS256'],
+      issuer: AUDIT_READ_ISSUER,
+      audience: AUDIT_READ_AUDIENCE,
+      clockTimestamp: nowSec,
+    });
+    if (typeof verified === 'string') return forbidden();
+    payload = verified;
+  } catch {
+    return forbidden();
+  }
+  const { iat, exp } = payload;
+  if (typeof iat !== 'number' || typeof exp !== 'number') return forbidden();
+  if (exp - iat > MAX_AUDIT_TOKEN_LIFETIME_SEC || iat > nowSec + MAX_AUDIT_TOKEN_CLOCK_SKEW_SEC) return forbidden();
+
+  const sub = typeof payload.sub === 'string' ? payload.sub : '';
   if (!sub.startsWith(AUDIT_SUBJECT_PREFIX)) return forbidden();
   const who = sub.slice(AUDIT_SUBJECT_PREFIX.length).split('@')[0].trim();
   const allowed = (env[AUDIT_READ_OPERATORS_ENV] ?? '')
@@ -94,10 +176,10 @@ export function assertAuditRead(
   return who;
 }
 
-/** LIVE accounts are refused unless the caller opted in. */
-export function assertAccountReadable(account: AuditAccountRow, includeLive: boolean): void {
-  if (account.type !== 'PAPER' && !includeLive) {
-    throw new GraphQLError(`Account ${account.id} is ${account.type}; includeLive is required`, {
+/** Audit reads are PAPER-only; a LIVE account is refused. */
+export function assertAccountReadable(account: AuditAccountRow): void {
+  if (account.type !== 'PAPER') {
+    throw new GraphQLError(`Account ${account.id} is ${account.type}; audit reads are PAPER-only`, {
       extensions: { code: 'FORBIDDEN' },
     });
   }
@@ -166,7 +248,8 @@ export async function readEquityCurve(p: {
   fetchImpl: AlpacaFetch;
 }): Promise<EquityCurve> {
   const { account, fetchImpl } = p;
-  const base = TRADE_HOSTS[account.type];
+  assertAccountReadable(account);
+  const base = PAPER_TRADE_HOST;
   const sessionDate = p.sessionDate ?? etDateOf(p.nowMs);
 
   const snap = (await alpacaGet(account, fetchImpl, `${base}/v2/account`)) as {
@@ -272,6 +355,7 @@ export async function readMarketTape(p: {
   nowMs: number;
   fetchImpl: AlpacaFetch;
 }): Promise<TapeBar[]> {
+  assertAccountReadable(p.account);
   const windows = planTapeWindows(p);
   const out: TapeBar[] = [];
   for (const w of windows) {
