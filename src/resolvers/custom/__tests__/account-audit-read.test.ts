@@ -11,7 +11,7 @@ import {
   planTapeWindows,
   readEquityCurve,
   readMarketTape,
-  createOperatorBudgets,
+  createAccountBudgets,
   ALPACA_TIMEOUT_MS,
   MAX_PAGES,
   validateTapeArgs,
@@ -208,21 +208,26 @@ describe('Alpaca reads', () => {
   });
 });
 
-describe('createOperatorBudgets', () => {
-  it('stops an operator at the limit, per operator, and refills after the window', () => {
+describe('createAccountBudgets', () => {
+  it('stops an account at the limit, per account, and refills after the window', () => {
     let t = 0;
-    const budgets = createOperatorBudgets(3, 1000, () => t);
-    const ethan = budgets('ethan');
-    ethan(); ethan(); ethan();
-    expect(() => ethan()).toThrow(/rate budget/);
-    expect(() => budgets('hannah')()).not.toThrow();
+    const budgets = createAccountBudgets(3, 1000, () => t);
+    const book = budgets('acct-1');
+    book(); book(); book();
+    expect(() => book()).toThrow(/rate budget/);
+    expect(() => budgets('acct-2')()).not.toThrow();
     t = 1001;
-    expect(() => ethan()).not.toThrow();
+    expect(() => book()).not.toThrow();
+  });
+  it('shares one window across operators reading the same account', () => {
+    const budgets = createAccountBudgets(2, 1000, () => 0);
+    budgets('acct-1')(); budgets('acct-1')();
+    expect(() => budgets('acct-1')()).toThrow(/rate budget/);
   });
   it('a tape read is cut off mid-paging when the budget runs out, before the broker is hit again', async () => {
     let n = 0;
     const fetchImpl: AlpacaFetch = async () => { n++; return ok({ bars: {}, next_page_token: 'more' }); };
-    const budget = createOperatorBudgets(2, 60_000, () => 0)('ethan');
+    const budget = createAccountBudgets(2, 60_000, () => 0)('acct-1');
     const err = await readMarketTape({
       account: ACCOUNT, symbols: ['SPY'], startMs: 0, endMs: 3_600_000, feed: 'iex', nowMs: 3_600_000, fetchImpl, budget,
     }).catch((e) => e);

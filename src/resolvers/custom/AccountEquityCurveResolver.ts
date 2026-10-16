@@ -5,7 +5,7 @@
  * caller ever holding the account's broker key. Both require an audit-read
  * token in the `x-adaptic-audit-token` header (see `assertAuditRead`) and
  * refuse LIVE accounts.
- * Read-only on the broker; every read spends a per-operator request budget and
+ * Read-only on the broker; every read spends a per-account request budget and
  * writes an `AuditLog` row naming the operator, account and operation.
  *
  * @module resolvers/custom/AccountEquityCurveResolver
@@ -20,7 +20,7 @@ import {
   assertAccountReadable,
   assertAuditRead,
   auditTokenFromHeaders,
-  createOperatorBudgets,
+  createAccountBudgets,
   parseSessionDate,
   readEquityCurve,
   readMarketTape,
@@ -104,7 +104,7 @@ export const alpacaFetch: { current: AlpacaFetch } = {
   current: (url, init) => fetch(url, init),
 };
 
-const operatorBudget = createOperatorBudgets();
+const accountBudget = createAccountBudgets();
 
 /** `AuditLog.operationType` has no READ member, so a read is recorded as a CREATE of an `AuditRead` record. */
 async function recordRead(
@@ -160,7 +160,7 @@ export class AccountEquityCurveResolver {
       sessionDate: date,
       nowMs: Date.now(),
       fetchImpl: alpacaFetch.current,
-      budget: operatorBudget(operator),
+      budget: accountBudget(accountId),
     });
   }
 
@@ -194,7 +194,7 @@ export class AccountEquityCurveResolver {
       feed: args.feed,
       nowMs: Date.now(),
       fetchImpl: alpacaFetch.current,
-      budget: operatorBudget(operator),
+      budget: accountBudget(accountId),
     });
   }
 }

@@ -72,11 +72,11 @@ const PAGE_LIMIT = 10_000;
  */
 export const MAX_PAGES = 8;
 
-/** Upstream Alpaca requests one operator may spend per window. */
-export const OPERATOR_REQUEST_BUDGET = 40;
+/** Upstream Alpaca requests allowed per account per window, shared by every operator reading it. */
+export const ACCOUNT_REQUEST_BUDGET = 40;
 
-/** Length of the per-operator budget window, ms. */
-export const OPERATOR_BUDGET_WINDOW_MS = 60_000;
+/** Length of the per-account budget window, ms. */
+export const ACCOUNT_BUDGET_WINDOW_MS = 60_000;
 
 /** Longest one Alpaca request may take before it is abandoned, ms. */
 export const ALPACA_TIMEOUT_MS = 10_000;
@@ -99,39 +99,40 @@ export type AlpacaFetch = (url: string, init: { headers: Record<string, string>;
   text: () => Promise<string>;
 }>;
 
-/** Spends upstream requests against an operator's budget; throws when it is exhausted. */
+/** Spends upstream requests against an account's budget; throws when it is exhausted. */
 export type RequestBudget = (n?: number) => void;
 
 /**
- * A sliding-window request budget per operator.
+ * A sliding-window request budget per account.
  *
- * Audit reads spend the book's own trading key, so one operator looping on the
- * tape must not be able to starve the engine's order traffic. State is
+ * Audit reads spend the book's own trading key, so the window is keyed on the
+ * account (the key being protected), not the operator: several operators on one
+ * book share one budget, and the engine's order traffic cannot be starved. State is
  * in-process: with several backend instances the effective ceiling is the
  * budget times the instance count, still bounded.
  *
  * @param limit - Requests allowed per window.
  * @param windowMs - Window length.
  * @param now - Clock, injectable for tests.
- * @returns A function that returns the operator's `RequestBudget`.
+ * @returns A function that returns the account's `RequestBudget`.
  */
-export function createOperatorBudgets(
-  limit: number = OPERATOR_REQUEST_BUDGET,
-  windowMs: number = OPERATOR_BUDGET_WINDOW_MS,
+export function createAccountBudgets(
+  limit: number = ACCOUNT_REQUEST_BUDGET,
+  windowMs: number = ACCOUNT_BUDGET_WINDOW_MS,
   now: () => number = Date.now
-): (operator: string) => RequestBudget {
+): (accountId: string) => RequestBudget {
   const spent = new Map<string, number[]>();
-  return (operator) => (n = 1) => {
+  return (accountId) => (n = 1) => {
     const t = now();
-    const live = (spent.get(operator) ?? []).filter((at) => at > t - windowMs);
+    const live = (spent.get(accountId) ?? []).filter((at) => at > t - windowMs);
     if (live.length + n > limit) {
-      spent.set(operator, live);
+      spent.set(accountId, live);
       throw new GraphQLError('Audit read rate budget exhausted; retry shortly', {
         extensions: { code: 'RATE_LIMITED', retryAfterMs: windowMs },
       });
     }
     for (let i = 0; i < n; i++) live.push(t);
-    spent.set(operator, live);
+    spent.set(accountId, live);
   };
 }
 
