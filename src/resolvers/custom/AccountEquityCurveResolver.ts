@@ -5,7 +5,8 @@
  * caller ever holding the account's broker key. Both require an audit-read
  * token in the `x-adaptic-audit-token` header (see `assertAuditRead`) and
  * refuse LIVE accounts.
- * Read-only; every read logs the operator and account.
+ * Read-only on the broker; every read spends a per-operator request budget and
+ * writes an `AuditLog` row naming the operator, account and operation.
  *
  * @module resolvers/custom/AccountEquityCurveResolver
  */
@@ -19,6 +20,7 @@ import {
   assertAccountReadable,
   assertAuditRead,
   auditTokenFromHeaders,
+  createOperatorBudgets,
   parseSessionDate,
   readEquityCurve,
   readMarketTape,
@@ -94,10 +96,38 @@ interface GraphQLContext {
   req?: { headers?: Record<string, string | string[] | undefined> };
 }
 
-/** Injectable HTTP client; tests replace it. */
+/**
+ * Injectable HTTP client. Exported as a test seam only: nothing in production
+ * reassigns `current`, and the default is the global `fetch`.
+ */
 export const alpacaFetch: { current: AlpacaFetch } = {
   current: (url, init) => fetch(url, init),
 };
+
+const operatorBudget = createOperatorBudgets();
+
+/** `AuditLog.operationType` has no READ member, so a read is recorded as a CREATE of an `AuditRead` record. */
+async function recordRead(
+  prisma: PrismaClient,
+  p: { operator: string; accountId: string; op: string; detail?: Record<string, unknown> }
+): Promise<void> {
+  try {
+    await prisma.auditLog.create({
+      data: {
+        operationType: 'CREATE',
+        modelName: 'AuditRead',
+        recordId: p.accountId,
+        operationName: p.op,
+        changedFields: {},
+        metadata: { operator: p.operator, accountId: p.accountId, op: p.op, ...p.detail },
+      },
+    });
+  } catch (err) {
+    // Fail closed: an unrecorded read is not served.
+    logger.error('[audit-read] could not write the AuditLog row; refusing the read', { operator: p.operator, accountId: p.accountId, op: p.op, err });
+    throw new GraphQLError('Audit read could not be recorded', { extensions: { code: 'INTERNAL_SERVER_ERROR' } });
+  }
+}
 
 async function loadAccount(prisma: PrismaClient, id: string): Promise<AuditAccountRow> {
   const account = await prisma.alpacaAccount.findUnique({
@@ -122,9 +152,16 @@ export class AccountEquityCurveResolver {
   ): Promise<AccountEquityCurve> {
     const operator = assertAuditRead(auditTokenFromHeaders(ctx.req?.headers));
     const date = parseSessionDate(sessionDate);
-    const account = await loadAccount(getPrismaFromContext(ctx) as PrismaClient, accountId);
-    logger.info('[audit-read] accountEquityCurve', { operator, accountId, accountType: account.type, sessionDate: date });
-    return readEquityCurve({ account, sessionDate: date, nowMs: Date.now(), fetchImpl: alpacaFetch.current });
+    const prisma = getPrismaFromContext(ctx) as PrismaClient;
+    const account = await loadAccount(prisma, accountId);
+    await recordRead(prisma, { operator, accountId, op: 'accountEquityCurve', detail: { sessionDate: date } });
+    return readEquityCurve({
+      account,
+      sessionDate: date,
+      nowMs: Date.now(),
+      fetchImpl: alpacaFetch.current,
+      budget: operatorBudget(operator),
+    });
   }
 
   @TypeGraphQL.Query((_returns) => [MarketTapeBar], {
@@ -141,8 +178,14 @@ export class AccountEquityCurveResolver {
   ): Promise<MarketTapeBar[]> {
     const operator = assertAuditRead(auditTokenFromHeaders(ctx.req?.headers));
     const args = validateTapeArgs({ symbols, startMs, endMs, feed: feed ?? 'auto' });
-    const account = await loadAccount(getPrismaFromContext(ctx) as PrismaClient, accountId);
-    logger.info('[audit-read] marketTape', { operator, accountId, symbols: args.symbols.length, feed: args.feed });
+    const prisma = getPrismaFromContext(ctx) as PrismaClient;
+    const account = await loadAccount(prisma, accountId);
+    await recordRead(prisma, {
+      operator,
+      accountId,
+      op: 'marketTape',
+      detail: { symbols: args.symbols, feed: args.feed, startMs, endMs },
+    });
     return readMarketTape({
       account,
       symbols: args.symbols,
@@ -151,6 +194,7 @@ export class AccountEquityCurveResolver {
       feed: args.feed,
       nowMs: Date.now(),
       fetchImpl: alpacaFetch.current,
+      budget: operatorBudget(operator),
     });
   }
 }

@@ -11,6 +11,9 @@ import {
   planTapeWindows,
   readEquityCurve,
   readMarketTape,
+  createOperatorBudgets,
+  ALPACA_TIMEOUT_MS,
+  MAX_PAGES,
   validateTapeArgs,
   SIP_DELAY_MS,
   type AlpacaFetch,
@@ -40,6 +43,7 @@ const mint = (
 const ACCOUNT: AuditAccountRow = {
   id: 'a1', type: 'PAPER', APIKey: 'KEY-SENTINEL', APISecret: 'SECRET-SENTINEL', configuration: { name: 'mothership' },
 };
+const unlimited = () => {};
 const ok = (body: unknown) => ({ ok: true, status: 200, text: async () => JSON.stringify(body) });
 
 describe('assertAuditRead', () => {
@@ -139,7 +143,7 @@ describe('Alpaca reads', () => {
         ? ok({ equity: '100190', last_equity: '99900' })
         : ok({ timestamp: [1000, 1060, 1120], equity: [100000, null, 100020] });
     };
-    const out = await readEquityCurve({ account: ACCOUNT, sessionDate: '2026-09-23', nowMs: 0, fetchImpl });
+    const out = await readEquityCurve({ account: ACCOUNT, sessionDate: '2026-09-23', nowMs: 0, fetchImpl , budget: unlimited });
     expect(urls[0]).toMatch(/^https:\/\/paper-api\.alpaca\.markets\/v2\/account$/);
     expect(urls[1]).toMatch(/date_end=2026-09-23/);
     expect(out).toMatchObject({ accountId: 'a1', accountName: 'mothership', equity: 100190, lastEquity: 99900, sessionDate: '2026-09-23' });
@@ -150,13 +154,13 @@ describe('Alpaca reads', () => {
     let called = false;
     const fetchImpl: AlpacaFetch = async () => { called = true; return ok({}); };
     const live = { ...ACCOUNT, type: 'LIVE' as const };
-    await expect(readEquityCurve({ account: live, sessionDate: null, nowMs: 0, fetchImpl })).rejects.toThrow(/PAPER-only/);
-    await expect(readMarketTape({ account: live, symbols: ['SPY'], startMs: 0, endMs: 1, feed: 'iex', nowMs: 2, fetchImpl })).rejects.toThrow(/PAPER-only/);
+    await expect(readEquityCurve({ account: live, sessionDate: null, nowMs: 0, fetchImpl , budget: unlimited })).rejects.toThrow(/PAPER-only/);
+    await expect(readMarketTape({ account: live, symbols: ['SPY'], startMs: 0, endMs: 1, feed: 'iex', nowMs: 2, fetchImpl, budget: unlimited })).rejects.toThrow(/PAPER-only/);
     expect(called).toBe(false);
   });
   it('curve: a broker failure surfaces status only, not the vendor body', async () => {
     const fetchImpl: AlpacaFetch = async () => ({ ok: false, status: 403, text: async () => 'KEY-SENTINEL rejected' });
-    const err = await readEquityCurve({ account: ACCOUNT, sessionDate: null, nowMs: 0, fetchImpl }).catch((e) => e);
+    const err = await readEquityCurve({ account: ACCOUNT, sessionDate: null, nowMs: 0, fetchImpl , budget: unlimited }).catch((e) => e);
     expect(err.message).toBe('Broker read failed (HTTP 403)');
     expect(JSON.stringify(err.extensions)).not.toMatch(/SENTINEL/);
   });
@@ -172,9 +176,57 @@ describe('Alpaca reads', () => {
         : ok({ bars: { SPY: [bar('2026-09-23T14:01:00Z', 2)] }, next_page_token: 'p2' });
     };
     const out = await readMarketTape({
-      account: ACCOUNT, symbols: ['SPY'], startMs: Date.parse('2026-09-23T14:00:00Z'), endMs: now, feed: 'auto', nowMs: now, fetchImpl,
-    });
+      account: ACCOUNT, symbols: ['SPY'], startMs: Date.parse('2026-09-23T14:00:00Z'), endMs: now, feed: 'auto', nowMs: now, fetchImpl, budget: unlimited });
     expect(out.map((b) => [b.c, b.feed])).toEqual([[1, 'sip'], [2, 'sip'], [3, 'iex']]);
     expect(calls.every((u) => u.includes('adjustment=raw'))).toBe(true);
+  });
+  it('a non-JSON 200 is a BAD_GATEWAY, not a SyntaxError', async () => {
+    const fetchImpl: AlpacaFetch = async () => ({ ok: true, status: 200, text: async () => '<html>maintenance</html>' });
+    const err = await readEquityCurve({ account: ACCOUNT, sessionDate: null, nowMs: 0, fetchImpl, budget: unlimited }).catch((e) => e);
+    expect(err.extensions.code).toBe('BAD_GATEWAY');
+    expect(err.message).not.toMatch(/maintenance/);
+  });
+  it('every request carries a timeout signal, and a hung or aborted fetch is a BAD_GATEWAY', async () => {
+    let signal: AbortSignal | undefined;
+    const fetchImpl: AlpacaFetch = async (_u, init) => {
+      signal = init.signal;
+      throw new DOMException('aborted', 'TimeoutError');
+    };
+    const err = await readEquityCurve({ account: ACCOUNT, sessionDate: null, nowMs: 0, fetchImpl, budget: unlimited }).catch((e) => e);
+    expect(signal).toBeInstanceOf(AbortSignal);
+    expect(ALPACA_TIMEOUT_MS).toBeGreaterThan(0);
+    expect(err.extensions.code).toBe('BAD_GATEWAY');
+  });
+  it('tape: refuses a window that needs more than MAX_PAGES pages, after at most MAX_PAGES requests', async () => {
+    let n = 0;
+    const fetchImpl: AlpacaFetch = async () => { n++; return ok({ bars: {}, next_page_token: 'more' }); };
+    const err = await readMarketTape({
+      account: ACCOUNT, symbols: ['SPY'], startMs: 0, endMs: 3_600_000, feed: 'iex', nowMs: 3_600_000, fetchImpl, budget: unlimited,
+    }).catch((e) => e);
+    expect(err.extensions.code).toBe('BAD_USER_INPUT');
+    expect(n).toBe(MAX_PAGES);
+  });
+});
+
+describe('createOperatorBudgets', () => {
+  it('stops an operator at the limit, per operator, and refills after the window', () => {
+    let t = 0;
+    const budgets = createOperatorBudgets(3, 1000, () => t);
+    const ethan = budgets('ethan');
+    ethan(); ethan(); ethan();
+    expect(() => ethan()).toThrow(/rate budget/);
+    expect(() => budgets('hannah')()).not.toThrow();
+    t = 1001;
+    expect(() => ethan()).not.toThrow();
+  });
+  it('a tape read is cut off mid-paging when the budget runs out, before the broker is hit again', async () => {
+    let n = 0;
+    const fetchImpl: AlpacaFetch = async () => { n++; return ok({ bars: {}, next_page_token: 'more' }); };
+    const budget = createOperatorBudgets(2, 60_000, () => 0)('ethan');
+    const err = await readMarketTape({
+      account: ACCOUNT, symbols: ['SPY'], startMs: 0, endMs: 3_600_000, feed: 'iex', nowMs: 3_600_000, fetchImpl, budget,
+    }).catch((e) => e);
+    expect(err.extensions.code).toBe('RATE_LIMITED');
+    expect(n).toBe(2);
   });
 });

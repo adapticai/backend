@@ -64,7 +64,22 @@ export const MAX_TAPE_WINDOW_MS = 8 * 24 * 3_600_000;
 export const MAX_TAPE_SYMBOLS = 20;
 
 const PAGE_LIMIT = 10_000;
-const MAX_PAGES = 50;
+
+/**
+ * Most pages one tape window may take. Each page is a request on the book's own
+ * Alpaca key, so the ceiling is small: 8 pages of 10k bars is 80k bars, over a
+ * week of one-minute bars for the 20-symbol maximum.
+ */
+export const MAX_PAGES = 8;
+
+/** Upstream Alpaca requests one operator may spend per window. */
+export const OPERATOR_REQUEST_BUDGET = 40;
+
+/** Length of the per-operator budget window, ms. */
+export const OPERATOR_BUDGET_WINDOW_MS = 60_000;
+
+/** Longest one Alpaca request may take before it is abandoned, ms. */
+export const ALPACA_TIMEOUT_MS = 10_000;
 const PAPER_TRADE_HOST = 'https://paper-api.alpaca.markets';
 const DATA_HOST = 'https://data.alpaca.markets';
 
@@ -78,11 +93,47 @@ export interface AuditAccountRow {
 }
 
 /** A request to Alpaca with the stored key. */
-export type AlpacaFetch = (url: string, init: { headers: Record<string, string> }) => Promise<{
+export type AlpacaFetch = (url: string, init: { headers: Record<string, string>; signal?: AbortSignal }) => Promise<{
   ok: boolean;
   status: number;
   text: () => Promise<string>;
 }>;
+
+/** Spends upstream requests against an operator's budget; throws when it is exhausted. */
+export type RequestBudget = (n?: number) => void;
+
+/**
+ * A sliding-window request budget per operator.
+ *
+ * Audit reads spend the book's own trading key, so one operator looping on the
+ * tape must not be able to starve the engine's order traffic. State is
+ * in-process: with several backend instances the effective ceiling is the
+ * budget times the instance count, still bounded.
+ *
+ * @param limit - Requests allowed per window.
+ * @param windowMs - Window length.
+ * @param now - Clock, injectable for tests.
+ * @returns A function that returns the operator's `RequestBudget`.
+ */
+export function createOperatorBudgets(
+  limit: number = OPERATOR_REQUEST_BUDGET,
+  windowMs: number = OPERATOR_BUDGET_WINDOW_MS,
+  now: () => number = Date.now
+): (operator: string) => RequestBudget {
+  const spent = new Map<string, number[]>();
+  return (operator) => (n = 1) => {
+    const t = now();
+    const live = (spent.get(operator) ?? []).filter((at) => at > t - windowMs);
+    if (live.length + n > limit) {
+      spent.set(operator, live);
+      throw new GraphQLError('Audit read rate budget exhausted; retry shortly', {
+        extensions: { code: 'RATE_LIMITED', retryAfterMs: windowMs },
+      });
+    }
+    for (let i = 0; i < n; i++) live.push(t);
+    spent.set(operator, live);
+  };
+}
 
 /**
  * The audit-read token from a request's headers, or null when absent.
@@ -207,19 +258,32 @@ export function parseSessionDate(raw: string | null | undefined): string | null 
 async function alpacaGet(
   account: AuditAccountRow,
   fetchImpl: AlpacaFetch,
-  url: string
+  url: string,
+  budget: RequestBudget
 ): Promise<unknown> {
-  const res = await fetchImpl(url, {
-    headers: { 'APCA-API-KEY-ID': account.APIKey, 'APCA-API-SECRET-KEY': account.APISecret },
-  });
-  const text = await res.text();
-  if (!res.ok) {
-    // Status and path only: the vendor body can echo request detail.
-    throw new GraphQLError(`Broker read failed (HTTP ${res.status})`, {
-      extensions: { code: 'BAD_GATEWAY', upstreamStatus: res.status },
+  budget();
+  const badGateway = (message: string, upstreamStatus?: number): never => {
+    // Status only: the vendor body can echo request detail.
+    throw new GraphQLError(message, { extensions: { code: 'BAD_GATEWAY', upstreamStatus } });
+  };
+  let res: Awaited<ReturnType<AlpacaFetch>>;
+  let text: string;
+  try {
+    res = await fetchImpl(url, {
+      headers: { 'APCA-API-KEY-ID': account.APIKey, 'APCA-API-SECRET-KEY': account.APISecret },
+      signal: AbortSignal.timeout(ALPACA_TIMEOUT_MS),
     });
+    text = await res.text();
+  } catch {
+    return badGateway('Broker read failed (no response)');
   }
-  return text ? JSON.parse(text) : null;
+  if (!res.ok) return badGateway(`Broker read failed (HTTP ${res.status})`, res.status);
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return badGateway(`Broker read failed (unreadable response, HTTP ${res.status})`, res.status);
+  }
 }
 
 /** The curve as returned to the caller. */
@@ -246,13 +310,14 @@ export async function readEquityCurve(p: {
   sessionDate: string | null;
   nowMs: number;
   fetchImpl: AlpacaFetch;
+  budget: RequestBudget;
 }): Promise<EquityCurve> {
-  const { account, fetchImpl } = p;
+  const { account, fetchImpl, budget } = p;
   assertAccountReadable(account);
   const base = PAPER_TRADE_HOST;
   const sessionDate = p.sessionDate ?? etDateOf(p.nowMs);
 
-  const snap = (await alpacaGet(account, fetchImpl, `${base}/v2/account`)) as {
+  const snap = (await alpacaGet(account, fetchImpl, `${base}/v2/account`, budget)) as {
     equity?: string | number;
     last_equity?: string | number;
   };
@@ -260,7 +325,8 @@ export async function readEquityCurve(p: {
     account,
     fetchImpl,
     `${base}/v2/account/portfolio/history?period=1D&timeframe=1Min&intraday_reporting=market_hours&pnl_reset=per_day` +
-      (p.sessionDate ? `&date_end=${p.sessionDate}` : '')
+      (p.sessionDate ? `&date_end=${p.sessionDate}` : ''),
+    budget
   )) as { timestamp?: number[]; equity?: Array<number | null> } | null;
 
   const ts = hist?.timestamp ?? [];
@@ -354,6 +420,7 @@ export async function readMarketTape(p: {
   feed: TapeFeed;
   nowMs: number;
   fetchImpl: AlpacaFetch;
+  budget: RequestBudget;
 }): Promise<TapeBar[]> {
   assertAccountReadable(p.account);
   const windows = planTapeWindows(p);
@@ -366,7 +433,7 @@ export async function readMarketTape(p: {
         `&start=${new Date(w.fromMs).toISOString()}&end=${new Date(w.toMs).toISOString()}` +
         `&limit=${PAGE_LIMIT}&feed=${w.feed}&adjustment=raw&sort=asc` +
         (token ? `&page_token=${encodeURIComponent(token)}` : '');
-      const body = (await alpacaGet(p.account, p.fetchImpl, url)) as {
+      const body = (await alpacaGet(p.account, p.fetchImpl, url, p.budget)) as {
         bars?: Record<string, Array<{ t: string; o: number; h: number; l: number; c: number; v: number }>>;
         next_page_token?: string | null;
       } | null;
