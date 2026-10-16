@@ -69,7 +69,7 @@
     "vitest": "^3.0.4"
   },
   "dependencies": {
-    "@adaptic/utils": "0.0.1022",
+    "@adaptic/utils": "0.0.1052",
     "@apollo/client": "^3.13.9",
     "@apollo/server": "^5.4.1",
     "@as-integrations/express4": "^1.1.2",

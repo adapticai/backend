@@ -1643,7 +1643,7 @@ model AlpacaAccount {
   /// @deprecated Use TradingPolicy.minimumPriceChangePercent100 instead. Retained for migration backfill; engine reads from tradingPolicy.minimumPriceChangePercent100 with this field as fallback. TYPESTRING.SKIP=true
   minimumPriceChangePercent100 Float @default(0.5)
 
-  /// Relation to the User model who owns this Alpaca account. TYPESTRING.SKIP=true GQL.EXCLUDE=['alpacaAccounts','customer','accounts','sessions','authenticators','linkedProviders','accountLinkingRequests','reviewedWaitlistEntries','llmConfiguration']
+  /// Relation to the User model who owns this Alpaca account. TYPESTRING.SKIP=true GQL.EXCLUDE=['alpacaAccounts','customer','accounts','sessions','authenticators','linkedProviders','accountLinkingRequests','reviewedWaitlistEntries','llmConfiguration','openaiAPIKey']
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   /// Foreign key referencing the User. TYPESTRING.SKIP=true
@@ -1658,7 +1658,7 @@ model AlpacaAccount {
   /// Timestamp when the Alpaca account was soft-deleted. Null means the record is active. TYPESTRING.SKIP=true
   deletedAt DateTime?
 
-  /// List of alerts generated for this Alpaca account. TYPESTRING.SKIP=true GQL.EXCLUDE=['alpacaAccount']
+  /// List of alerts generated for this Alpaca account. Excluded from the generated selection set: the alert history of an account grows monotonically for the life of the account and is never pruned, so embedding it in the account read makes the cost and payload of a single-row account fetch scale with total alert history rather than with the account row. An account read is on the live trading decision path and must be O(1) in the account, not O(history). Alerts are read through the Alert CRUD with an explicit account and status filter, which is served by the composite index on (alpacaAccountId, status) and is bounded by construction. The relation stays in the GraphQL schema and in the generated types, so a consumer that genuinely needs alerts still asks for them deliberately. TYPESTRING.SKIP=true GQL.SKIP=true
   alerts Alert[]
 
   /// Risk metrics snapshot for this Alpaca account (FSM state, HWM, drawdown, P&L windows). TYPESTRING.SKIP=true GQL.SKIP=true
@@ -2200,6 +2200,15 @@ model Trade {
   @@index([strategyId])
   @@index([alpacaAccountId])
   @@index([alpacaAccountId, status])
+  // Serves the bounded per-account history read: `alpacaAccountId = $1 AND
+  // createdAt >= $2`, and `alpacaAccountId = $1 ORDER BY createdAt DESC LIMIT n`
+  // (a btree is scanned in either direction, so one ASC index serves both).
+  // The single-column `[alpacaAccountId]` index above can only return every row
+  // the account has ever had and then filter and sort them in the executor, so
+  // its cost grows with the account's lifetime history rather than with the
+  // window the caller asked for. A live trading decision is about the current
+  // and previous session; it must not pay for a year of closed trades.
+  @@index([alpacaAccountId, createdAt])
   @@index([symbol])
   @@index([updatedAt])
   @@index([signalId])

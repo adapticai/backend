@@ -943,6 +943,49 @@ ${allocationValidationImport}  `;
     ${selectionSets[capitalModelName]}
   \`;
 
+  /**
+   * Bounded-read options for \`${capitalModelName}.findMany\` and \`${capitalModelName}.getAll\`.
+   *
+   * Every field here is pushed down to Postgres by the server resolver as
+   * \`ORDER BY\` / \`LIMIT\` / \`OFFSET\` on its Prisma call. Nothing is applied in
+   * memory after the rows arrive, which is the entire point: the cost of an
+   * unbounded history read is the rows themselves — the database work to
+   * materialise them, the JSON to serialise them, the bytes on the wire and the
+   * parse on the client — so a bound that does not reach the WHERE/LIMIT saves
+   * nothing at all.
+   *
+   * The parameter and every field on it are optional, and a call that omits it
+   * emits a GraphQL document identical to the one this function produced before
+   * the parameter existed. Bounding a read is therefore always a deliberate act
+   * at one call site: a caller that must see full history — reconciliation,
+   * realised-P&L accounting, any audit read — keeps seeing it, and no result
+   * set changes anywhere without someone having asked for it. A silently
+   * truncated accounting query is a wrong answer wearing the shape of a right
+   * one, and costs more than a slow one.
+   */
+  export interface ${capitalModelName}FindManyOptions {
+    /**
+     * Maximum number of rows to return (\`LIMIT\`).
+     *
+     * Pair it with \`orderBy\`. A \`take\` with no order returns an arbitrary
+     * subset of the matching rows, which is not "the most recent N" — it is an
+     * unspecified N, and reading it as recency is a correctness bug.
+     */
+    readonly take?: number;
+
+    /** Rows to discard before the first returned row (\`OFFSET\`), for paging a bounded window. */
+    readonly skip?: number;
+
+    /**
+     * Sort order, e.g. \`{ createdAt: 'desc' }\` or \`[{ createdAt: 'desc' }, { id: 'asc' }]\`.
+     *
+     * A second key breaks ties. Rows sharing a timestamp have no defined order,
+     * so a \`take\` landing on a tie boundary can drop or repeat rows between
+     * two otherwise identical calls.
+     */
+    readonly orderBy?: Record<string, unknown> | ReadonlyArray<Record<string, unknown>>;
+  }
+
   export const ${modelName} = {
 
     /**
@@ -2097,10 +2140,18 @@ ${allocationValidationImport}  `;
   /**
    * Retrieve all ${pluralModelName} records.
    * Enhanced with connection resilience against Prisma connection errors.
+   *
+   * This read has no filter at all, so its cost is the size of the table and
+   * grows without limit. Supply \`options\` (\`orderBy\` + \`take\`) wherever the
+   * caller only needs a recent slice.
+   *
    * @param globalClient - Apollo Client instance.
+   * @param options - Optional bounded-read options (\`orderBy\` / \`take\` / \`skip\`),
+   *   pushed down to the database. Omit to read the whole table exactly as this
+   *   function has always done.
    * @returns An array of ${capitalModelName} records or null.
    */
-  async getAll(globalClient?: ApolloClientType<NormalizedCacheObject>): Promise<${capitalModelName}Type[] | null> {
+  async getAll(globalClient?: ApolloClientType<NormalizedCacheObject>, options?: ${capitalModelName}FindManyOptions): Promise<${capitalModelName}Type[] | null> {
     // Maximum number of retries for database connection issues
     const MAX_RETRIES = 3;
     let retryCount = 0;
@@ -2118,15 +2169,43 @@ ${allocationValidationImport}  `;
 
         const { gql, ApolloError } = modules;
 
+        // As in findMany: the document carries only the arguments the caller
+        // supplied, so an unbounded getAll is byte-identical to the query this
+        // function emitted before the option existed.
+        const boundedParams: string[] = [];
+        const boundedArgs: string[] = [];
+        if (options?.orderBy !== undefined) {
+          boundedParams.push('$orderBy: [${capitalModelName}OrderByWithRelationInput!]');
+          boundedArgs.push('orderBy: $orderBy');
+        }
+        if (options?.take !== undefined) {
+          boundedParams.push('$take: Int');
+          boundedArgs.push('take: $take');
+        }
+        if (options?.skip !== undefined) {
+          boundedParams.push('$skip: Int');
+          boundedArgs.push('skip: $skip');
+        }
+        const boundedVarDecl = boundedParams.length > 0 ? '(' + boundedParams.join(', ') + ')' : '';
+        const boundedArgDecl = boundedArgs.length > 0 ? '(' + boundedArgs.join(', ') + ')' : '';
+        const boundedVariables = boundedParams.length > 0
+          ? {
+              ...(options?.orderBy !== undefined ? { orderBy: options.orderBy } : {}),
+              ...(options?.take !== undefined ? { take: options.take } : {}),
+              ...(options?.skip !== undefined ? { skip: options.skip } : {}),
+            }
+          : undefined;
+
         const GET_ALL_${capitalModelName.toUpperCase()} = gql\`
-          query getAll${capitalModelName} {
-            ${lowerCaseFirstLetter(pluralModelName)} {
+          query getAll${capitalModelName}\${boundedVarDecl} {
+            ${lowerCaseFirstLetter(pluralModelName)}\${boundedArgDecl} {
               \${selectionSet}
             }
           }\`;
 
         const response = await client.query({
           query: GET_ALL_${capitalModelName.toUpperCase()},
+          ...(boundedVariables !== undefined ? { variables: boundedVariables } : {}),
           fetchPolicy: 'network-only', // Force network request to avoid stale cache
         });
 
@@ -2214,10 +2293,15 @@ ${allocationValidationImport}  `;
    * Enhanced with connection resilience against Prisma connection errors.
    * @param props - Conditions to find records.
    * @param globalClient - Apollo Client instance.
-   * @param whereInput - Optional custom where input.
+   * @param whereInput - Optional custom where input. Use it to push a window
+   *   predicate down to Postgres, e.g.
+   *   \`{ alpacaAccountId: { equals: id }, createdAt: { gte: since.toISOString() } }\`.
+   * @param options - Optional bounded-read options (\`orderBy\` / \`take\` / \`skip\`),
+   *   pushed down to the database. Omit to read the full matching set exactly as
+   *   this function has always done.
    * @returns An array of found ${capitalModelName} records or null.
    */
-  async findMany(props: ${capitalModelName}Type, globalClient?: ApolloClientType<NormalizedCacheObject>, whereInput?: Record<string, unknown>): Promise<${capitalModelName}Type[] | null> {
+  async findMany(props: ${capitalModelName}Type, globalClient?: ApolloClientType<NormalizedCacheObject>, whereInput?: Record<string, unknown>, options?: ${capitalModelName}FindManyOptions): Promise<${capitalModelName}Type[] | null> {
     // Maximum number of retries for database connection issues
     const MAX_RETRIES = 3;
     let retryCount = 0;
@@ -2235,9 +2319,32 @@ ${allocationValidationImport}  `;
 
         const { gql, ApolloError } = modules;
 
+        // Bounded-read arguments are woven into the DOCUMENT only for the
+        // fields the caller actually supplied, so an unbounded call emits the
+        // exact query it emitted before this capability existed. Declaring the
+        // variables unconditionally would send explicit nulls on every read and
+        // make the opt-in claim rest on the server's null handling rather than
+        // on the document itself.
+        const boundedParams: string[] = [];
+        const boundedArgs: string[] = [];
+        if (options?.orderBy !== undefined) {
+          boundedParams.push('$orderBy: [${capitalModelName}OrderByWithRelationInput!]');
+          boundedArgs.push('orderBy: $orderBy');
+        }
+        if (options?.take !== undefined) {
+          boundedParams.push('$take: Int');
+          boundedArgs.push('take: $take');
+        }
+        if (options?.skip !== undefined) {
+          boundedParams.push('$skip: Int');
+          boundedArgs.push('skip: $skip');
+        }
+        const boundedParamDecl = boundedParams.length > 0 ? ', ' + boundedParams.join(', ') : '';
+        const boundedArgDecl = boundedArgs.length > 0 ? ', ' + boundedArgs.join(', ') : '';
+
         const FIND_MANY_${capitalModelName.toUpperCase()} = gql\`
-          query findMany${capitalModelName}($where: ${capitalModelName}WhereInput!) {
-            ${lowerCaseFirstLetter(pluralModelName)}(where: $where) {
+          query findMany${capitalModelName}($where: ${capitalModelName}WhereInput!\${boundedParamDecl}) {
+            ${lowerCaseFirstLetter(pluralModelName)}(where: $where\${boundedArgDecl}) {
               \${selectionSet}
             }
           }\`;
@@ -2252,6 +2359,9 @@ ${allocationValidationImport}  `;
       modelsPath,
       'findMany'
     )}      },
+          ...(options?.orderBy !== undefined ? { orderBy: options.orderBy } : {}),
+          ...(options?.take !== undefined ? { take: options.take } : {}),
+          ...(options?.skip !== undefined ? { skip: options.skip } : {}),
         };
 
         const filteredVariables = removeUndefinedProps(variables);

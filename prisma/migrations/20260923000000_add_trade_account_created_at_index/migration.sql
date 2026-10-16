@@ -1,0 +1,23 @@
+-- Composite index for the bounded per-account trade-history read.
+--
+-- Two query shapes depend on it:
+--   WHERE "alpacaAccountId" = $1 AND "createdAt" >= $2
+--   WHERE "alpacaAccountId" = $1 ORDER BY "createdAt" DESC LIMIT n
+-- Both are answered by a range scan over the leading pair. A btree is scanned
+-- in either direction, so one ASC index serves the DESC ordering as well and a
+-- second index would only add write cost.
+--
+-- The existing single-column "trades_alpacaAccountId_idx" cannot bound either
+-- shape: it returns every row the account has ever had, then filters and sorts
+-- them in the executor, so the cost of a question about the current session
+-- scales with the account's entire lifetime history.
+--
+-- Built non-concurrently on purpose. CREATE INDEX takes a SHARE lock that
+-- blocks writes for the build, and `prisma migrate deploy` runs unattended at
+-- container start, so that window has to be short enough to be irrelevant
+-- during a trading session; at the measured table size (25,908 rows across 5
+-- accounts, 2026-09-22) it is milliseconds. CONCURRENTLY is the correct choice
+-- once this table is large enough for the build to be perceptible, but it
+-- cannot run inside a transaction block and would need its own migration
+-- handling. IF NOT EXISTS keeps the statement idempotent across re-runs.
+CREATE INDEX IF NOT EXISTS "trades_alpacaAccountId_createdAt_idx" ON "trades"("alpacaAccountId", "createdAt");
