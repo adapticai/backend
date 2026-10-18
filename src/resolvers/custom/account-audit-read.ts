@@ -1,11 +1,10 @@
 /**
- * Server-side audit reads of an account's equity curve and the market tape.
+ * Server-side audit read of an account's equity curve.
  *
  * The audit toolkit used to read an account's broker key and secret and call
  * Alpaca itself, which meant issuing an audit principal handed out live broker
- * credentials. These reads move the Alpaca call here: the caller names an
- * account and receives the curve or the bars, and the key never leaves this
- * process.
+ * credentials. This read moves the Alpaca call here: the caller names an
+ * account and receives the curve, and the key never leaves this process.
  *
  * Everything in this module is pure or takes its collaborators as arguments
  * (`fetchImpl`, `nowMs`), so it is unit-testable without a database or network.
@@ -51,27 +50,6 @@ export const MAX_AUDIT_TOKEN_LIFETIME_SEC = 900;
 /** How far in the future an `iat` may sit before the token is refused, seconds. */
 export const MAX_AUDIT_TOKEN_CLOCK_SKEW_SEC = 60;
 
-/** SIP history on a non-real-time key lags by this long; the freshest window comes from IEX. */
-export const SIP_DELAY_MS = 16 * 60_000;
-
-/** One minute, the tape's bar size. */
-export const BAR_MS = 60_000;
-
-/** Largest tape window one call may request. */
-export const MAX_TAPE_WINDOW_MS = 8 * 24 * 3_600_000;
-
-/** Most symbols one tape call may request. */
-export const MAX_TAPE_SYMBOLS = 20;
-
-const PAGE_LIMIT = 10_000;
-
-/**
- * Most pages one tape window may take. Each page is a request on the book's own
- * Alpaca key, so the ceiling is small: 8 pages of 10k bars is 80k bars, over a
- * week of one-minute bars for the 20-symbol maximum.
- */
-export const MAX_PAGES = 8;
-
 /** Upstream Alpaca requests allowed per account per window, shared by every operator reading it. */
 export const ACCOUNT_REQUEST_BUDGET = 40;
 
@@ -81,7 +59,6 @@ export const ACCOUNT_BUDGET_WINDOW_MS = 60_000;
 /** Longest one Alpaca request may take before it is abandoned, ms. */
 export const ALPACA_TIMEOUT_MS = 10_000;
 const PAPER_TRADE_HOST = 'https://paper-api.alpaca.markets';
-const DATA_HOST = 'https://data.alpaca.markets';
 
 /** The stored account fields a read needs. Never returned to the caller. */
 export interface AuditAccountRow {
@@ -348,106 +325,4 @@ export async function readEquityCurve(p: {
     equity: Number(snap?.equity),
     source: 'alpaca-portfolio-history',
   };
-}
-
-export type TapeFeed = 'auto' | 'sip' | 'iex';
-
-/**
- * Which feed serves which part of [startMs, endMs].
- *
- * `auto`: SIP up to now minus the SIP delay, IEX for the freshest window.
- * `sip`: SIP only, clamped to what the key may see. `iex`: IEX throughout.
- */
-export function planTapeWindows(p: {
-  startMs: number;
-  endMs: number;
-  nowMs: number;
-  feed: TapeFeed;
-}): Array<{ feed: 'sip' | 'iex'; fromMs: number; toMs: number }> {
-  const end = Math.min(p.endMs, p.nowMs);
-  if (end <= p.startMs) return [];
-  const split = p.nowMs - SIP_DELAY_MS;
-  if (p.feed === 'iex') return [{ feed: 'iex', fromMs: p.startMs, toMs: end }];
-  if (p.feed === 'sip') {
-    const to = Math.min(end, split);
-    return to > p.startMs ? [{ feed: 'sip', fromMs: p.startMs, toMs: to }] : [];
-  }
-  const out: Array<{ feed: 'sip' | 'iex'; fromMs: number; toMs: number }> = [];
-  if (split > p.startMs) out.push({ feed: 'sip', fromMs: p.startMs, toMs: Math.min(end, split) });
-  if (end > split) out.push({ feed: 'iex', fromMs: Math.max(p.startMs, split), toMs: end });
-  return out;
-}
-
-/** One tape bar as returned to the caller. */
-export interface TapeBar {
-  symbol: string;
-  ms: number;
-  o: number;
-  h: number;
-  l: number;
-  c: number;
-  v: number;
-  feed: 'sip' | 'iex';
-}
-
-/** Validate tape arguments; returns the cleaned symbol list. */
-export function validateTapeArgs(p: {
-  symbols: string[];
-  startMs: number;
-  endMs: number;
-  feed: string;
-}): { symbols: string[]; feed: TapeFeed } {
-  const bad = (m: string): never => {
-    throw new GraphQLError(m, { extensions: { code: 'BAD_USER_INPUT' } });
-  };
-  if (p.feed !== 'auto' && p.feed !== 'sip' && p.feed !== 'iex') bad('feed must be auto, sip or iex');
-  const symbols = [...new Set(p.symbols.map((s) => s.trim().toUpperCase()))];
-  if (symbols.length === 0 || symbols.length > MAX_TAPE_SYMBOLS) bad(`symbols must hold 1..${MAX_TAPE_SYMBOLS} entries`);
-  if (symbols.some((s) => !/^[A-Z0-9.\-/]{1,12}$/.test(s))) bad('symbols contain an invalid ticker');
-  if (!Number.isFinite(p.startMs) || !Number.isFinite(p.endMs) || p.endMs <= p.startMs) bad('endMs must be after startMs');
-  if (p.endMs - p.startMs > MAX_TAPE_WINDOW_MS) bad('window exceeds 8 days');
-  return { symbols, feed: p.feed as TapeFeed };
-}
-
-/**
- * Read 1-minute bars for the symbols across the planned feed windows, paged to
- * exhaustion. Bars are raw (unadjusted) and tagged with the feed that served them.
- */
-export async function readMarketTape(p: {
-  account: AuditAccountRow;
-  symbols: string[];
-  startMs: number;
-  endMs: number;
-  feed: TapeFeed;
-  nowMs: number;
-  fetchImpl: AlpacaFetch;
-  budget: RequestBudget;
-}): Promise<TapeBar[]> {
-  assertAccountReadable(p.account);
-  const windows = planTapeWindows(p);
-  const out: TapeBar[] = [];
-  for (const w of windows) {
-    let token: string | null = null;
-    for (let page = 0; page < MAX_PAGES; page++) {
-      const url =
-        `${DATA_HOST}/v2/stocks/bars?symbols=${encodeURIComponent(p.symbols.join(','))}&timeframe=1Min` +
-        `&start=${new Date(w.fromMs).toISOString()}&end=${new Date(w.toMs).toISOString()}` +
-        `&limit=${PAGE_LIMIT}&feed=${w.feed}&adjustment=raw&sort=asc` +
-        (token ? `&page_token=${encodeURIComponent(token)}` : '');
-      const body = (await alpacaGet(p.account, p.fetchImpl, url, p.budget)) as {
-        bars?: Record<string, Array<{ t: string; o: number; h: number; l: number; c: number; v: number }>>;
-        next_page_token?: string | null;
-      } | null;
-      for (const [symbol, bars] of Object.entries(body?.bars ?? {})) {
-        for (const b of bars) out.push({ symbol, ms: Date.parse(b.t), o: b.o, h: b.h, l: b.l, c: b.c, v: b.v, feed: w.feed });
-      }
-      token = body?.next_page_token ?? null;
-      if (!token) break;
-      if (page === MAX_PAGES - 1) {
-        throw new GraphQLError('Tape window too large to page', { extensions: { code: 'BAD_USER_INPUT' } });
-      }
-    }
-  }
-  out.sort((a, b) => a.ms - b.ms || (a.symbol < b.symbol ? -1 : 1));
-  return out;
 }

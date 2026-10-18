@@ -21,5 +21,4 @@ export {
   AccountEquityCurveResolver,
   AccountEquityCurve,
   EquityCurvePoint,
-  MarketTapeBar,
 } from './AccountEquityCurveResolver';
