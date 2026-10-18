@@ -507,7 +507,12 @@ export const CREDENTIAL_READ_REMEDY =
   'in the mono repo), or request a service principal from research engineering. Do not ask ' +
   'for this guard to be returned to shadow.';
 
-function forbidden(references: string[]): GraphQLError {
+/**
+ * The refusal for a credential column reached by a non-service principal.
+ * Exported for the mutation authorization guard, which applies the predicate
+ * rule itself, ahead of this middleware (see `mutation-auth-guard`).
+ */
+export function credentialAccessForbidden(references: string[]): GraphQLError {
   return new GraphQLError(
     'Forbidden: stored credentials are readable only by a service principal',
     {
@@ -607,7 +612,7 @@ export function createCredentialFieldGuardMiddleware(
         context.req,
         nowMs
       );
-      if (mode === 'enforce') throw forbidden(credentialRefs);
+      if (mode === 'enforce') throw credentialAccessForbidden(credentialRefs);
     }
 
     if (payloadRefs.length > 0) {

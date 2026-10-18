@@ -33,6 +33,7 @@ import { AuditLogCrudResolver } from '../../generated/typegraphql-prisma/resolve
 import { ConfigurationCrudResolver } from '../../generated/typegraphql-prisma/resolvers/crud/Configuration/ConfigurationCrudResolver';
 import type { MutationAuthMode } from '../../auth/mutation-authorization';
 import type { BackendPrincipal } from '../../auth/token-verifier';
+import type { CredentialFieldGuardMode } from '../credential-field-guard';
 import { createHttpStatusMapperPlugin } from '../../plugins/http-status-mapper';
 import {
   installMutationAuthGuard,
@@ -166,6 +167,17 @@ const SUSPEND_UPSERT =
 const DISARM_LIVE =
   'mutation Disarm { updateOneTradingPolicy(where: { alpacaAccountId: "a1" }, data: { realtimeTradingEnabled: { set: false } }) { id } }';
 
+// Credential predicates: a `where` over a stored credential must be refused
+// before the guard reads a row with it, or the rows it matched land in the
+// audit trail and the filter becomes an oracle over the credential.
+const SECRET_PREFIX = '{ alpacaAccount: { is: { APISecret: { startsWith: "m" } } } }';
+const ORACLE_BULK = `mutation { updateManyTradingPolicy(where: ${SECRET_PREFIX}, data: { killSwitchEnabled: { set: true } }) { count } }`;
+const ORACLE_ONE =
+  'mutation { updateOneTradingPolicy(where: { alpacaAccountId: "a1", alpacaAccount: { is: { APIKey: { startsWith: "P" } } } }, data: { killSwitchEnabled: { set: true } }) { id } }';
+const ORACLE_NESTED =
+  'mutation { updateOneAlpacaAccount(where: { id: "a1", APISecret: { startsWith: "m" } }, data: { tradingPolicy: { update: { data: { killSwitchEnabled: { set: true } } } } }) { id } }';
+const ORACLE_NESTED_WHERE = `mutation { updateOneUser(where: { id: "${U_OWNER}" }, data: { alpacaAccounts: { update: [{ where: { id: "a1", APISecret: { startsWith: "m" } }, data: { tradingPolicy: ${ARM} } }] } }) { id } }`;
+
 /** One harness scenario. */
 export interface Scenario {
   name: string;
@@ -174,6 +186,8 @@ export interface Scenario {
   mode: MutationAuthMode;
   enforcedModels?: string[];
   auditDown?: boolean;
+  /** The credential-field guard's mode; defaults to `enforce`, production's setting. */
+  credentialMode?: CredentialFieldGuardMode;
 }
 
 export const SCENARIOS: Scenario[] = [
@@ -273,6 +287,19 @@ export const SCENARIOS: Scenario[] = [
   { name: 'ctl/suspendUpsert/fundUser/enforce', query: SUSPEND_UPSERT, principal: 'fundUser', mode: 'enforce' },
   { name: 'ctl/brokerRotate/fundUser/enforce', query: BROKER_ROTATE(U_FUND), principal: 'fundUser', mode: 'enforce' },
   { name: 'ctl/brokerRotate/stranger/enforce', query: BROKER_ROTATE(U_STRANGER), principal: 'stranger', mode: 'enforce' },
+
+  { name: 'cred/bulk/none/shadow', query: ORACLE_BULK, principal: 'none', mode: 'shadow' },
+  { name: 'cred/bulk/none/enforce', query: ORACLE_BULK, principal: 'none', mode: 'enforce' },
+  { name: 'cred/bulk/none/off', query: ORACLE_BULK, principal: 'none', mode: 'off' },
+  { name: 'cred/bulk/admin/enforce', query: ORACLE_BULK, principal: 'admin', mode: 'enforce' },
+  { name: 'cred/bulk/owner/shadow', query: ORACLE_BULK, principal: 'owner', mode: 'shadow' },
+  { name: 'cred/one/none/shadow', query: ORACLE_ONE, principal: 'none', mode: 'shadow' },
+  { name: 'cred/one/none/enforce', query: ORACLE_ONE, principal: 'none', mode: 'enforce' },
+  { name: 'cred/nested/none/shadow', query: ORACLE_NESTED, principal: 'none', mode: 'shadow' },
+  { name: 'cred/nestedWhere/none/shadow', query: ORACLE_NESTED_WHERE, principal: 'none', mode: 'shadow' },
+  { name: 'cred/nested/owner/enforce', query: ORACLE_NESTED, principal: 'owner', mode: 'enforce' },
+  { name: 'cred/bulk/server/enforce', query: ORACLE_BULK, principal: 'server', mode: 'enforce' },
+  { name: 'cred/bulk/none/shadow+credShadow', query: ORACLE_BULK, principal: 'none', mode: 'shadow', credentialMode: 'shadow' },
 ];
 
 /** What the harness reports per scenario. */
@@ -282,6 +309,8 @@ export interface ScenarioResult {
   reasons: string[];
   json: string;
   writes: string[];
+  /** Guard-side database reads (`delegate.method`), in order. */
+  reads: string[];
   audit: Array<Record<string, unknown>>;
   counterDelta: Record<string, number>;
   auditFailureDelta: number;
@@ -330,16 +359,19 @@ function policyFacts(p: { id: string; alpacaAccountId: string }): Record<string,
 /**
  * Fake delegates for the tenancy models: `findMany` / `findUnique` over the
  * fixture rows (the entitlement read and the guard's scope check), and
- * recording writes.
+ * recording reads and writes.
  */
-function tenancyDelegates(write: (name: string, value: unknown) => Promise<unknown>): Record<string, Record<string, unknown>> {
+function tenancyDelegates(
+  write: (name: string, value: unknown) => Promise<unknown>,
+  read: <T>(name: string, value: T) => Promise<T>
+): Record<string, Record<string, unknown>> {
   const out: Record<string, Record<string, unknown>> = {};
   for (const [delegate, rows] of Object.entries(TENANCY)) {
     out[delegate] = {
-      findMany: ({ where }: { where: Row }) => Promise.resolve(rows.filter((r) => matches(r, where))),
+      findMany: ({ where }: { where: Row }) => read(`${delegate}.findMany`, rows.filter((r) => matches(r, where))),
       findUnique: ({ where }: { where: Row }) => {
         const row = rows.find((r) => matches(r, where));
-        return Promise.resolve(row ? { id: row.id } : null);
+        return read(`${delegate}.findUnique`, row ? { id: row.id } : null);
       },
       create: () => write(`${delegate}.create`, { id: `${delegate}-new` }),
       update: ({ where }: { where: Row }) => write(`${delegate}.update`, { id: where.id }),
@@ -354,20 +386,26 @@ async function main(): Promise<void> {
   let mode: MutationAuthMode = 'enforce';
   let enforcedModels: ReadonlySet<string> = new Set();
   let auditDown = false;
+  let credentialMode: CredentialFieldGuardMode = 'enforce';
   let writes: string[] = [];
+  let reads: string[] = [];
   let audit: Array<Record<string, unknown>> = [];
 
   const write = (name: string, value: unknown): Promise<unknown> => {
     writes.push(name);
     return Promise.resolve(value);
   };
+  const read = <T>(name: string, value: T): Promise<T> => {
+    reads.push(name);
+    return Promise.resolve(value);
+  };
   const prisma = {
     tradingPolicy: {
       findUnique: ({ where }: { where: Where }) => {
         const p = policyBy(where);
-        return Promise.resolve(p ? policyFacts(p) : null);
+        return read('tradingPolicy.findUnique', p ? policyFacts(p) : null);
       },
-      findMany: () => Promise.resolve(Object.values(POLICIES).map(policyFacts)),
+      findMany: () => read('tradingPolicy.findMany', Object.values(POLICIES).map(policyFacts)),
       update: ({ where }: { where: Where }) =>
         write('tradingPolicy.update', { ...policyBy(where), realtimeTradingEnabled: true }),
       updateMany: () => write('tradingPolicy.updateMany', { count: 2 }),
@@ -375,7 +413,7 @@ async function main(): Promise<void> {
     },
     alpacaAccount: {
       findUnique: ({ where }: { where: Where }) =>
-        Promise.resolve(typeof where.id === 'string' ? (ACCOUNTS[where.id] ?? null) : null),
+        read('alpacaAccount.findUnique', typeof where.id === 'string' ? (ACCOUNTS[where.id] ?? null) : null),
       update: () => write('alpacaAccount.update', { id: 'a1', type: 'LIVE' }),
       create: () => write('alpacaAccount.create', { id: 'a9', type: 'PAPER' }),
       delete: () => write('alpacaAccount.delete', { id: 'a1', type: 'LIVE' }),
@@ -383,7 +421,7 @@ async function main(): Promise<void> {
     user: {
       update: ({ where }: { where: Where }) => write('user.update', { id: where.id }),
     },
-    ...tenancyDelegates(write),
+    ...tenancyDelegates(write, read),
     auditLog: {
       create: ({ data }: { data: Record<string, unknown> }) => {
         if (auditDown) return Promise.reject(new Error('audit table unavailable'));
@@ -417,6 +455,7 @@ async function main(): Promise<void> {
   const guardedMutations = installMutationAuthGuard(schema, {
     modeProvider: () => mode,
     enforcedModelsProvider: () => enforcedModels,
+    credentialGuardModeProvider: () => credentialMode,
   });
   // Installing twice must not double-guard (each decision would count twice).
   installMutationAuthGuard(schema, { modeProvider: () => mode, enforcedModelsProvider: () => enforcedModels });
@@ -429,7 +468,9 @@ async function main(): Promise<void> {
     mode = scenario.mode;
     enforcedModels = new Set(scenario.enforcedModels ?? []);
     auditDown = scenario.auditDown === true;
+    credentialMode = scenario.credentialMode ?? 'enforce';
     writes = [];
+    reads = [];
     audit = [];
     resetMutationAuthLogThrottle();
     const before = await counterSnapshot();
@@ -462,6 +503,7 @@ async function main(): Promise<void> {
       reasons: errors.map((e) => String(e.extensions?.reason)),
       json: JSON.stringify(body),
       writes,
+      reads,
       audit: JSON.parse(JSON.stringify(audit)) as Array<Record<string, unknown>>,
       counterDelta,
       auditFailureDelta: (await auditFailures()) - failuresBefore,

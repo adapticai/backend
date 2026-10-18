@@ -52,6 +52,7 @@ interface ScenarioResult {
   reasons: string[];
   json: string;
   writes: string[];
+  reads: string[];
   audit: AuditRow[];
   counterDelta: Record<string, number>;
   auditFailureDelta: number;
@@ -454,5 +455,57 @@ describe('disarm writes during an AuditLog outage', () => {
   it('still refuses an arming write it cannot attribute (control)', () => {
     expect(scenario('auditDown/server/enforce').codes).toEqual(['AUDIT_UNAVAILABLE']);
     expect(scenario('auditDown/server/enforce').auditBypassDelta).toBe(0);
+  });
+});
+
+describe('a credential predicate in a mutation\'s arguments', () => {
+  // The guard reads rows with the caller's own `where` (ownership facts, the
+  // TradingPolicy before-state) and writes the ids it matched to AuditLog. A
+  // `where` over a stored credential would turn that read into an oracle over
+  // the credential, so it is refused before any read, in every mutation-auth
+  // mode, and the denied branch writes no audit row either.
+  const ORACLES = [
+    'cred/bulk/none/shadow',
+    'cred/bulk/none/enforce',
+    'cred/bulk/none/off',
+    'cred/bulk/admin/enforce',
+    'cred/bulk/owner/shadow',
+    'cred/one/none/shadow',
+    'cred/one/none/enforce',
+    'cred/nested/none/shadow',
+    'cred/nestedWhere/none/shadow',
+    'cred/nested/owner/enforce',
+  ];
+
+  it.each(ORACLES)('%s is refused FORBIDDEN before the guard reads or audits anything', (name) => {
+    const r = scenario(name);
+    expect(r.codes).toEqual(['FORBIDDEN']);
+    expect(r.status).toBe(403);
+    expect(r.reads).toEqual([]);
+    expect(r.audit).toEqual([]);
+    expect(r.writes).toEqual([]);
+  });
+
+  it('names the credential it refused and echoes no account or policy id', () => {
+    const r = scenario('cred/bulk/none/shadow');
+    expect(r.json).toContain('AlpacaAccountWhereInput.APISecret');
+    for (const id of ['"a1"', '"a2"', '"a3"', '"p1"', '"p2"', '"p3"']) expect(r.json).not.toContain(id);
+  });
+
+  it('control: the engine service principal is still admitted with a credential predicate', () => {
+    const r = scenario('cred/bulk/server/enforce');
+    expect(r.codes).toEqual([]);
+    expect(r.writes).toEqual(['tradingPolicy.updateMany']);
+  });
+
+  it('control: a credential value in a write payload is not a predicate, and stays admitted', () => {
+    expect(scenario('createKeys/owner/enforce').codes).toEqual([]);
+    expect(scenario('createKeys/owner/enforce').writes).toEqual(['alpacaAccount.create']);
+  });
+
+  it('defers to the credential-field guard\'s own mode: shadow there is not refused here', () => {
+    const r = scenario('cred/bulk/none/shadow+credShadow');
+    expect(r.codes).toEqual([]);
+    expect(r.writes).toEqual(['tradingPolicy.updateMany']);
   });
 });
