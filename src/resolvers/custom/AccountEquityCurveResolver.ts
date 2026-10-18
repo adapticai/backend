@@ -1,10 +1,10 @@
 /**
- * `accountEquityCurve` and `marketTape` — server-side audit reads.
+ * `accountEquityCurve` — server-side audit read.
  *
- * Return an account's 1-minute equity curve and the market tape without the
- * caller ever holding the account's broker key. Both require an audit-read
- * token in the `x-adaptic-audit-token` header (see `assertAuditRead`) and
- * refuse LIVE accounts.
+ * Returns an account's 1-minute equity curve without the caller ever holding
+ * the account's broker key. Requires an audit-read token in the
+ * `x-adaptic-audit-token` header (see `assertAuditRead`) and refuses LIVE
+ * accounts.
  * Read-only on the broker; every read spends a per-account request budget and
  * writes an `AuditLog` row naming the operator, account and operation.
  *
@@ -23,8 +23,6 @@ import {
   createAccountBudgets,
   parseSessionDate,
   readEquityCurve,
-  readMarketTape,
-  validateTapeArgs,
   type AlpacaFetch,
   type AuditAccountRow,
 } from './account-audit-read';
@@ -63,33 +61,6 @@ export class AccountEquityCurve {
 
   @TypeGraphQL.Field((_t) => String)
   source!: string;
-}
-
-@TypeGraphQL.ObjectType('MarketTapeBar', {})
-export class MarketTapeBar {
-  @TypeGraphQL.Field((_t) => String)
-  symbol!: string;
-
-  @TypeGraphQL.Field((_t) => TypeGraphQL.Float)
-  ms!: number;
-
-  @TypeGraphQL.Field((_t) => TypeGraphQL.Float)
-  o!: number;
-
-  @TypeGraphQL.Field((_t) => TypeGraphQL.Float)
-  h!: number;
-
-  @TypeGraphQL.Field((_t) => TypeGraphQL.Float)
-  l!: number;
-
-  @TypeGraphQL.Field((_t) => TypeGraphQL.Float)
-  c!: number;
-
-  @TypeGraphQL.Field((_t) => TypeGraphQL.Float)
-  v!: number;
-
-  @TypeGraphQL.Field((_t) => String)
-  feed!: string;
 }
 
 interface GraphQLContext {
@@ -158,40 +129,6 @@ export class AccountEquityCurveResolver {
     return readEquityCurve({
       account,
       sessionDate: date,
-      nowMs: Date.now(),
-      fetchImpl: alpacaFetch.current,
-      budget: accountBudget(accountId),
-    });
-  }
-
-  @TypeGraphQL.Query((_returns) => [MarketTapeBar], {
-    description:
-      '1-minute bars for the symbols over [startMs, endMs], read server-side with the account’s market-data entitlement. Requires an audit-read token. PAPER accounts only.',
-  })
-  async marketTape(
-    @TypeGraphQL.Ctx() ctx: GraphQLContext,
-    @TypeGraphQL.Arg('accountId', (_t) => String) accountId: string,
-    @TypeGraphQL.Arg('symbols', (_t) => [String]) symbols: string[],
-    @TypeGraphQL.Arg('startMs', (_t) => TypeGraphQL.Float) startMs: number,
-    @TypeGraphQL.Arg('endMs', (_t) => TypeGraphQL.Float) endMs: number,
-    @TypeGraphQL.Arg('feed', (_t) => String, { defaultValue: 'auto' }) feed?: string
-  ): Promise<MarketTapeBar[]> {
-    const operator = assertAuditRead(auditTokenFromHeaders(ctx.req?.headers));
-    const args = validateTapeArgs({ symbols, startMs, endMs, feed: feed ?? 'auto' });
-    const prisma = getPrismaFromContext(ctx) as PrismaClient;
-    const account = await loadAccount(prisma, accountId);
-    await recordRead(prisma, {
-      operator,
-      accountId,
-      op: 'marketTape',
-      detail: { symbols: args.symbols, feed: args.feed, startMs, endMs },
-    });
-    return readMarketTape({
-      account,
-      symbols: args.symbols,
-      startMs,
-      endMs,
-      feed: args.feed,
       nowMs: Date.now(),
       fetchImpl: alpacaFetch.current,
       budget: accountBudget(accountId),
