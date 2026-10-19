@@ -55,6 +55,7 @@ import prisma, {
   disconnectWithTimeout,
 } from './prismaClient';
 import { createHealthRouter } from './health';
+import { assertServiceSecretsDistinctFromJwtSecret } from './auth/service-token';
 import { logger } from './utils/logger';
 import {
   verifyBackendToken,
@@ -139,6 +140,11 @@ const startServer = async () => {
   // would surface a per-request `misconfigured` error indefinitely. Refuse to
   // boot with broken identity configuration.
   assertGoogleAudienceConfiguredForProd();
+
+  // Same posture for the service-principal path: a service secret equal to
+  // JWT_SECRET collapses user/service identity, so fail the deploy, not the
+  // first service call.
+  assertServiceSecretsDistinctFromJwtSecret();
 
   // Prometheus metrics initialization. No-op unless `PROMETHEUS_METRICS_ENABLED`
   // is on (defaults on in production/staging). Registers default Node.js metrics

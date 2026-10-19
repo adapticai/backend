@@ -19,7 +19,12 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 function resolveJwtSecret(): string {
   // Try JWT_SECRET first, then fall back to NEXTAUTH_SECRET for compatibility
-  const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET;
+  // Trimmed so a stray newline or space from a pasted dashboard value cannot
+  // make this differ from the same secret as `service-token.ts` reads it (that
+  // module trims), which would defeat its JWT_SECRET collision check. A
+  // whitespace-only JWT_SECRET counts as unset and falls through.
+  const secret =
+    process.env.JWT_SECRET?.trim() || process.env.NEXTAUTH_SECRET?.trim();
 
   if (!secret) {
     if (isProduction) {
