@@ -25,6 +25,19 @@
  * middleware chain, so it decides before the credential-field guard and the
  * tenancy scoping see the field.
  *
+ * ## Credential predicates are refused before anything is read
+ *
+ * Deciding a mutation can read rows with the caller's own `where` (ownership
+ * and tenancy facts, the TradingPolicy before-state), and the audit rows
+ * record the ids and accounts that read matched. Because this guard runs
+ * first, a `where` over a stored credential would be executed here before the
+ * credential-field guard ever refused it, and the matched rows would land in
+ * AuditLog: an oracle over the credential, open in every mutation-auth mode,
+ * the denied branch included. So the guard applies the credential-field
+ * guard's predicate rule itself, as its first step: a non-service principal
+ * whose arguments name a credential column is refused before any read and
+ * before any audit row, whenever that guard enforces.
+ *
  * ## Nested writes and modes
  *
  * A root field's arguments can write far beyond its own model (nested
@@ -65,6 +78,13 @@ import type { BackendPrincipal } from '../auth/token-verifier';
 import { userContentRefusal } from '../auth/user-write-content';
 import { metricsRegistry } from '../config/metrics';
 import { logger } from '../utils/logger';
+import {
+  credentialAccessForbidden,
+  credentialFieldAccessTotal,
+  findCredentialArgumentReferences,
+  getCredentialFieldGuardMode,
+  type CredentialFieldGuardMode,
+} from './credential-field-guard';
 import {
   loadTouchedAccounts,
   ownershipOf,
@@ -119,6 +139,8 @@ export interface MutationAuthGuardOptions {
   models?: readonly string[];
   /** Foreign-key placement per relation; defaults to the Prisma data model. */
   relations?: RelationFacts;
+  /** The credential-field guard's mode; defaults to `CREDENTIAL_FIELD_GUARD_MODE`. */
+  credentialGuardModeProvider?: () => CredentialFieldGuardMode;
   now?: () => number;
 }
 
@@ -204,6 +226,51 @@ function logRefusal(
     mutation: target.fieldName,
     model: target.model,
     reason: evaluation.reason,
+    principalKind: actor.principalKind,
+    principalSub: actor.sub,
+    operationName: info.operation?.name?.value ?? '<unnamed>',
+    ip: actor.ip,
+    userAgent: actor.userAgent,
+    origin: actor.origin,
+    dedupWindowMs: LOG_THROTTLE_MS,
+  });
+}
+
+/**
+ * The credential columns a non-service principal's mutation arguments name as
+ * a predicate, when the credential-field guard enforces; empty otherwise. In
+ * `shadow` and `off` that guard admits the predicate itself, and counts it
+ * there, so this guard leaves it to it.
+ */
+function refusedCredentialReferences(
+  principal: BackendPrincipal | null,
+  info: Pick<GraphQLResolveInfo, 'parentType' | 'fieldName'>,
+  args: Record<string, unknown>,
+  credentialMode: () => CredentialFieldGuardMode
+): string[] {
+  if (principal?.kind === 'server') return [];
+  const references = findCredentialArgumentReferences(info, args);
+  if (references.length === 0 || credentialMode() !== 'enforce') return [];
+  return references;
+}
+
+function logCredentialRefusal(
+  fieldName: string,
+  references: string[],
+  principal: BackendPrincipal | null,
+  info: Pick<GraphQLResolveInfo, 'operation'>,
+  req: ActorRequest | undefined,
+  nowMs: number
+): void {
+  const actor = actorFor(principal, req);
+  const key = ['credential_predicate', fieldName, actor.principalKind, actor.userAgent, actor.ip].join('|');
+  const previous = lastLoggedAt.get(key);
+  if (previous !== undefined && nowMs - previous < LOG_THROTTLE_MS) return;
+  if (lastLoggedAt.size >= LOG_THROTTLE_MAX_KEYS) lastLoggedAt.clear();
+  lastLoggedAt.set(key, nowMs);
+  logger.warn('[mutation-auth] mutation refused: its arguments name a stored credential', {
+    mutation: fieldName,
+    references,
     principalKind: actor.principalKind,
     principalSub: actor.sub,
     operationName: info.operation?.name?.value ?? '<unnamed>',
@@ -316,6 +383,7 @@ function createMutationGuard(
   const models = new Set(options.models ?? Object.values(Prisma.ModelName));
   const modelsLongestFirst = [...models].sort((a, b) => b.length - a.length);
   const relations = options.relations ?? prismaRelationFacts();
+  const resolveCredentialMode = options.credentialGuardModeProvider ?? getCredentialFieldGuardMode;
   const now = options.now ?? Date.now;
 
   /**
@@ -341,6 +409,25 @@ function createMutationGuard(
     // Cast justified: the context's `prisma` is the server's PrismaClient, whose
     // delegates satisfy this structural slice; tests supply a fake of it.
     const prisma = context.prisma as MutationAuthPrisma | undefined;
+
+    // First, before any fact or before-state read and before any audit row:
+    // nothing below may execute the caller's `where` if it names a credential.
+    const credentialRefs = refusedCredentialReferences(principal, info, argRecord, resolveCredentialMode);
+    if (credentialRefs.length > 0) {
+      credentialFieldAccessTotal.inc({
+        surface: 'argument',
+        decision: 'denied',
+        principal_kind: principal?.kind ?? 'none',
+      });
+      mutationAuthorizationTotal.inc({
+        mutation: info.fieldName,
+        principal_kind: principal?.kind ?? 'none',
+        decision: 'denied',
+        reason: 'credential_predicate',
+      });
+      logCredentialRefusal(info.fieldName, credentialRefs, principal, info, context.req, now());
+      throw credentialAccessForbidden(credentialRefs);
+    }
 
     let baseMode: MutationAuthMode = 'enforce';
     let target: MutationTarget;
