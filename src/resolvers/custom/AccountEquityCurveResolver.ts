@@ -7,8 +7,10 @@
  * accounts.
  * Read-only on the broker; every read spends a per-account request budget and
  * writes an `AuditLog` row naming the operator, account and operation. Once the
- * token verifies, a refusal (unknown account, LIVE account, incomplete broker
- * snapshot) also writes a row, with its reason; an unverified caller writes none.
+ * token verifies, a refusal (unknown or deleted account, LIVE account, incomplete
+ * broker snapshot) also writes a row, with its reason. No row is written for an
+ * unverified caller, a bad `sessionDate`, a failed account lookup, or a rate-limited
+ * or failed broker call (those after the read row leave only that row).
  *
  * @module resolvers/custom/AccountEquityCurveResolver
  */
@@ -110,7 +112,7 @@ async function recordRead(prisma: PrismaClient, p: AuditReadRow): Promise<void> 
     await prisma.auditLog.create({ data: auditRowData(p, { outcome: 'read' }) });
   } catch (err) {
     // Fail closed: an unrecorded read is not served.
-    logger.error('[audit-read] could not write the AuditLog row; refusing the read', { operator: p.operator, accountId: p.accountId, op: p.op, err });
+    logger.error('[audit-read] could not write the AuditLog row; refusing the read', { operator: p.operator, accountId: p.accountId, op: p.op, ...errDetail(err) });
     throw new GraphQLError('Audit read could not be recorded', { extensions: { code: 'INTERNAL_SERVER_ERROR' } });
   }
 }
@@ -124,19 +126,27 @@ async function recordRefusal(prisma: PrismaClient, p: AuditReadRow, reason: Audi
   try {
     await prisma.auditLog.create({ data: auditRowData(p, { outcome: 'refused', reason }) });
   } catch (err) {
-    logger.error('[audit-read] could not write the AuditLog row for a refused read', { operator: p.operator, accountId: p.accountId, op: p.op, reason, err });
+    logger.error('[audit-read] could not write the AuditLog row for a refused read', { operator: p.operator, accountId: p.accountId, op: p.op, reason, ...errDetail(err) });
   }
 }
 
+/** A soft-deleted account is not found. */
 async function loadAccount(prisma: PrismaClient, id: string): Promise<AuditAccountRow> {
   assertAccountIdShape(id);
-  const account = await prisma.alpacaAccount.findUnique({
-    where: { id },
+  const account = await prisma.alpacaAccount.findFirst({
+    where: { id, deletedAt: null },
     select: { id: true, type: true, APIKey: true, APISecret: true, configuration: true },
   });
   if (!account) throw new AuditReadRefused('ACCOUNT_NOT_FOUND', 'Account not found', 'NOT_FOUND');
-  assertAccountReadable(account as AuditAccountRow);
   return account as AuditAccountRow;
+}
+
+/** The error's message and code, since logging the object itself serialises as `{}`. */
+function errDetail(err: unknown): { err: string; code?: unknown } {
+  return {
+    err: err instanceof Error ? err.message : String(err),
+    code: (err as { code?: unknown } | null)?.code,
+  };
 }
 
 @TypeGraphQL.Resolver()
@@ -154,16 +164,21 @@ export class AccountEquityCurveResolver {
     const operator = assertAuditRead(auditTokenFromHeaders(ctx.req?.headers));
     const date = parseSessionDate(sessionDate);
     const prisma = getPrismaFromContext(ctx) as PrismaClient;
+    // `row.accountId` is the caller's text until the lookup answers, then the
+    // stored id: Postgres matches a uuid in either case, so the budget and the
+    // rows key on the stored form or one account would get a budget per spelling.
     const row: AuditReadRow = { operator, accountId, op: 'accountEquityCurve', detail: { sessionDate: date } };
     try {
       const account = await loadAccount(prisma, accountId);
+      row.accountId = account.id;
+      assertAccountReadable(account);
       await recordRead(prisma, row);
       return await readEquityCurve({
         account,
         sessionDate: date,
         nowMs: Date.now(),
         fetchImpl: alpacaFetch.current,
-        budget: accountBudget(accountId),
+        budget: accountBudget(account.id),
       });
     } catch (err) {
       // An incomplete snapshot is refused after the read row is written, so

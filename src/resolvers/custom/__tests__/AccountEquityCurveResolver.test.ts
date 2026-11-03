@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import jwt from 'jsonwebtoken';
 
+import { logger } from '../../../utils/logger';
 import { AccountEquityCurveResolver, alpacaFetch } from '../AccountEquityCurveResolver';
 import {
   AUDIT_READ_AUDIENCE,
@@ -32,7 +33,7 @@ const mint = (who: string, o: { secret?: string; ttl?: number; iat?: number } = 
 
 function makePrisma(account: unknown = PAPER) {
   return {
-    alpacaAccount: { findUnique: vi.fn().mockResolvedValue(account) },
+    alpacaAccount: { findFirst: vi.fn().mockResolvedValue(account) },
     auditLog: { create: vi.fn().mockResolvedValue({}) },
   };
 }
@@ -109,7 +110,7 @@ describe('AccountEquityCurveResolver: refusals after the token verifies', () => 
     const err = await resolver.accountEquityCurve(ctx(prisma), 'not-a-uuid').catch((e) => e);
     expect(err).toBeInstanceOf(AuditReadRefused);
     expect(err.extensions.code).toBe('NOT_FOUND');
-    expect(prisma.alpacaAccount.findUnique).not.toHaveBeenCalled();
+    expect(prisma.alpacaAccount.findFirst).not.toHaveBeenCalled();
     expect(rows(prisma)).toHaveLength(1);
     expect(rows(prisma)[0].metadata).toMatchObject({ operator: 'ethan', accountId: 'not-a-uuid', reason: 'ACCOUNT_NOT_FOUND' });
   });
@@ -159,6 +160,88 @@ describe('AccountEquityCurveResolver: refusals after the token verifies', () => 
   });
 });
 
+describe('AccountEquityCurveResolver: keyed on the stored id', () => {
+  const OTHER_ID = '7d0e4c2a-1b3f-4a5c-9e8d-6f2a1b0c3d4e';
+
+  it('upper- and lower-case spellings of one id share one budget and write the stored id', async () => {
+    const stored = { ...PAPER, id: OTHER_ID };
+    const prisma = makePrisma(stored);
+    const upper = OTHER_ID.toUpperCase();
+    // Each read spends two requests; 40 per window is 20 reads, alternating spelling.
+    for (let i = 0; i < 20; i++) {
+      await resolver.accountEquityCurve(ctx(prisma), i % 2 ? upper : OTHER_ID);
+    }
+    const spelling = (id: string) => resolver.accountEquityCurve(ctx(prisma), id).catch((e) => e);
+    expect((await spelling(upper)).extensions.code).toBe('RATE_LIMITED');
+    expect((await spelling(OTHER_ID)).extensions.code).toBe('RATE_LIMITED');
+    for (const r of rows(prisma)) {
+      expect(r.recordId).toBe(OTHER_ID);
+      expect(r.metadata.accountId).toBe(OTHER_ID);
+    }
+  });
+
+  it('a refusal on a found account carries the stored id, not the caller\'s spelling', async () => {
+    const prisma = makePrisma({ ...PAPER, type: 'LIVE' });
+    await resolver.accountEquityCurve(ctx(prisma), ACCOUNT_ID.toUpperCase()).catch(() => undefined);
+    expect(rows(prisma)).toHaveLength(1);
+    expect(rows(prisma)[0].recordId).toBe(ACCOUNT_ID);
+  });
+});
+
+describe('AccountEquityCurveResolver: soft-deleted accounts', () => {
+  it('the lookup excludes a deleted account, so it is NOT_FOUND with a refusal row', async () => {
+    const prisma = makePrisma(null);
+    const err = await resolver.accountEquityCurve(ctx(prisma), ACCOUNT_ID).catch((e) => e);
+    expect(prisma.alpacaAccount.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: ACCOUNT_ID, deletedAt: null } })
+    );
+    expect(err).toMatchObject({ reason: 'ACCOUNT_NOT_FOUND' });
+    expect(rows(prisma)).toHaveLength(1);
+  });
+});
+
+describe('AccountEquityCurveResolver: paths that leave no row', () => {
+  it('a bad sessionDate is BAD_USER_INPUT before the lookup, with no row', async () => {
+    const prisma = makePrisma();
+    const err = await resolver.accountEquityCurve(ctx(prisma), ACCOUNT_ID, '23-09-2026').catch((e) => e);
+    expect(err.extensions.code).toBe('BAD_USER_INPUT');
+    expect(prisma.alpacaAccount.findFirst).not.toHaveBeenCalled();
+    expect(prisma.auditLog.create).not.toHaveBeenCalled();
+  });
+
+  it('a failed account lookup surfaces as the error and writes no row', async () => {
+    const prisma = makePrisma();
+    prisma.alpacaAccount.findFirst.mockRejectedValue(new Error('db down'));
+    await expect(resolver.accountEquityCurve(ctx(prisma), ACCOUNT_ID)).rejects.toThrow('db down');
+    expect(prisma.auditLog.create).not.toHaveBeenCalled();
+  });
+
+  it('a broker failure after the read row leaves only that row', async () => {
+    const prisma = makePrisma();
+    alpacaFetch.current = async () => ({ ok: false, status: 503, text: async () => '' });
+    const err = await resolver.accountEquityCurve(ctx(prisma), ACCOUNT_ID).catch((e) => e);
+    expect(err.extensions.code).toBe('BAD_GATEWAY');
+    expect(rows(prisma).map((r) => r.metadata.outcome)).toEqual(['read']);
+  });
+});
+
+describe('AccountEquityCurveResolver: logging a failed row write', () => {
+  it('keeps the error message and code, not an empty object', async () => {
+    const prisma = makePrisma();
+    prisma.auditLog.create.mockRejectedValue(Object.assign(new Error('connection refused'), { code: 'P1001' }));
+    const spy = vi.spyOn(logger, 'error').mockImplementation(() => undefined);
+    try {
+      await expect(resolver.accountEquityCurve(ctx(prisma), ACCOUNT_ID)).rejects.toThrow('Audit read could not be recorded');
+      expect(spy).toHaveBeenCalledWith(
+        expect.stringContaining('could not write the AuditLog row'),
+        expect.objectContaining({ err: 'connection refused', code: 'P1001' })
+      );
+    } finally {
+      spy.mockRestore();
+    }
+  });
+});
+
 describe('AccountEquityCurveResolver: a token that does not verify writes nothing', () => {
   it.each([
     ['no token', null],
@@ -173,7 +256,7 @@ describe('AccountEquityCurveResolver: a token that does not verify writes nothin
     expect(err).not.toBeInstanceOf(AuditReadRefused);
     expect(['UNAUTHENTICATED', 'FORBIDDEN']).toContain(err.extensions.code);
     expect(prisma.auditLog.create).not.toHaveBeenCalled();
-    expect(prisma.alpacaAccount.findUnique).not.toHaveBeenCalled();
+    expect(prisma.alpacaAccount.findFirst).not.toHaveBeenCalled();
     expect(brokerCalls).toHaveLength(0);
   });
 });

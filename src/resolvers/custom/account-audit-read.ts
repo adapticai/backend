@@ -44,7 +44,7 @@ export const AUDIT_READ_AUDIENCE = 'adaptic-backend:audit-read';
 /** Minimum length for the audit-read secret, in characters. */
 export const MINIMUM_AUDIT_SECRET_LENGTH = 32;
 
-/** Largest lifetime (`exp - iat`) honoured on an audit-read token, seconds. */
+/** Largest lifetime (`exp - iat`) honoured on an audit-read token, and the longest it is accepted ahead of its `exp`, seconds. */
 export const MAX_AUDIT_TOKEN_LIFETIME_SEC = 300;
 
 /** How far in the future an `iat` may sit before the token is refused, seconds. */
@@ -192,7 +192,10 @@ export function assertAuditRead(
   }
   const { iat, exp } = payload;
   if (typeof iat !== 'number' || typeof exp !== 'number') return forbidden();
-  if (exp - iat > MAX_AUDIT_TOKEN_LIFETIME_SEC || iat > nowSec + MAX_AUDIT_TOKEN_CLOCK_SKEW_SEC) return forbidden();
+  // The ceiling holds on the token's own lifetime and on the time it is honoured:
+  // an `iat` skewed ahead would otherwise stretch acceptance past it.
+  if (exp - iat > MAX_AUDIT_TOKEN_LIFETIME_SEC || exp - nowSec > MAX_AUDIT_TOKEN_LIFETIME_SEC) return forbidden();
+  if (iat > nowSec + MAX_AUDIT_TOKEN_CLOCK_SKEW_SEC) return forbidden();
 
   const sub = typeof payload.sub === 'string' ? payload.sub : '';
   if (!sub.startsWith(AUDIT_SUBJECT_PREFIX)) return forbidden();

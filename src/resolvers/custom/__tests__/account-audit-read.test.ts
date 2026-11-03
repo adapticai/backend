@@ -54,6 +54,9 @@ describe('assertAuditRead', () => {
     expect(assertAuditRead(mint('ethan', { ttl: 300 }), ENV, NOW)).toBe('ethan');
     expect(() => assertAuditRead(mint('ethan', { ttl: 301 }), ENV, NOW)).toThrow(/audit-read role required/);
   });
+  it('admits an iat skewed ahead as long as exp is within 300s of now', () => {
+    expect(assertAuditRead(mint('ethan', { iat: NOW + 60, ttl: 240 }), ENV, NOW)).toBe('ethan');
+  });
   it.each([
     ['null', null],
     ['undefined', undefined],
@@ -73,6 +76,10 @@ describe('assertAuditRead', () => {
     ['lifetime over 5 minutes', mint('ethan', { ttl: 301 }), ENV],
     ['lifetime of the old 15-minute ceiling', mint('ethan', { ttl: 900 }), ENV],
     ['iat in the future', mint('ethan', { iat: NOW + 600 }), ENV],
+    // iat skewed 60s ahead with a full 300s lifetime is honoured 360s from now.
+    ['accepted for more than 300s ahead of exp', mint('ethan', { iat: NOW + 60, ttl: 300 }), ENV],
+    ['missing exp', jwt.sign({ sub: 'adaptic-audit:ethan@h:1', iss: AUDIT_READ_ISSUER, aud: AUDIT_READ_AUDIENCE, iat: NOW - 10 }, AUDIT_SECRET, { algorithm: 'HS256' }), ENV],
+    ['missing iat', jwt.sign({ sub: 'adaptic-audit:ethan@h:1', iss: AUDIT_READ_ISSUER, aud: AUDIT_READ_AUDIENCE, exp: NOW + 60 }, AUDIT_SECRET, { algorithm: 'HS256', noTimestamp: true }), ENV],
     ['unsigned', jwt.sign({ sub: 'adaptic-audit:ethan@h:1', iss: AUDIT_READ_ISSUER, aud: AUDIT_READ_AUDIENCE, iat: NOW, exp: NOW + 60 }, '', { algorithm: 'none' }), ENV],
     ['garbage', 'not-a-jwt', ENV],
     ['unlisted operator', mint('mallory'), ENV],
