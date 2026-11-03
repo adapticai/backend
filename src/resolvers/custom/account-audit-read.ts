@@ -45,7 +45,7 @@ export const AUDIT_READ_AUDIENCE = 'adaptic-backend:audit-read';
 export const MINIMUM_AUDIT_SECRET_LENGTH = 32;
 
 /** Largest lifetime (`exp - iat`) honoured on an audit-read token, seconds. */
-export const MAX_AUDIT_TOKEN_LIFETIME_SEC = 900;
+export const MAX_AUDIT_TOKEN_LIFETIME_SEC = 300;
 
 /** How far in the future an `iat` may sit before the token is refused, seconds. */
 export const MAX_AUDIT_TOKEN_CLOCK_SKEW_SEC = 60;

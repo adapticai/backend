@@ -11,6 +11,7 @@ import {
   readEquityCurve,
   createAccountBudgets,
   ALPACA_TIMEOUT_MS,
+  MAX_AUDIT_TOKEN_LIFETIME_SEC,
   type AlpacaFetch,
   type AuditAccountRow,
 } from '../account-audit-read';
@@ -45,6 +46,11 @@ describe('assertAuditRead', () => {
   it('admits a listed operator on an audit-read token and returns who', () => {
     expect(assertAuditRead(mint('ethan'), ENV, NOW)).toBe('ethan');
   });
+  it('honours a lifetime of exactly MAX_AUDIT_TOKEN_LIFETIME_SEC (300s) and no more', () => {
+    expect(MAX_AUDIT_TOKEN_LIFETIME_SEC).toBe(300);
+    expect(assertAuditRead(mint('ethan', { ttl: 300 }), ENV, NOW)).toBe('ethan');
+    expect(() => assertAuditRead(mint('ethan', { ttl: 301 }), ENV, NOW)).toThrow(/audit-read role required/);
+  });
   it.each([
     ['null', null],
     ['undefined', undefined],
@@ -61,7 +67,8 @@ describe('assertAuditRead', () => {
     ['wrong issuer', mint('ethan', { iss: 'adaptic-service' }), ENV],
     ['wrong audience', mint('ethan', { aud: 'adaptic-backend' }), ENV],
     ['expired', mint('ethan', { iat: NOW - 1000, ttl: 300 }), ENV],
-    ['lifetime over 15 minutes', mint('ethan', { ttl: 3600 }), ENV],
+    ['lifetime over 5 minutes', mint('ethan', { ttl: 301 }), ENV],
+    ['lifetime of the old 15-minute ceiling', mint('ethan', { ttl: 900 }), ENV],
     ['iat in the future', mint('ethan', { iat: NOW + 600 }), ENV],
     ['unsigned', jwt.sign({ sub: 'adaptic-audit:ethan@h:1', iss: AUDIT_READ_ISSUER, aud: AUDIT_READ_AUDIENCE, iat: NOW, exp: NOW + 60 }, '', { algorithm: 'none' }), ENV],
     ['garbage', 'not-a-jwt', ENV],
