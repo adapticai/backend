@@ -43,6 +43,7 @@ import {
   withoutServerOnlySchemaSurface,
 } from '../../config/server-only-models';
 import {
+  AlpacaAccountCredentialsResolver,
   BrokerageAccountCredentialStatusResolver,
   OptionsGreeksHistoryCustomResolver,
   TradingSettingsResolver,
@@ -489,6 +490,7 @@ async function main(): Promise<void> {
       OptionsGreeksHistoryCustomResolver,
       TradingSettingsResolver,
       BrokerageAccountCredentialStatusResolver,
+      AlpacaAccountCredentialsResolver,
     ],
     validate: false,
     globalMiddlewares: [createCredentialFieldGuardMiddleware({ modeProvider: () => 'enforce' })],

@@ -93,6 +93,40 @@ export type CredentialFieldGuardMode = 'enforce' | 'shadow' | 'off';
 const CREDENTIAL_TYPES = indexGeneratedTypes(CREDENTIAL_FIELDS);
 
 /**
+ * Credential-bearing output types that are hand-written rather than generated,
+ * and so are invisible to {@link indexGeneratedTypes}'s naming rules.
+ *
+ * A dedicated DTO is the usual way to serve a credential to one principal
+ * without widening the model type, and its own resolver carries the principal
+ * check. But a type is reachable from whatever resolver returns it, and the
+ * next resolver to return this one inherits no check at all — so the column
+ * is registered here too, and the guard refuses it on the same terms as the
+ * model's own column. Defence in depth is the point: the resolver's check and
+ * this guard are independent, so neither one's absence opens the read.
+ *
+ * An entry belongs here when the type carries a column named in
+ * {@link CREDENTIAL_FIELDS} under any type name the generator would not
+ * produce.
+ */
+const HAND_WRITTEN_CREDENTIAL_OUTPUT_TYPES: ReadonlyMap<string, ReadonlySet<string>> =
+  new Map<string, ReadonlySet<string>>([
+    ['AlpacaAccountCredentials', new Set(['APIKey', 'APISecret'])],
+  ]);
+
+/**
+ * The guarded columns an output type carries, generated or hand-written.
+ *
+ * @param typeName - The GraphQL output type's name.
+ * @returns The guarded columns it exposes as values, or `undefined`.
+ */
+function credentialOutputFields(typeName: string): ReadonlySet<string> | undefined {
+  return (
+    CREDENTIAL_TYPES.outputFields(typeName) ??
+    HAND_WRITTEN_CREDENTIAL_OUTPUT_TYPES.get(typeName)
+  );
+}
+
+/**
  * The credential fields an input type's keys can reference as a predicate,
  * or `undefined` when it is not a credential model's predicate type.
  *
@@ -114,7 +148,7 @@ export function credentialPredicateFieldsFor(
 export function credentialOutputFieldsFor(
   typeName: string
 ): ReadonlySet<string> | undefined {
-  return CREDENTIAL_TYPES.outputFields(typeName);
+  return credentialOutputFields(typeName);
 }
 
 /**
@@ -220,7 +254,7 @@ export function findCredentialArgumentReferences(
 export function findCredentialOutputField(
   info: Pick<GraphQLResolveInfo, 'parentType' | 'fieldName'>
 ): string | undefined {
-  const fields = CREDENTIAL_TYPES.outputFields(info.parentType.name);
+  const fields = credentialOutputFields(info.parentType.name);
   return fields?.has(info.fieldName)
     ? `${info.parentType.name}.${info.fieldName}`
     : undefined;
