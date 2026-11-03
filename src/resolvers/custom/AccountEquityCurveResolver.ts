@@ -6,7 +6,9 @@
  * `x-adaptic-audit-token` header (see `assertAuditRead`) and refuses LIVE
  * accounts.
  * Read-only on the broker; every read spends a per-account request budget and
- * writes an `AuditLog` row naming the operator, account and operation.
+ * writes an `AuditLog` row naming the operator, account and operation. Once the
+ * token verifies, a refusal (unknown account, LIVE account, incomplete broker
+ * snapshot) also writes a row, with its reason; an unverified caller writes none.
  *
  * @module resolvers/custom/AccountEquityCurveResolver
  */
@@ -17,6 +19,8 @@ import { GraphQLError } from 'graphql';
 import { getPrismaFromContext } from '../../generated/typegraphql-prisma/helpers';
 import { logger } from '../../utils/logger';
 import {
+  AuditReadRefused,
+  assertAccountIdShape,
   assertAccountReadable,
   assertAuditRead,
   auditTokenFromHeaders,
@@ -25,6 +29,7 @@ import {
   readEquityCurve,
   type AlpacaFetch,
   type AuditAccountRow,
+  type AuditReadRefusalReason,
 } from './account-audit-read';
 
 @TypeGraphQL.ObjectType('EquityCurvePoint', {})
@@ -77,22 +82,32 @@ export const alpacaFetch: { current: AlpacaFetch } = {
 
 const accountBudget = createAccountBudgets();
 
+/** Width of `AuditLog.recordId`; only a malformed (refused) account id can exceed it. */
+const RECORD_ID_MAX = 255;
+
+interface AuditReadRow {
+  operator: string;
+  accountId: string;
+  op: string;
+  detail?: Record<string, unknown>;
+}
+
+function auditRowData(p: AuditReadRow, outcome: { outcome: 'read' } | { outcome: 'refused'; reason: AuditReadRefusalReason }) {
+  const accountId = p.accountId.slice(0, RECORD_ID_MAX);
+  return {
+    operationType: 'CREATE' as const,
+    modelName: 'AuditRead',
+    recordId: accountId,
+    operationName: p.op,
+    changedFields: {},
+    metadata: { operator: p.operator, accountId, op: p.op, ...p.detail, ...outcome },
+  };
+}
+
 /** `AuditLog.operationType` has no READ member, so a read is recorded as a CREATE of an `AuditRead` record. */
-async function recordRead(
-  prisma: PrismaClient,
-  p: { operator: string; accountId: string; op: string; detail?: Record<string, unknown> }
-): Promise<void> {
+async function recordRead(prisma: PrismaClient, p: AuditReadRow): Promise<void> {
   try {
-    await prisma.auditLog.create({
-      data: {
-        operationType: 'CREATE',
-        modelName: 'AuditRead',
-        recordId: p.accountId,
-        operationName: p.op,
-        changedFields: {},
-        metadata: { operator: p.operator, accountId: p.accountId, op: p.op, ...p.detail },
-      },
-    });
+    await prisma.auditLog.create({ data: auditRowData(p, { outcome: 'read' }) });
   } catch (err) {
     // Fail closed: an unrecorded read is not served.
     logger.error('[audit-read] could not write the AuditLog row; refusing the read', { operator: p.operator, accountId: p.accountId, op: p.op, err });
@@ -100,12 +115,26 @@ async function recordRead(
   }
 }
 
+/**
+ * Record a refusal of a verified caller's read. The caller still gets the
+ * refusal if the row cannot be written: nothing is served either way, and the
+ * refusal is the truthful answer.
+ */
+async function recordRefusal(prisma: PrismaClient, p: AuditReadRow, reason: AuditReadRefusalReason): Promise<void> {
+  try {
+    await prisma.auditLog.create({ data: auditRowData(p, { outcome: 'refused', reason }) });
+  } catch (err) {
+    logger.error('[audit-read] could not write the AuditLog row for a refused read', { operator: p.operator, accountId: p.accountId, op: p.op, reason, err });
+  }
+}
+
 async function loadAccount(prisma: PrismaClient, id: string): Promise<AuditAccountRow> {
+  assertAccountIdShape(id);
   const account = await prisma.alpacaAccount.findUnique({
     where: { id },
     select: { id: true, type: true, APIKey: true, APISecret: true, configuration: true },
   });
-  if (!account) throw new GraphQLError('Account not found', { extensions: { code: 'NOT_FOUND' } });
+  if (!account) throw new AuditReadRefused('ACCOUNT_NOT_FOUND', 'Account not found', 'NOT_FOUND');
   assertAccountReadable(account as AuditAccountRow);
   return account as AuditAccountRow;
 }
@@ -121,17 +150,26 @@ export class AccountEquityCurveResolver {
     @TypeGraphQL.Arg('accountId', (_t) => String) accountId: string,
     @TypeGraphQL.Arg('sessionDate', (_t) => String, { nullable: true }) sessionDate?: string
   ): Promise<AccountEquityCurve> {
+    // Throws before any row: a caller whose token does not verify is unattributed.
     const operator = assertAuditRead(auditTokenFromHeaders(ctx.req?.headers));
     const date = parseSessionDate(sessionDate);
     const prisma = getPrismaFromContext(ctx) as PrismaClient;
-    const account = await loadAccount(prisma, accountId);
-    await recordRead(prisma, { operator, accountId, op: 'accountEquityCurve', detail: { sessionDate: date } });
-    return readEquityCurve({
-      account,
-      sessionDate: date,
-      nowMs: Date.now(),
-      fetchImpl: alpacaFetch.current,
-      budget: accountBudget(accountId),
-    });
+    const row: AuditReadRow = { operator, accountId, op: 'accountEquityCurve', detail: { sessionDate: date } };
+    try {
+      const account = await loadAccount(prisma, accountId);
+      await recordRead(prisma, row);
+      return await readEquityCurve({
+        account,
+        sessionDate: date,
+        nowMs: Date.now(),
+        fetchImpl: alpacaFetch.current,
+        budget: accountBudget(accountId),
+      });
+    } catch (err) {
+      // An incomplete snapshot is refused after the read row is written, so
+      // that read leaves two rows: the key use, then the refusal.
+      if (err instanceof AuditReadRefused) await recordRefusal(prisma, row, err.reason);
+      throw err;
+    }
   }
 }

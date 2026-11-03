@@ -4,11 +4,14 @@ import {
   AUDIT_READ_AUDIENCE,
   AUDIT_READ_ISSUER,
   AUDIT_READ_TOKEN_HEADER,
+  AuditReadRefused,
   assertAuditRead,
+  assertAccountIdShape,
   assertAccountReadable,
   auditTokenFromHeaders,
   parseSessionDate,
   readEquityCurve,
+  snapshotEquity,
   createAccountBudgets,
   ALPACA_TIMEOUT_MS,
   MAX_AUDIT_TOKEN_LIFETIME_SEC,
@@ -97,9 +100,17 @@ describe('auditTokenFromHeaders', () => {
 });
 
 describe('inputs', () => {
-  it('refuses LIVE and admits PAPER', () => {
-    expect(() => assertAccountReadable({ ...ACCOUNT, type: 'LIVE' })).toThrow(/PAPER-only/);
+  it('refuses LIVE with a typed refusal and admits PAPER', () => {
+    const err = (() => { try { assertAccountReadable({ ...ACCOUNT, type: 'LIVE' }); } catch (e) { return e; } })();
+    expect(err).toBeInstanceOf(AuditReadRefused);
+    expect(err).toMatchObject({ reason: 'ACCOUNT_NOT_PAPER', message: expect.stringMatching(/PAPER-only/), extensions: { code: 'FORBIDDEN' } });
     expect(() => assertAccountReadable(ACCOUNT)).not.toThrow();
+  });
+  it('refuses an account id that is not a uuid as not found, before any lookup', () => {
+    expect(() => assertAccountIdShape('3f1c2b7e-9a4d-4e21-8b6f-0c5d7e9a1b2c')).not.toThrow();
+    for (const id of ['', 'a1', "' OR 1=1 --", '3f1c2b7e9a4d4e218b6f0c5d7e9a1b2c', 'x'.repeat(300)]) {
+      expect(() => assertAccountIdShape(id)).toThrow(AuditReadRefused);
+    }
   });
   it('validates sessionDate before it reaches a URL', () => {
     expect(parseSessionDate(null)).toBeNull();
@@ -169,6 +180,35 @@ describe('Alpaca reads', () => {
     expect(signal).toBeInstanceOf(AbortSignal);
     expect(ALPACA_TIMEOUT_MS).toBeGreaterThan(0);
     expect(err.extensions.code).toBe('BAD_GATEWAY');
+  });
+});
+
+describe('snapshot completeness', () => {
+  it('reads decimal strings and numbers as finite equity', () => {
+    expect(snapshotEquity({ equity: '100190.5', last_equity: 99900 })).toEqual({ equity: 100190.5, lastEquity: 99900 });
+    expect(snapshotEquity({ equity: '0', last_equity: '0' })).toEqual({ equity: 0, lastEquity: 0 });
+  });
+  it.each([
+    ['no body', null, 'equity or last_equity'],
+    ['empty object', {}, 'equity or last_equity'],
+    ['no equity', { last_equity: '99900' }, 'equity'],
+    ['no last_equity', { equity: '100190' }, 'last_equity'],
+    ['empty-string equity', { equity: '', last_equity: '99900' }, 'equity'],
+    ['null equity', { equity: null, last_equity: '99900' }, 'equity'],
+    ['non-numeric equity', { equity: 'n/a', last_equity: '99900' }, 'equity'],
+    ['infinite last_equity', { equity: '100190', last_equity: 'Infinity' }, 'last_equity'],
+    ['NaN last_equity', { equity: '100190', last_equity: Number.NaN }, 'last_equity'],
+    ['boolean equity', { equity: true, last_equity: '99900' }, 'equity'],
+  ])('refuses a snapshot with %s as SNAPSHOT_INCOMPLETE, before the history call', async (_n, body, fields) => {
+    const urls: string[] = [];
+    const fetchImpl: AlpacaFetch = async (url) => {
+      urls.push(url);
+      return body === null ? { ok: true, status: 200, text: async () => '' } : ok(body);
+    };
+    const err = await readEquityCurve({ account: ACCOUNT, sessionDate: null, nowMs: 0, fetchImpl, budget: unlimited }).catch((e) => e);
+    expect(err).toBeInstanceOf(AuditReadRefused);
+    expect(err).toMatchObject({ reason: 'SNAPSHOT_INCOMPLETE', message: `Broker account snapshot has no finite ${fields}`, extensions: { code: 'BAD_GATEWAY' } });
+    expect(urls).toHaveLength(1);
   });
 });
 

@@ -205,13 +205,74 @@ export function assertAuditRead(
   return who;
 }
 
+/** Why a read was refused after its audit token verified. Recorded on the refusal's AuditLog row. */
+export type AuditReadRefusalReason = 'ACCOUNT_NOT_FOUND' | 'ACCOUNT_NOT_PAPER' | 'SNAPSHOT_INCOMPLETE';
+
+/**
+ * A read refused after the audit token verified, so the operator is known.
+ *
+ * Token failures from `assertAuditRead` are plain `GraphQLError`s and leave no
+ * record: the caller is unattributed. This class marks the refusals that do get
+ * an AuditLog row, and carries the reason that goes on it.
+ */
+export class AuditReadRefused extends GraphQLError {
+  readonly reason: AuditReadRefusalReason;
+
+  constructor(reason: AuditReadRefusalReason, message: string, code: 'NOT_FOUND' | 'FORBIDDEN' | 'BAD_GATEWAY') {
+    super(message, { extensions: { code, reason } });
+    this.name = 'AuditReadRefused';
+    this.reason = reason;
+  }
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Refuse an account id that cannot name a stored account.
+ *
+ * `AlpacaAccount.id` is a Postgres uuid, and Prisma throws on a non-uuid
+ * lookup, so a malformed id would otherwise surface as an internal error with
+ * no refusal recorded.
+ *
+ * @throws {AuditReadRefused} `ACCOUNT_NOT_FOUND` for anything but a uuid.
+ */
+export function assertAccountIdShape(accountId: string): void {
+  if (!UUID_RE.test(accountId)) {
+    throw new AuditReadRefused('ACCOUNT_NOT_FOUND', 'Account not found', 'NOT_FOUND');
+  }
+}
+
 /** Audit reads are PAPER-only; a LIVE account is refused. */
 export function assertAccountReadable(account: AuditAccountRow): void {
   if (account.type !== 'PAPER') {
-    throw new GraphQLError(`Account ${account.id} is ${account.type}; audit reads are PAPER-only`, {
-      extensions: { code: 'FORBIDDEN' },
-    });
+    throw new AuditReadRefused('ACCOUNT_NOT_PAPER', `Account ${account.id} is ${account.type}; audit reads are PAPER-only`, 'FORBIDDEN');
   }
+}
+
+/**
+ * The snapshot's `equity` and `last_equity` as finite numbers.
+ *
+ * Alpaca sends both as decimal strings. A missing, empty or non-numeric value
+ * refuses the read rather than serving `NaN` (or `0`, which `Number('')` and
+ * `Number(null)` would give): either reads as a real figure to whoever audits it.
+ *
+ * @throws {AuditReadRefused} `SNAPSHOT_INCOMPLETE` naming the unusable fields.
+ */
+export function snapshotEquity(snap: unknown): { equity: number; lastEquity: number } {
+  const s = (snap ?? {}) as { equity?: unknown; last_equity?: unknown };
+  const num = (v: unknown): number =>
+    typeof v === 'number' || (typeof v === 'string' && v.trim() !== '') ? Number(v) : NaN;
+  const equity = num(s.equity);
+  const lastEquity = num(s.last_equity);
+  const bad = [
+    ...(Number.isFinite(equity) ? [] : ['equity']),
+    ...(Number.isFinite(lastEquity) ? [] : ['last_equity']),
+  ];
+  if (bad.length > 0) {
+    // Field names only: the vendor values are not echoed.
+    throw new AuditReadRefused('SNAPSHOT_INCOMPLETE', `Broker account snapshot has no finite ${bad.join(' or ')}`, 'BAD_GATEWAY');
+  }
+  return { equity, lastEquity };
 }
 
 /** The ET calendar date of an instant, YYYY-MM-DD. */
@@ -282,6 +343,7 @@ export interface EquityCurve {
  * @param p.account - The stored account row (carries the key; not returned).
  * @param p.sessionDate - Pin a past session, or null for today's ET date.
  * @param p.fetchImpl - Injected HTTP client.
+ * @throws {AuditReadRefused} for a LIVE account or an incomplete snapshot.
  */
 export async function readEquityCurve(p: {
   account: AuditAccountRow;
@@ -295,10 +357,8 @@ export async function readEquityCurve(p: {
   const base = PAPER_TRADE_HOST;
   const sessionDate = p.sessionDate ?? etDateOf(p.nowMs);
 
-  const snap = (await alpacaGet(account, fetchImpl, `${base}/v2/account`, budget)) as {
-    equity?: string | number;
-    last_equity?: string | number;
-  };
+  // Checked before the history call, so a refused read spends one request, not two.
+  const snap = snapshotEquity(await alpacaGet(account, fetchImpl, `${base}/v2/account`, budget));
   const hist = (await alpacaGet(
     account,
     fetchImpl,
@@ -321,8 +381,8 @@ export async function readEquityCurve(p: {
     accountName: typeof cfg?.name === 'string' && cfg.name ? cfg.name : account.id,
     sessionDate,
     points,
-    lastEquity: Number(snap?.last_equity),
-    equity: Number(snap?.equity),
+    lastEquity: snap.lastEquity,
+    equity: snap.equity,
     source: 'alpaca-portfolio-history',
   };
 }
