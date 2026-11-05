@@ -3,6 +3,8 @@ node_modules
 
 # Build artifacts
 dist/
+# The extracted tarball the package closure check leaves for the publish diff
+packed_package/
 src/generated/
 dist/package.json
 /dist/package.json

@@ -127,6 +127,19 @@ jobs:
           # Dockerfile (NODE_OPTIONS=--max-old-space-size=6144); match with headroom.
           NODE_OPTIONS: --max-old-space-size=8192
 
+      # Package closure gate: every relative module a shipped file loads must
+      # itself be in the tarball. `files` in package-npm.json is a hand-kept
+      # allow-list and dist/ grows with src/, so a new source directory builds
+      # and tests clean and is then left out of the pack — every shipped module
+      # requiring it throws MODULE_NOT_FOUND in the consumer. The check reads
+      # the real `npm pack` list, resolves every relative specifier against it,
+      # and requires each CommonJS entry point from the extracted tarball; a
+      # miss fails the job here, before anything is published. It leaves the
+      # extracted tarball at packed_package/package for the content diff below.
+      - name: Package closure check
+        id: closure
+        run: node scripts/ci/check-package-closure.mjs --keep-extracted packed_package
+
       # Quality gate (audit B01-backend-legacy-01): the publish flow previously ran
       # zero tests/lint before shipping @stable to npm — the branch the trading
       # engine consumes. Typecheck is enforced by the full `tsc` inside
@@ -168,10 +181,12 @@ jobs:
       # root, so `comm` compared against an empty stream; (3) the local listing was
       # taken AFTER `npm install` in dist/, so it always contained node_modules.
       # Net effect: diff_output was unconditionally true and every push published a
-      # new version. This rewrite compares actual file CONTENT (diff -r) between
-      # dist/ and the extracted published tarball, excluding node_modules,
-      # package.json (carries the version bump), and package-lock.json (created by
-      # the dist install, never published).
+      # new version. The comparison is of file CONTENT (diff -r) between what this
+      # build WOULD publish — the tarball the closure check packed and extracted to
+      # packed_package/package — and the extracted published tarball, excluding
+      # package.json (carries the version bump). Comparing raw dist/ instead
+      # reintroduces the always-publish defect, because dist/ holds files the
+      # pack never carries (source maps, tests, unlisted directories).
       - name: Get current package content from npm
         id: get_npm_package_content
         env:
@@ -207,11 +222,13 @@ jobs:
             echo "diff_output=true" >> $GITHUB_OUTPUT
             exit 0
           fi
+          if [ ! -d packed_package/package ]; then
+            echo "::error::packed_package/package is missing — the closure check did not leave the packed tree to compare." >&2
+            exit 1
+          fi
           if diff -r -q \
-               --exclude=node_modules \
                --exclude=package.json \
-               --exclude=package-lock.json \
-               dist npm_published_package/package > dist_diff.txt 2>&1; then
+               packed_package/package npm_published_package/package > dist_diff.txt 2>&1; then
             echo "No content differences vs published package."
             echo "diff_output=false" >> $GITHUB_OUTPUT
           else

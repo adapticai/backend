@@ -11,13 +11,18 @@ on:
     branches: [main, develop, stable-release]
     # scripts/** and vitest.config.ts are inputs to the test suite: scripts/ci
     # holds the publish workflow's registry checks and their tests, so a change
-    # there must run the gate that proves them.
+    # there must run the gate that proves them. package-npm.json,
+    # prepare-package.mjs and tsconfig.server.json decide what the tarball
+    # carries, so a change to them must run the package closure check.
     paths:
       - 'src/**'
       - 'prisma/**'
       - 'scripts/**'
       - 'package.json'
+      - 'package-npm.json'
+      - 'prepare-package.mjs'
       - 'tsconfig.json'
+      - 'tsconfig.server.json'
       - 'vitest.config.ts'
       - '.github/workflows/**'
   push:
@@ -27,7 +32,10 @@ on:
       - 'prisma/**'
       - 'scripts/**'
       - 'package.json'
+      - 'package-npm.json'
+      - 'prepare-package.mjs'
       - 'tsconfig.json'
+      - 'tsconfig.server.json'
       - 'vitest.config.ts'
       - '.github/workflows/**'
 
@@ -167,8 +175,16 @@ jobs:
           node-version: '22'
 
       - run: npm ci
-      # Full pipeline (codegen + dual tsc) needs the same heap allowance the
-      # publish workflow grants (Dockerfile parity: 6-8GB); default 4GB OOMs.
-      - run: npm run build
+      # Full pipeline (codegen + dual tsc + package assembly) needs the same heap
+      # allowance the publish workflow grants (Dockerfile parity: 6-8GB); default
+      # 4GB OOMs. build:package runs `build` and then assembles dist/ into the
+      # npm package exactly as the publish workflow does, so the closure check
+      # below sees the tarball a merge to main would publish.
+      - run: npm run build:package
         env:
           NODE_OPTIONS: --max-old-space-size=8192
+      # Every relative module a shipped file loads must be in the tarball, and
+      # every CommonJS entry point must load from it. Same gate the publish
+      # workflow runs before `npm publish`; here it fails the PR instead.
+      - name: Package closure check
+        run: node scripts/ci/check-package-closure.mjs

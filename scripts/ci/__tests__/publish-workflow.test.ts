@@ -302,3 +302,72 @@ describe('publish.yml run scripts, executed', () => {
     }
   });
 });
+
+describe('publish.yml package closure gate and skip-if-unchanged diff', () => {
+  const ids = publish.steps.map((s) => s.id ?? s.name ?? '');
+  const indexOfName = (name: string): number => publish.steps.findIndex((s) => s.name === name);
+
+  it('runs the closure check after the package build and before anything that leads to npm publish', () => {
+    const closure = ids.indexOf('closure');
+    expect(closure).toBeGreaterThan(indexOfName('Build npm package'));
+    expect(closure).toBeLessThan(indexOfName('Install dependencies in dist folder'));
+    expect(closure).toBeLessThan(ids.indexOf('compare_dist'));
+    expect(closure).toBeLessThan(ids.indexOf('publish'));
+    expect(step(publish, 'closure').if).toBeUndefined();
+    expect(runOf(publish, 'closure')).toBe('node scripts/ci/check-package-closure.mjs --keep-extracted packed_package');
+  });
+
+  /**
+   * Execute the compare step in a workspace holding a packed tree, a raw dist/
+   * that carries files the pack never ships, and the published tarball.
+   */
+  function compareIn(files: { packed?: Record<string, string>; dist: Record<string, string>; published: Record<string, string> }): {
+    status: number | null;
+    githubOutput: string;
+    stderr: string;
+  } {
+    const ws = mkdtempSync(join(tmpdir(), 'publish-compare-'));
+    try {
+      const put = (base: string, tree: Record<string, string>): void => {
+        for (const [rel, content] of Object.entries(tree)) {
+          const abs = join(ws, base, rel);
+          mkdirSync(join(abs, '..'), { recursive: true });
+          writeFileSync(abs, content);
+        }
+      };
+      if (files.packed) put('packed_package/package', files.packed);
+      put('dist', files.dist);
+      put('npm_published_package/package', files.published);
+      return execute(runOf(publish, 'compare_dist'), { TARBALL_FOUND: 'true' }, {}, ws);
+    } finally {
+      rmSync(ws, { recursive: true, force: true });
+    }
+  }
+
+  const shipped = { 'index.cjs': 'module.exports = 1;\n', 'package.json': '{"version":"0.0.2"}' };
+  const published = { 'index.cjs': 'module.exports = 1;\n', 'package.json': '{"version":"0.0.1"}' };
+  // dist/ always holds files the pack never carries: source maps and compiled tests.
+  const rawDist = { ...shipped, 'index.js.map': '{}', 'middleware/__tests__/x.test.cjs': '' };
+
+  it('skips the publish when the packed tree matches the published tarball, even though dist/ holds unshipped files', () => {
+    const result = compareIn({ packed: shipped, dist: rawDist, published });
+    expect(result.status).toBe(0);
+    expect(result.githubOutput).toBe('diff_output=false\n');
+  });
+
+  it('publishes when the packed tree differs from the published tarball', () => {
+    const result = compareIn({
+      packed: { ...shipped, 'middleware/audit-log-write-redaction.cjs': 'module.exports = {};\n' },
+      dist: rawDist,
+      published,
+    });
+    expect(result.status).toBe(0);
+    expect(result.githubOutput).toBe('diff_output=true\n');
+  });
+
+  it('fails rather than guessing when the closure check left no packed tree', () => {
+    const result = compareIn({ dist: rawDist, published });
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('packed_package/package is missing');
+  });
+});

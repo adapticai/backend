@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { rewriteCjsRequires } from './scripts/package/rewrite-cjs-requires.mjs';
 
 // Global Namespace
 const GLOBAL_NAMESPACE = process.env.GLOBAL_NAMESPACE || 'adaptic';
@@ -533,89 +534,28 @@ try {
   process.exit(1);
 }
 
-// 6e: Update require() calls in .cjs files (excluding known files)
+// 6e: Extension-fix every relative require() specifier in .cjs files.
+// The rule (file, else directory index, else leave for the closure check to
+// report) lives in scripts/package/rewrite-cjs-requires.mjs, where it is tested.
 try {
   const cjsFiles = getFilesRecursively(distDir).filter((file) =>
     file.endsWith('.cjs')
   );
   cjsFiles.forEach((file) => {
-    const baseName = path.basename(file);
-    if (['utils.cjs', 'client.cjs', 'prismaClient.cjs'].includes(baseName)) {
-      return;
-    }
-    let content;
-    try {
-      content = fs.readFileSync(file, 'utf8');
-    } catch (err) {
-      console.error(`Error reading file ${file}:`, err);
-      return;
-    }
-    const updatedContent = content.replace(
-      /require\s*\(\s*(['"])\.\/([^'"]+)(?!\.cjs)(['"])\s*\)/g,
-      (match, p1, p2, p3) => `require(${p1}./${p2}.cjs${p3})`
-    );
-    fs.writeFileSync(file, updatedContent, 'utf8');
-    console.log(`Updated require() calls in ${file}`);
-  });
-  console.log('Updated require() statements in .cjs files.');
-} catch (err) {
-  console.error('Error updating require() statements in .cjs files:', err);
-  process.exit(1);
-}
-
-// 6e-2: Extension-fix ALL relative require() specifiers in .cjs files.
-//
-// Step 6e only matches same-directory specifiers AND excludes
-// utils/client/prismaClient.cjs (blanket-append would corrupt their package
-// imports), with 6f-6h hand-patching three specs it then missed others
-// (client.cjs/prismaClient.cjs "./utils/logger"). Parent-relative
-// "../../generated/..." requires from the custom resolvers were never
-// rewritten at all. In a "type": "module" package Node's CJS
-// resolver never auto-appends .cjs, so the published CJS entry
-// (index.cjs → resolvers/custom/index.cjs) threw MODULE_NOT_FOUND for every
-// consumer — broken in every published version through 0.0.1002, dormant
-// only because the engine/app consume the ESM surface. Existence-guarded:
-// a specifier is rewritten only when the resolved "<target>.cjs" (or
-// "<target>/index.cjs") actually exists in dist, so a spec that already
-// resolves (json, explicit extension, package import) is never touched.
-try {
-  const cjsFiles = getFilesRecursively(distDir).filter((file) =>
-    file.endsWith('.cjs')
-  );
-  cjsFiles.forEach((file) => {
-    let content;
-    try {
-      content = fs.readFileSync(file, 'utf8');
-    } catch (err) {
-      console.error(`Error reading file ${file}:`, err);
-      return;
-    }
-    const dir = path.dirname(file);
-    let changed = false;
-    const updatedContent = content.replace(
-      /require\s*\(\s*(['"])((?:\.\/|(?:\.\.\/)+)[^'"]+)\1\s*\)/g,
-      (match, quote, spec) => {
-        if (/\.(cjs|mjs|js|json|node)$/.test(spec)) return match;
-        const target = path.resolve(dir, spec);
-        if (fs.existsSync(`${target}.cjs`)) {
-          changed = true;
-          return `require(${quote}${spec}.cjs${quote})`;
-        }
-        if (fs.existsSync(path.join(target, 'index.cjs'))) {
-          changed = true;
-          return `require(${quote}${spec}/index.cjs${quote})`;
-        }
-        return match;
-      }
+    const { content, changed } = rewriteCjsRequires(
+      fs.readFileSync(file, 'utf8'),
+      path.dirname(file),
+      (candidate) => fs.existsSync(candidate)
     );
     if (changed) {
-      fs.writeFileSync(file, updatedContent, 'utf8');
-      console.log(`Extension-fixed parent-relative require() in ${file}`);
+      fs.writeFileSync(file, content, 'utf8');
+      console.log(`Extension-fixed relative require() in ${file}`);
     }
   });
-  console.log('Extension-fixed parent-relative require() specifiers.');
+  console.log('Extension-fixed relative require() specifiers in .cjs files.');
 } catch (err) {
-  console.error('Error extension-fixing parent-relative require():', err);
+  console.error('Error extension-fixing relative require() in .cjs files:', err);
+  process.exit(1);
 }
 
 // 6f: Update specific require() in client.cjs for "./getToken" → "./getToken.cjs"
