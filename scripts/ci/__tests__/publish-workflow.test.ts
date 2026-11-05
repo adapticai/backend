@@ -365,6 +365,48 @@ describe('publish.yml package closure gate and skip-if-unchanged diff', () => {
     expect(result.githubOutput).toBe('diff_output=true\n');
   });
 
+  // package.json is excluded from the tree diff only because version and name
+  // legitimately differ (the bump happens after the compare; the baseline may be
+  // the mirror's tarball). Every other field ships to consumers, so a change to
+  // one — a dependency bump with no code change — is a change to publish.
+  const manifest = (fields: Record<string, unknown>): string => JSON.stringify(fields, null, 2);
+  const baseFields = { name: '@adaptic/backend', version: '0.0.2', main: 'index.cjs', dependencies: { '@prisma/client': '6.19.2', graphql: '16.9.0' } };
+
+  it('publishes when the only change is a dependency version in package.json', () => {
+    const packedManifest = manifest({ ...baseFields, dependencies: { ...baseFields.dependencies, '@prisma/client': '6.19.3' } });
+    const publishedManifest = manifest({ ...baseFields, version: '0.0.1' });
+    const result = compareIn({
+      packed: { ...shipped, 'package.json': packedManifest },
+      dist: rawDist,
+      published: { ...published, 'package.json': publishedManifest },
+    });
+    expect(result.status).toBe(0);
+    expect(result.githubOutput).toBe('diff_output=true\n');
+  });
+
+  it('skips when package.json differs only in version, name and key order', () => {
+    const packedManifest = manifest(baseFields);
+    // The mirror's tarball as baseline: different name, older version, keys reordered.
+    const publishedManifest = manifest({ dependencies: baseFields.dependencies, main: 'index.cjs', version: '0.0.1', name: '@adaptic/backend-legacy' });
+    const result = compareIn({
+      packed: { ...shipped, 'package.json': packedManifest },
+      dist: rawDist,
+      published: { ...published, 'package.json': publishedManifest },
+    });
+    expect(result.status).toBe(0);
+    expect(result.githubOutput).toBe('diff_output=false\n');
+  });
+
+  it('fails rather than skipping when a package.json cannot be read as JSON', () => {
+    const result = compareIn({
+      packed: { ...shipped, 'package.json': manifest(baseFields) },
+      dist: rawDist,
+      published: { ...published, 'package.json': '{ not json' },
+    });
+    expect(result.status).not.toBe(0);
+    expect(result.githubOutput).toBe('');
+  });
+
   it('fails rather than guessing when the closure check left no packed tree', () => {
     const result = compareIn({ dist: rawDist, published });
     expect(result.status).not.toBe(0);

@@ -183,8 +183,11 @@ jobs:
       # Net effect: diff_output was unconditionally true and every push published a
       # new version. The comparison is of file CONTENT (diff -r) between what this
       # build WOULD publish — the tarball the closure check packed and extracted to
-      # packed_package/package — and the extracted published tarball, excluding
-      # package.json (carries the version bump). Comparing raw dist/ instead
+      # packed_package/package — and the extracted published tarball. package.json
+      # is compared separately with `version` and `name` removed: the version
+      # bump runs after the compare and the baseline may be the mirror, but a
+      # change to any other field (a dependency bump) is a change to publish.
+      # Comparing raw dist/ instead
       # reintroduces the always-publish defect, because dist/ holds files the
       # pack never carries (source maps, tests, unlisted directories).
       - name: Get current package content from npm
@@ -197,8 +200,8 @@ jobs:
           if [ -z "$TARBALL_URL" ] && [ -n "${MIRROR_NAME:-}" ]; then
             # A newly-renamed canonical name has no releases yet, but the mirror
             # carries the identical tree: both names are published from the same
-            # dist/, and the ONLY file that differs between them is package.json,
-            # which the content diff below already excludes. Using the mirror as
+            # dist/, and the ONLY difference between them is package.json's
+            # `name`, which the manifest comparison below removes. Using the mirror as
             # the baseline keeps the skip-if-unchanged gate working through the
             # migration instead of force-publishing a no-op first release.
             echo "No release under '$PACKAGE_NAME@$NPM_TAG'; using mirror '$MIRROR_NAME' as the content baseline."
@@ -226,9 +229,26 @@ jobs:
             echo "::error::packed_package/package is missing — the closure check did not leave the packed tree to compare." >&2
             exit 1
           fi
-          if diff -r -q \
+          # package.json is compared as data, not skipped: only `version` (the
+          # bump runs after this step) and `name` (the baseline may be the
+          # mirror's tarball) are expected to differ, and every other field —
+          # dependencies above all — ships to consumers. jq runs as its own
+          # command so an unreadable manifest fails the step under `bash -e`
+          # instead of reading as "no difference".
+          jq -S 'del(.version, .name)' packed_package/package/package.json > packed_manifest.norm.json
+          jq -S 'del(.version, .name)' npm_published_package/package/package.json > published_manifest.norm.json
+          CHANGED=false
+          if ! diff -r -q \
                --exclude=package.json \
                packed_package/package npm_published_package/package > dist_diff.txt 2>&1; then
+            CHANGED=true
+          fi
+          if ! diff -u published_manifest.norm.json packed_manifest.norm.json > manifest_diff.txt 2>&1; then
+            CHANGED=true
+            echo "package.json differs (version and name aside):" >> dist_diff.txt
+            cat manifest_diff.txt >> dist_diff.txt
+          fi
+          if [ "$CHANGED" = "false" ]; then
             echo "No content differences vs published package."
             echo "diff_output=false" >> $GITHUB_OUTPUT
           else
