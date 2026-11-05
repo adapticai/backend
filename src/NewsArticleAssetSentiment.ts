@@ -3098,16 +3098,39 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'assetId', 'newsArticleId', 'url', 'relevancyScore', 'sentimentScore', 'sentimentLabel'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyNewsArticleAssetSentiment: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  assetId: props.assetId !== undefined ? {
+    equals: props.assetId 
   } : undefined,
   newsArticleId: props.newsArticleId !== undefined ? {
     equals: props.newsArticleId 
   } : undefined,
   url: props.url !== undefined ? {
     equals: props.url 
+  } : undefined,
+  relevancyScore: props.relevancyScore !== undefined ? {
+    equals: props.relevancyScore 
+  } : undefined,
+  sentimentScore: props.sentimentScore !== undefined ? {
+    equals: props.sentimentScore 
+  } : undefined,
+  sentimentLabel: props.sentimentLabel !== undefined ? {
+    equals: props.sentimentLabel 
   } : undefined,
       },
         };

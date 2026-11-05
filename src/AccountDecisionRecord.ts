@@ -1582,9 +1582,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'alpacaAccountId', 'correlationId', 'opportunityId', 'symbol', 'assetClass', 'signalAction', 'signalConfidence', 'decision', 'decisionRationale', 'decisionConfidence', 'modelProvider', 'modelId', 'modelTier', 'routingReason', 'sessionDurationMs', 'gatingDurationMs', 'validationDurationMs', 'executionDurationMs', 'status', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyAccountDecisionRecord: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   alpacaAccountId: props.alpacaAccountId !== undefined ? {
@@ -1599,11 +1610,56 @@ import { logger } from './utils/logger';
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
   } : undefined,
+  assetClass: props.assetClass !== undefined ? {
+    equals: props.assetClass 
+  } : undefined,
+  signalAction: props.signalAction !== undefined ? {
+    equals: props.signalAction 
+  } : undefined,
+  signalConfidence: props.signalConfidence !== undefined ? {
+    equals: props.signalConfidence 
+  } : undefined,
+  decision: props.decision !== undefined ? {
+    equals: props.decision 
+  } : undefined,
+  decisionRationale: props.decisionRationale !== undefined ? {
+    equals: props.decisionRationale 
+  } : undefined,
+  decisionConfidence: props.decisionConfidence !== undefined ? {
+    equals: props.decisionConfidence 
+  } : undefined,
+  modelProvider: props.modelProvider !== undefined ? {
+    equals: props.modelProvider 
+  } : undefined,
   modelId: props.modelId !== undefined ? {
     equals: props.modelId 
   } : undefined,
+  modelTier: props.modelTier !== undefined ? {
+    equals: props.modelTier 
+  } : undefined,
+  routingReason: props.routingReason !== undefined ? {
+    equals: props.routingReason 
+  } : undefined,
+  sessionDurationMs: props.sessionDurationMs !== undefined ? {
+    equals: props.sessionDurationMs 
+  } : undefined,
+  gatingDurationMs: props.gatingDurationMs !== undefined ? {
+    equals: props.gatingDurationMs 
+  } : undefined,
+  validationDurationMs: props.validationDurationMs !== undefined ? {
+    equals: props.validationDurationMs 
+  } : undefined,
+  executionDurationMs: props.executionDurationMs !== undefined ? {
+    equals: props.executionDurationMs 
+  } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

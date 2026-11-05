@@ -1389,13 +1389,60 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'title', 'description', 'date', 'importance', 'country', 'eventTime', 'actual', 'forecast', 'previous', 'unit', 'source', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyEconomicEvent: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   title: props.title !== undefined ? {
     equals: props.title 
+  } : undefined,
+  description: props.description !== undefined ? {
+    equals: props.description 
+  } : undefined,
+  date: props.date !== undefined ? {
+    equals: props.date 
+  } : undefined,
+  importance: props.importance !== undefined ? {
+    equals: props.importance 
+  } : undefined,
+  country: props.country !== undefined ? {
+    equals: props.country 
+  } : undefined,
+  eventTime: props.eventTime !== undefined ? {
+    equals: props.eventTime 
+  } : undefined,
+  actual: props.actual !== undefined ? {
+    equals: props.actual 
+  } : undefined,
+  forecast: props.forecast !== undefined ? {
+    equals: props.forecast 
+  } : undefined,
+  previous: props.previous !== undefined ? {
+    equals: props.previous 
+  } : undefined,
+  unit: props.unit !== undefined ? {
+    equals: props.unit 
+  } : undefined,
+  source: props.source !== undefined ? {
+    equals: props.source 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

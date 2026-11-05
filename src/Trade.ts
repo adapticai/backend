@@ -11959,22 +11959,138 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'alpacaAccountId', 'signal', 'strategy', 'analysis', 'summary', 'confidence', 'timestamp', 'createdAt', 'updatedAt', 'status', 'deletedAt', 'symbol', 'side', 'entryPrice', 'exitPrice', 'entryQty', 'exitQty', 'entryValue', 'exitValue', 'entryTime', 'exitTime', 'pnlAmount', 'pnlPercent', 'durationMinutes', 'marketPhase', 'marketVolatility', 'sessionHorizonMinutes', 'thresholdsJson', 'thesisVersion', 'lastReunderwrittenAt', 'supersededById', 'signalSource', 'signalSourceType', 'signalId', 'pathway', 'pathwayType', 'exitTier', 'exitTierType', 'strategyId'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyTrade: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   alpacaAccountId: props.alpacaAccountId !== undefined ? {
     equals: props.alpacaAccountId 
   } : undefined,
+  signal: props.signal !== undefined ? {
+    equals: props.signal 
+  } : undefined,
+  strategy: props.strategy !== undefined ? {
+    equals: props.strategy 
+  } : undefined,
+  analysis: props.analysis !== undefined ? {
+    equals: props.analysis 
+  } : undefined,
+  summary: props.summary !== undefined ? {
+    equals: props.summary 
+  } : undefined,
+  confidence: props.confidence !== undefined ? {
+    equals: props.confidence 
+  } : undefined,
+  timestamp: props.timestamp !== undefined ? {
+    equals: props.timestamp 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  deletedAt: props.deletedAt !== undefined ? {
+    equals: props.deletedAt 
   } : undefined,
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
   } : undefined,
+  side: props.side !== undefined ? {
+    equals: props.side 
+  } : undefined,
+  entryPrice: props.entryPrice !== undefined ? {
+    equals: props.entryPrice 
+  } : undefined,
+  exitPrice: props.exitPrice !== undefined ? {
+    equals: props.exitPrice 
+  } : undefined,
+  entryQty: props.entryQty !== undefined ? {
+    equals: props.entryQty 
+  } : undefined,
+  exitQty: props.exitQty !== undefined ? {
+    equals: props.exitQty 
+  } : undefined,
+  entryValue: props.entryValue !== undefined ? {
+    equals: props.entryValue 
+  } : undefined,
+  exitValue: props.exitValue !== undefined ? {
+    equals: props.exitValue 
+  } : undefined,
+  entryTime: props.entryTime !== undefined ? {
+    equals: props.entryTime 
+  } : undefined,
+  exitTime: props.exitTime !== undefined ? {
+    equals: props.exitTime 
+  } : undefined,
+  pnlAmount: props.pnlAmount !== undefined ? {
+    equals: props.pnlAmount 
+  } : undefined,
+  pnlPercent: props.pnlPercent !== undefined ? {
+    equals: props.pnlPercent 
+  } : undefined,
+  durationMinutes: props.durationMinutes !== undefined ? {
+    equals: props.durationMinutes 
+  } : undefined,
+  marketPhase: props.marketPhase !== undefined ? {
+    equals: props.marketPhase 
+  } : undefined,
+  marketVolatility: props.marketVolatility !== undefined ? {
+    equals: props.marketVolatility 
+  } : undefined,
+  sessionHorizonMinutes: props.sessionHorizonMinutes !== undefined ? {
+    equals: props.sessionHorizonMinutes 
+  } : undefined,
+  thresholdsJson: props.thresholdsJson !== undefined ? {
+    equals: props.thresholdsJson 
+  } : undefined,
+  thesisVersion: props.thesisVersion !== undefined ? {
+    equals: props.thesisVersion 
+  } : undefined,
+  lastReunderwrittenAt: props.lastReunderwrittenAt !== undefined ? {
+    equals: props.lastReunderwrittenAt 
+  } : undefined,
+  supersededById: props.supersededById !== undefined ? {
+    equals: props.supersededById 
+  } : undefined,
+  signalSource: props.signalSource !== undefined ? {
+    equals: props.signalSource 
+  } : undefined,
+  signalSourceType: props.signalSourceType !== undefined ? {
+    equals: props.signalSourceType 
+  } : undefined,
   signalId: props.signalId !== undefined ? {
     equals: props.signalId 
+  } : undefined,
+  pathway: props.pathway !== undefined ? {
+    equals: props.pathway 
+  } : undefined,
+  pathwayType: props.pathwayType !== undefined ? {
+    equals: props.pathwayType 
+  } : undefined,
+  exitTier: props.exitTier !== undefined ? {
+    equals: props.exitTier 
+  } : undefined,
+  exitTierType: props.exitTierType !== undefined ? {
+    equals: props.exitTierType 
+  } : undefined,
+  strategyId: props.strategyId !== undefined ? {
+    equals: props.strategyId 
   } : undefined,
       },
         };

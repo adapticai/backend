@@ -1252,9 +1252,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'status'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyScheduledOptionOrder: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   status: props.status !== undefined ? {

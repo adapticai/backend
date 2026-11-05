@@ -1414,16 +1414,60 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'timestamp', 'signalId', 'generatorSource', 'symbol', 'signalType', 'originalConfidence', 'priorityScore', 'outcome', 'pnlPercentage', 'timeToOutcome', 'outcomeTimestamp', 'outcomeReason', 'generatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManySignalOutcome: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  timestamp: props.timestamp !== undefined ? {
+    equals: props.timestamp 
   } : undefined,
   signalId: props.signalId !== undefined ? {
     equals: props.signalId 
   } : undefined,
+  generatorSource: props.generatorSource !== undefined ? {
+    equals: props.generatorSource 
+  } : undefined,
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
+  } : undefined,
+  signalType: props.signalType !== undefined ? {
+    equals: props.signalType 
+  } : undefined,
+  originalConfidence: props.originalConfidence !== undefined ? {
+    equals: props.originalConfidence 
+  } : undefined,
+  priorityScore: props.priorityScore !== undefined ? {
+    equals: props.priorityScore 
+  } : undefined,
+  outcome: props.outcome !== undefined ? {
+    equals: props.outcome 
+  } : undefined,
+  pnlPercentage: props.pnlPercentage !== undefined ? {
+    equals: props.pnlPercentage 
+  } : undefined,
+  timeToOutcome: props.timeToOutcome !== undefined ? {
+    equals: props.timeToOutcome 
+  } : undefined,
+  outcomeTimestamp: props.outcomeTimestamp !== undefined ? {
+    equals: props.outcomeTimestamp 
+  } : undefined,
+  outcomeReason: props.outcomeReason !== undefined ? {
+    equals: props.outcomeReason 
+  } : undefined,
+  generatedAt: props.generatedAt !== undefined ? {
+    equals: props.generatedAt 
   } : undefined,
       },
         };

@@ -80644,16 +80644,45 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'mandateId', 'versionLabel', 'versionSeq', 'status', 'summary', 'authoredById', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyMandateVersion: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   mandateId: props.mandateId !== undefined ? {
     equals: props.mandateId 
   } : undefined,
+  versionLabel: props.versionLabel !== undefined ? {
+    equals: props.versionLabel 
+  } : undefined,
+  versionSeq: props.versionSeq !== undefined ? {
+    equals: props.versionSeq 
+  } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  summary: props.summary !== undefined ? {
+    equals: props.summary 
+  } : undefined,
+  authoredById: props.authoredById !== undefined ? {
+    equals: props.authoredById 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

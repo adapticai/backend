@@ -1467,13 +1467,75 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'timestamp', 'generatorSource', 'symbol', 'totalSignals', 'successfulSignals', 'failedSignals', 'winRate', 'sharpeRatio', 'profitFactor', 'averageReturn', 'maxDrawdown', 'averageTimeToProfit', 'calibrationAccuracy', 'performanceTrend', 'lookbackPeriodDays', 'healthScore', 'healthStatus', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManySignalGeneratorMetrics: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  timestamp: props.timestamp !== undefined ? {
+    equals: props.timestamp 
+  } : undefined,
+  generatorSource: props.generatorSource !== undefined ? {
+    equals: props.generatorSource 
   } : undefined,
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
+  } : undefined,
+  totalSignals: props.totalSignals !== undefined ? {
+    equals: props.totalSignals 
+  } : undefined,
+  successfulSignals: props.successfulSignals !== undefined ? {
+    equals: props.successfulSignals 
+  } : undefined,
+  failedSignals: props.failedSignals !== undefined ? {
+    equals: props.failedSignals 
+  } : undefined,
+  winRate: props.winRate !== undefined ? {
+    equals: props.winRate 
+  } : undefined,
+  sharpeRatio: props.sharpeRatio !== undefined ? {
+    equals: props.sharpeRatio 
+  } : undefined,
+  profitFactor: props.profitFactor !== undefined ? {
+    equals: props.profitFactor 
+  } : undefined,
+  averageReturn: props.averageReturn !== undefined ? {
+    equals: props.averageReturn 
+  } : undefined,
+  maxDrawdown: props.maxDrawdown !== undefined ? {
+    equals: props.maxDrawdown 
+  } : undefined,
+  averageTimeToProfit: props.averageTimeToProfit !== undefined ? {
+    equals: props.averageTimeToProfit 
+  } : undefined,
+  calibrationAccuracy: props.calibrationAccuracy !== undefined ? {
+    equals: props.calibrationAccuracy 
+  } : undefined,
+  performanceTrend: props.performanceTrend !== undefined ? {
+    equals: props.performanceTrend 
+  } : undefined,
+  lookbackPeriodDays: props.lookbackPeriodDays !== undefined ? {
+    equals: props.lookbackPeriodDays 
+  } : undefined,
+  healthScore: props.healthScore !== undefined ? {
+    equals: props.healthScore 
+  } : undefined,
+  healthStatus: props.healthStatus !== undefined ? {
+    equals: props.healthStatus 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

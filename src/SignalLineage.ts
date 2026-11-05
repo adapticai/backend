@@ -1523,10 +1523,24 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'timestamp', 'lineageId', 'signalId', 'symbol', 'signalType', 'createdAt', 'generatorSource', 'generatorVersion', 'lastUpdated', 'storageLocation', 'retentionDays', 'executionStatus', 'decisionType', 'pnlPercentage', 'dataQuality'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManySignalLineage: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  timestamp: props.timestamp !== undefined ? {
+    equals: props.timestamp 
   } : undefined,
   lineageId: props.lineageId !== undefined ? {
     equals: props.lineageId 
@@ -1536,6 +1550,39 @@ import { logger } from './utils/logger';
   } : undefined,
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
+  } : undefined,
+  signalType: props.signalType !== undefined ? {
+    equals: props.signalType 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  generatorSource: props.generatorSource !== undefined ? {
+    equals: props.generatorSource 
+  } : undefined,
+  generatorVersion: props.generatorVersion !== undefined ? {
+    equals: props.generatorVersion 
+  } : undefined,
+  lastUpdated: props.lastUpdated !== undefined ? {
+    equals: props.lastUpdated 
+  } : undefined,
+  storageLocation: props.storageLocation !== undefined ? {
+    equals: props.storageLocation 
+  } : undefined,
+  retentionDays: props.retentionDays !== undefined ? {
+    equals: props.retentionDays 
+  } : undefined,
+  executionStatus: props.executionStatus !== undefined ? {
+    equals: props.executionStatus 
+  } : undefined,
+  decisionType: props.decisionType !== undefined ? {
+    equals: props.decisionType 
+  } : undefined,
+  pnlPercentage: props.pnlPercentage !== undefined ? {
+    equals: props.pnlPercentage 
+  } : undefined,
+  dataQuality: props.dataQuality !== undefined ? {
+    equals: props.dataQuality 
   } : undefined,
       },
         };

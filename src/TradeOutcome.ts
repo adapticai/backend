@@ -1551,9 +1551,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'tradeId', 'symbol', 'side', 'assetClass', 'accountId', 'entryPrice', 'exitPrice', 'entryTimestamp', 'exitTimestamp', 'holdDurationMinutes', 'exitReason', 'grossReturnPct', 'netReturnPct', 'maxAdverseExcursionPct', 'maxFavorableExcursionPct', 'signalSource', 'signalSourceType', 'transformerConfidence', 'llmConfidence', 'ensembleConfidence', 'ensembleWeight', 'regimeAtEntry', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyTradeOutcome: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   tradeId: props.tradeId !== undefined ? {
@@ -1562,8 +1573,71 @@ import { logger } from './utils/logger';
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
   } : undefined,
+  side: props.side !== undefined ? {
+    equals: props.side 
+  } : undefined,
+  assetClass: props.assetClass !== undefined ? {
+    equals: props.assetClass 
+  } : undefined,
   accountId: props.accountId !== undefined ? {
     equals: props.accountId 
+  } : undefined,
+  entryPrice: props.entryPrice !== undefined ? {
+    equals: props.entryPrice 
+  } : undefined,
+  exitPrice: props.exitPrice !== undefined ? {
+    equals: props.exitPrice 
+  } : undefined,
+  entryTimestamp: props.entryTimestamp !== undefined ? {
+    equals: props.entryTimestamp 
+  } : undefined,
+  exitTimestamp: props.exitTimestamp !== undefined ? {
+    equals: props.exitTimestamp 
+  } : undefined,
+  holdDurationMinutes: props.holdDurationMinutes !== undefined ? {
+    equals: props.holdDurationMinutes 
+  } : undefined,
+  exitReason: props.exitReason !== undefined ? {
+    equals: props.exitReason 
+  } : undefined,
+  grossReturnPct: props.grossReturnPct !== undefined ? {
+    equals: props.grossReturnPct 
+  } : undefined,
+  netReturnPct: props.netReturnPct !== undefined ? {
+    equals: props.netReturnPct 
+  } : undefined,
+  maxAdverseExcursionPct: props.maxAdverseExcursionPct !== undefined ? {
+    equals: props.maxAdverseExcursionPct 
+  } : undefined,
+  maxFavorableExcursionPct: props.maxFavorableExcursionPct !== undefined ? {
+    equals: props.maxFavorableExcursionPct 
+  } : undefined,
+  signalSource: props.signalSource !== undefined ? {
+    equals: props.signalSource 
+  } : undefined,
+  signalSourceType: props.signalSourceType !== undefined ? {
+    equals: props.signalSourceType 
+  } : undefined,
+  transformerConfidence: props.transformerConfidence !== undefined ? {
+    equals: props.transformerConfidence 
+  } : undefined,
+  llmConfidence: props.llmConfidence !== undefined ? {
+    equals: props.llmConfidence 
+  } : undefined,
+  ensembleConfidence: props.ensembleConfidence !== undefined ? {
+    equals: props.ensembleConfidence 
+  } : undefined,
+  ensembleWeight: props.ensembleWeight !== undefined ? {
+    equals: props.ensembleWeight 
+  } : undefined,
+  regimeAtEntry: props.regimeAtEntry !== undefined ? {
+    equals: props.regimeAtEntry 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

@@ -68,6 +68,27 @@ function main(): void {
       )
     );
     assert.ok(generated.includes('selectionSet'));
+
+    // findMany's props-only where filters on every column of UserWhereInput,
+    // not only the unique-looking names `get` uses, and refuses a key it
+    // cannot express instead of dropping it (src/modules/find-many-where.ts).
+    const findManyStart = generated.indexOf('async findMany(');
+    const getStart = generated.indexOf('async get(');
+    assert.ok(findManyStart > 0 && getStart > 0, 'generated code missing get/findMany bodies');
+    const findManySource = generated.slice(findManyStart);
+    const getSource = generated.slice(getStart, generated.indexOf('async getAll('));
+    assert.ok(
+      findManySource.includes('role: props.role !== undefined ? {'),
+      'findMany props where must filter on the non-unique column `role`'
+    );
+    assert.ok(
+      findManySource.includes('findManyUser: filter field(s) ${inexpressible.join'),
+      'findMany must refuse props keys it cannot express'
+    );
+    assert.ok(
+      !getSource.includes('role: props.role'),
+      'get (WhereUniqueInput) must keep the unique-field builder'
+    );
     assert.ok(
       fs.existsSync(path.join(tmpDir, 'user.ts')),
       'generator did not write user.ts to the output directory'

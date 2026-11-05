@@ -6775,9 +6775,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'alpacaAccountId', 'contractId', 'status', 'openingSide', 'quantity', 'entryPrice', 'entryCost', 'entryTime', 'exitPrice', 'exitValue', 'exitTime', 'currentPrice', 'currentValue', 'unrealizedPnL', 'unrealizedPnLPercent', 'realizedPnL', 'realizedPnLPercent', 'totalFees', 'currentDelta', 'currentGamma', 'currentTheta', 'currentVega', 'currentRho', 'currentImpliedVolatility', 'daysHeld', 'exitReason', 'strategyType', 'tradeId', 'lifecycleState', 'linkedRollId', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyOptionsPosition: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   alpacaAccountId: props.alpacaAccountId !== undefined ? {
@@ -6788,6 +6799,93 @@ import { logger } from './utils/logger';
   } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  openingSide: props.openingSide !== undefined ? {
+    equals: props.openingSide 
+  } : undefined,
+  quantity: props.quantity !== undefined ? {
+    equals: props.quantity 
+  } : undefined,
+  entryPrice: props.entryPrice !== undefined ? {
+    equals: props.entryPrice 
+  } : undefined,
+  entryCost: props.entryCost !== undefined ? {
+    equals: props.entryCost 
+  } : undefined,
+  entryTime: props.entryTime !== undefined ? {
+    equals: props.entryTime 
+  } : undefined,
+  exitPrice: props.exitPrice !== undefined ? {
+    equals: props.exitPrice 
+  } : undefined,
+  exitValue: props.exitValue !== undefined ? {
+    equals: props.exitValue 
+  } : undefined,
+  exitTime: props.exitTime !== undefined ? {
+    equals: props.exitTime 
+  } : undefined,
+  currentPrice: props.currentPrice !== undefined ? {
+    equals: props.currentPrice 
+  } : undefined,
+  currentValue: props.currentValue !== undefined ? {
+    equals: props.currentValue 
+  } : undefined,
+  unrealizedPnL: props.unrealizedPnL !== undefined ? {
+    equals: props.unrealizedPnL 
+  } : undefined,
+  unrealizedPnLPercent: props.unrealizedPnLPercent !== undefined ? {
+    equals: props.unrealizedPnLPercent 
+  } : undefined,
+  realizedPnL: props.realizedPnL !== undefined ? {
+    equals: props.realizedPnL 
+  } : undefined,
+  realizedPnLPercent: props.realizedPnLPercent !== undefined ? {
+    equals: props.realizedPnLPercent 
+  } : undefined,
+  totalFees: props.totalFees !== undefined ? {
+    equals: props.totalFees 
+  } : undefined,
+  currentDelta: props.currentDelta !== undefined ? {
+    equals: props.currentDelta 
+  } : undefined,
+  currentGamma: props.currentGamma !== undefined ? {
+    equals: props.currentGamma 
+  } : undefined,
+  currentTheta: props.currentTheta !== undefined ? {
+    equals: props.currentTheta 
+  } : undefined,
+  currentVega: props.currentVega !== undefined ? {
+    equals: props.currentVega 
+  } : undefined,
+  currentRho: props.currentRho !== undefined ? {
+    equals: props.currentRho 
+  } : undefined,
+  currentImpliedVolatility: props.currentImpliedVolatility !== undefined ? {
+    equals: props.currentImpliedVolatility 
+  } : undefined,
+  daysHeld: props.daysHeld !== undefined ? {
+    equals: props.daysHeld 
+  } : undefined,
+  exitReason: props.exitReason !== undefined ? {
+    equals: props.exitReason 
+  } : undefined,
+  strategyType: props.strategyType !== undefined ? {
+    equals: props.strategyType 
+  } : undefined,
+  tradeId: props.tradeId !== undefined ? {
+    equals: props.tradeId 
+  } : undefined,
+  lifecycleState: props.lifecycleState !== undefined ? {
+    equals: props.lifecycleState 
+  } : undefined,
+  linkedRollId: props.linkedRollId !== undefined ? {
+    equals: props.linkedRollId 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

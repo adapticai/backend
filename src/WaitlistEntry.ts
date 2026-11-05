@@ -33996,16 +33996,57 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'email', 'fullName', 'companyName', 'companyWebsite', 'jobRole', 'professionalInvestorConfirmed', 'status', 'queuePosition', 'createdAt', 'updatedAt', 'reviewedAt', 'reviewedById'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyWaitlistEntry: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   email: props.email !== undefined ? {
     equals: props.email 
   } : undefined,
+  fullName: props.fullName !== undefined ? {
+    equals: props.fullName 
+  } : undefined,
+  companyName: props.companyName !== undefined ? {
+    equals: props.companyName 
+  } : undefined,
+  companyWebsite: props.companyWebsite !== undefined ? {
+    equals: props.companyWebsite 
+  } : undefined,
+  jobRole: props.jobRole !== undefined ? {
+    equals: props.jobRole 
+  } : undefined,
+  professionalInvestorConfirmed: props.professionalInvestorConfirmed !== undefined ? {
+    equals: props.professionalInvestorConfirmed 
+  } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  queuePosition: props.queuePosition !== undefined ? {
+    equals: props.queuePosition 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
+  reviewedAt: props.reviewedAt !== undefined ? {
+    equals: props.reviewedAt 
+  } : undefined,
+  reviewedById: props.reviewedById !== undefined ? {
+    equals: props.reviewedById 
   } : undefined,
       },
         };

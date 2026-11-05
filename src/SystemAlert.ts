@@ -1506,22 +1506,78 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'type', 'severity', 'title', 'message', 'source', 'metadataModelName', 'metadataVersion', 'metadataJobId', 'metadataErrorDetails', 'status', 'acknowledgedBy', 'acknowledgedAt', 'resolvedBy', 'resolvedAt', 'resolutionNotes', 'suppressedUntil', 'escalationLevel', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManySystemAlert: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   type: props.type !== undefined ? {
     equals: props.type 
   } : undefined,
+  severity: props.severity !== undefined ? {
+    equals: props.severity 
+  } : undefined,
   title: props.title !== undefined ? {
     equals: props.title 
+  } : undefined,
+  message: props.message !== undefined ? {
+    equals: props.message 
+  } : undefined,
+  source: props.source !== undefined ? {
+    equals: props.source 
+  } : undefined,
+  metadataModelName: props.metadataModelName !== undefined ? {
+    equals: props.metadataModelName 
+  } : undefined,
+  metadataVersion: props.metadataVersion !== undefined ? {
+    equals: props.metadataVersion 
   } : undefined,
   metadataJobId: props.metadataJobId !== undefined ? {
     equals: props.metadataJobId 
   } : undefined,
+  metadataErrorDetails: props.metadataErrorDetails !== undefined ? {
+    equals: props.metadataErrorDetails 
+  } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  acknowledgedBy: props.acknowledgedBy !== undefined ? {
+    equals: props.acknowledgedBy 
+  } : undefined,
+  acknowledgedAt: props.acknowledgedAt !== undefined ? {
+    equals: props.acknowledgedAt 
+  } : undefined,
+  resolvedBy: props.resolvedBy !== undefined ? {
+    equals: props.resolvedBy 
+  } : undefined,
+  resolvedAt: props.resolvedAt !== undefined ? {
+    equals: props.resolvedAt 
+  } : undefined,
+  resolutionNotes: props.resolutionNotes !== undefined ? {
+    equals: props.resolutionNotes 
+  } : undefined,
+  suppressedUntil: props.suppressedUntil !== undefined ? {
+    equals: props.suppressedUntil 
+  } : undefined,
+  escalationLevel: props.escalationLevel !== undefined ? {
+    equals: props.escalationLevel 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

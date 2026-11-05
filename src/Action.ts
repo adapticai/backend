@@ -3327,10 +3327,24 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'sequence', 'tradeId', 'type', 'primary', 'note', 'status', 'createdAt', 'updatedAt', 'deletedAt', 'alpacaOrderId', 'supersededActionId', 'triggerSource', 'triggerSourceType'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyAction: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  sequence: props.sequence !== undefined ? {
+    equals: props.sequence 
   } : undefined,
   tradeId: props.tradeId !== undefined ? {
     equals: props.tradeId 
@@ -3338,8 +3352,35 @@ import { logger } from './utils/logger';
   type: props.type !== undefined ? {
     equals: props.type 
   } : undefined,
+  primary: props.primary !== undefined ? {
+    equals: props.primary 
+  } : undefined,
+  note: props.note !== undefined ? {
+    equals: props.note 
+  } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
+  deletedAt: props.deletedAt !== undefined ? {
+    equals: props.deletedAt 
+  } : undefined,
+  alpacaOrderId: props.alpacaOrderId !== undefined ? {
+    equals: props.alpacaOrderId 
+  } : undefined,
+  supersededActionId: props.supersededActionId !== undefined ? {
+    equals: props.supersededActionId 
+  } : undefined,
+  triggerSource: props.triggerSource !== undefined ? {
+    equals: props.triggerSource 
+  } : undefined,
+  triggerSourceType: props.triggerSourceType !== undefined ? {
+    equals: props.triggerSourceType 
   } : undefined,
       },
         };

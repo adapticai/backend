@@ -100775,16 +100775,54 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'scopeKind', 'klass', 'name', 'personaScope', 'organizationId', 'fundId', 'ownerId', 'activeVersionId', 'createdAt', 'updatedAt', 'deletedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyMandate: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  scopeKind: props.scopeKind !== undefined ? {
+    equals: props.scopeKind 
+  } : undefined,
+  klass: props.klass !== undefined ? {
+    equals: props.klass 
   } : undefined,
   name: props.name !== undefined ? {
     equals: props.name 
   } : undefined,
+  personaScope: props.personaScope !== undefined ? {
+    equals: props.personaScope 
+  } : undefined,
   organizationId: props.organizationId !== undefined ? {
     equals: props.organizationId 
+  } : undefined,
+  fundId: props.fundId !== undefined ? {
+    equals: props.fundId 
+  } : undefined,
+  ownerId: props.ownerId !== undefined ? {
+    equals: props.ownerId 
+  } : undefined,
+  activeVersionId: props.activeVersionId !== undefined ? {
+    equals: props.activeVersionId 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
+  deletedAt: props.deletedAt !== undefined ? {
+    equals: props.deletedAt 
   } : undefined,
       },
         };

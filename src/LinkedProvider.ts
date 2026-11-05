@@ -34104,19 +34104,48 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'userId', 'provider', 'providerAccountId', 'email', 'accessToken', 'refreshToken', 'expiresAt', 'linkedAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyLinkedProvider: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   userId: props.userId !== undefined ? {
     equals: props.userId 
+  } : undefined,
+  provider: props.provider !== undefined ? {
+    equals: props.provider 
   } : undefined,
   providerAccountId: props.providerAccountId !== undefined ? {
     equals: props.providerAccountId 
   } : undefined,
   email: props.email !== undefined ? {
     equals: props.email 
+  } : undefined,
+  accessToken: props.accessToken !== undefined ? {
+    equals: props.accessToken 
+  } : undefined,
+  refreshToken: props.refreshToken !== undefined ? {
+    equals: props.refreshToken 
+  } : undefined,
+  expiresAt: props.expiresAt !== undefined ? {
+    equals: props.expiresAt 
+  } : undefined,
+  linkedAt: props.linkedAt !== undefined ? {
+    equals: props.linkedAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

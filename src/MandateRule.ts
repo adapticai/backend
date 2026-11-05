@@ -15465,9 +15465,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'mandateVersionId', 'sectionId', 'label', 'detail', 'control', 'threshold', 'unit', 'limitKind', 'orderIdx', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyMandateRule: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   mandateVersionId: props.mandateVersionId !== undefined ? {
@@ -15476,8 +15487,32 @@ import { logger } from './utils/logger';
   sectionId: props.sectionId !== undefined ? {
     equals: props.sectionId 
   } : undefined,
+  label: props.label !== undefined ? {
+    equals: props.label 
+  } : undefined,
+  detail: props.detail !== undefined ? {
+    equals: props.detail 
+  } : undefined,
+  control: props.control !== undefined ? {
+    equals: props.control 
+  } : undefined,
+  threshold: props.threshold !== undefined ? {
+    equals: props.threshold 
+  } : undefined,
+  unit: props.unit !== undefined ? {
+    equals: props.unit 
+  } : undefined,
+  limitKind: props.limitKind !== undefined ? {
+    equals: props.limitKind 
+  } : undefined,
   orderIdx: props.orderIdx !== undefined ? {
     equals: props.orderIdx 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

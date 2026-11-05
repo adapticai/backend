@@ -1363,13 +1363,54 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'timestamp', 'type', 'errorRate', 'totalRecords', 'errorCount', 'severity', 'resolved', 'resolvedAt', 'resolvedBy', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyInstitutionalSentimentAlerts: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  timestamp: props.timestamp !== undefined ? {
+    equals: props.timestamp 
   } : undefined,
   type: props.type !== undefined ? {
     equals: props.type 
+  } : undefined,
+  errorRate: props.errorRate !== undefined ? {
+    equals: props.errorRate 
+  } : undefined,
+  totalRecords: props.totalRecords !== undefined ? {
+    equals: props.totalRecords 
+  } : undefined,
+  errorCount: props.errorCount !== undefined ? {
+    equals: props.errorCount 
+  } : undefined,
+  severity: props.severity !== undefined ? {
+    equals: props.severity 
+  } : undefined,
+  resolved: props.resolved !== undefined ? {
+    equals: props.resolved 
+  } : undefined,
+  resolvedAt: props.resolvedAt !== undefined ? {
+    equals: props.resolvedAt 
+  } : undefined,
+  resolvedBy: props.resolvedBy !== undefined ? {
+    equals: props.resolvedBy 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

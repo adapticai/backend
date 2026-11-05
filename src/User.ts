@@ -105847,9 +105847,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'name', 'email', 'emailVerified', 'image', 'avatarUrl', 'onboardingComplete', 'signupCategory', 'createdAt', 'updatedAt', 'deletedAt', 'role', 'bio', 'jobTitle', 'currentAccount', 'customerId', 'plan', 'openaiAPIKey', 'openaiModel'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyUser: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   name: props.name !== undefined ? {
@@ -105857,6 +105868,54 @@ import { logger } from './utils/logger';
   } : undefined,
   email: props.email !== undefined ? {
     equals: props.email 
+  } : undefined,
+  emailVerified: props.emailVerified !== undefined ? {
+    equals: props.emailVerified 
+  } : undefined,
+  image: props.image !== undefined ? {
+    equals: props.image 
+  } : undefined,
+  avatarUrl: props.avatarUrl !== undefined ? {
+    equals: props.avatarUrl 
+  } : undefined,
+  onboardingComplete: props.onboardingComplete !== undefined ? {
+    equals: props.onboardingComplete 
+  } : undefined,
+  signupCategory: props.signupCategory !== undefined ? {
+    equals: props.signupCategory 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
+  deletedAt: props.deletedAt !== undefined ? {
+    equals: props.deletedAt 
+  } : undefined,
+  role: props.role !== undefined ? {
+    equals: props.role 
+  } : undefined,
+  bio: props.bio !== undefined ? {
+    equals: props.bio 
+  } : undefined,
+  jobTitle: props.jobTitle !== undefined ? {
+    equals: props.jobTitle 
+  } : undefined,
+  currentAccount: props.currentAccount !== undefined ? {
+    equals: props.currentAccount 
+  } : undefined,
+  customerId: props.customerId !== undefined ? {
+    equals: props.customerId 
+  } : undefined,
+  plan: props.plan !== undefined ? {
+    equals: props.plan 
+  } : undefined,
+  openaiAPIKey: props.openaiAPIKey !== undefined ? {
+    equals: props.openaiAPIKey 
+  } : undefined,
+  openaiModel: props.openaiModel !== undefined ? {
+    equals: props.openaiModel 
   } : undefined,
       },
         };

@@ -20111,22 +20111,246 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'alpacaAccountId', 'version', 'lastModifiedBy', 'lastModifiedAt', 'autonomyMode', 'realtimeTradingEnabled', 'paperTradingOnly', 'killSwitchEnabled', 'equitiesEnabled', 'etfsEnabled', 'cryptoEnabled', 'optionsEnabled', 'futuresEnabled', 'forexEnabled', 'shortingEnabled', 'marginEnabled', 'fractionalSharesEnabled', 'maxBuyingPowerUtilPct', 'cashFloorPct', 'maxGrossExposurePct', 'maxNetExposurePct', 'maxLeverage', 'maxSymbolConcentrationPct', 'maxSectorConcentrationPct', 'maxOpenPositions', 'maxOpenOrders', 'perTradeEquityAllocationPct', 'perTradeCryptoAllocationPct', 'enablePortfolioTrailingStop', 'portfolioTrailPercent', 'portfolioProfitThresholdPercent', 'reducedPortfolioTrailPercent', 'portfolioAfternoonResetEt', 'enablePortfolioTakeProfit', 'portfolioTakeProfitThresholdPercent', 'defaultTrailingStopPercentage100', 'firstTrailReductionThreshold100', 'secondTrailReductionThreshold100', 'firstReducedTrailPercentage100', 'secondReducedTrailPercentage100', 'minimumPriceChangePercent100', 'equityWashTradeCooldownMs', 'minIntradayLiquidityShares', 'maxEntrySpreadBps', 'sameSideReentryDelayMs', 'minAtrPercentage', 'maxAtrPercentage', 'minBookDepthShares', 'maxAnomalousSlippageBps', 'hardPositionExitMinutes', 'maxOrdersPerWindow', 'orderWindowSeconds', 'dayTradeOnly', 'macroOverlayEnabled', 'sectorOverlayEnabled', 'volatilityOverlayEnabled', 'liquidityStressOverlayEnabled', 'blackSwanProtectionEnabled', 'drawdownGuardianEnabled', 'correlationSpikeProtectionEnabled', 'newsEventRiskOverlayEnabled', 'exchangeHealthOverlayEnabled', 'dataQualitySentinelEnabled', 'miniModelProvider', 'miniModelId', 'normalModelProvider', 'normalModelId', 'advancedModelProvider', 'advancedModelId', 'currentRiskState', 'currentRiskStateAt', 'lastRiskStateChangedBy', 'lastRiskEscalationEventId', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyTradingPolicy: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   alpacaAccountId: props.alpacaAccountId !== undefined ? {
     equals: props.alpacaAccountId 
   } : undefined,
+  version: props.version !== undefined ? {
+    equals: props.version 
+  } : undefined,
+  lastModifiedBy: props.lastModifiedBy !== undefined ? {
+    equals: props.lastModifiedBy 
+  } : undefined,
+  lastModifiedAt: props.lastModifiedAt !== undefined ? {
+    equals: props.lastModifiedAt 
+  } : undefined,
+  autonomyMode: props.autonomyMode !== undefined ? {
+    equals: props.autonomyMode 
+  } : undefined,
+  realtimeTradingEnabled: props.realtimeTradingEnabled !== undefined ? {
+    equals: props.realtimeTradingEnabled 
+  } : undefined,
+  paperTradingOnly: props.paperTradingOnly !== undefined ? {
+    equals: props.paperTradingOnly 
+  } : undefined,
+  killSwitchEnabled: props.killSwitchEnabled !== undefined ? {
+    equals: props.killSwitchEnabled 
+  } : undefined,
+  equitiesEnabled: props.equitiesEnabled !== undefined ? {
+    equals: props.equitiesEnabled 
+  } : undefined,
+  etfsEnabled: props.etfsEnabled !== undefined ? {
+    equals: props.etfsEnabled 
+  } : undefined,
+  cryptoEnabled: props.cryptoEnabled !== undefined ? {
+    equals: props.cryptoEnabled 
+  } : undefined,
+  optionsEnabled: props.optionsEnabled !== undefined ? {
+    equals: props.optionsEnabled 
+  } : undefined,
+  futuresEnabled: props.futuresEnabled !== undefined ? {
+    equals: props.futuresEnabled 
+  } : undefined,
+  forexEnabled: props.forexEnabled !== undefined ? {
+    equals: props.forexEnabled 
+  } : undefined,
+  shortingEnabled: props.shortingEnabled !== undefined ? {
+    equals: props.shortingEnabled 
+  } : undefined,
+  marginEnabled: props.marginEnabled !== undefined ? {
+    equals: props.marginEnabled 
+  } : undefined,
+  fractionalSharesEnabled: props.fractionalSharesEnabled !== undefined ? {
+    equals: props.fractionalSharesEnabled 
+  } : undefined,
+  maxBuyingPowerUtilPct: props.maxBuyingPowerUtilPct !== undefined ? {
+    equals: props.maxBuyingPowerUtilPct 
+  } : undefined,
+  cashFloorPct: props.cashFloorPct !== undefined ? {
+    equals: props.cashFloorPct 
+  } : undefined,
+  maxGrossExposurePct: props.maxGrossExposurePct !== undefined ? {
+    equals: props.maxGrossExposurePct 
+  } : undefined,
+  maxNetExposurePct: props.maxNetExposurePct !== undefined ? {
+    equals: props.maxNetExposurePct 
+  } : undefined,
+  maxLeverage: props.maxLeverage !== undefined ? {
+    equals: props.maxLeverage 
+  } : undefined,
+  maxSymbolConcentrationPct: props.maxSymbolConcentrationPct !== undefined ? {
+    equals: props.maxSymbolConcentrationPct 
+  } : undefined,
+  maxSectorConcentrationPct: props.maxSectorConcentrationPct !== undefined ? {
+    equals: props.maxSectorConcentrationPct 
+  } : undefined,
+  maxOpenPositions: props.maxOpenPositions !== undefined ? {
+    equals: props.maxOpenPositions 
+  } : undefined,
+  maxOpenOrders: props.maxOpenOrders !== undefined ? {
+    equals: props.maxOpenOrders 
+  } : undefined,
+  perTradeEquityAllocationPct: props.perTradeEquityAllocationPct !== undefined ? {
+    equals: props.perTradeEquityAllocationPct 
+  } : undefined,
+  perTradeCryptoAllocationPct: props.perTradeCryptoAllocationPct !== undefined ? {
+    equals: props.perTradeCryptoAllocationPct 
+  } : undefined,
+  enablePortfolioTrailingStop: props.enablePortfolioTrailingStop !== undefined ? {
+    equals: props.enablePortfolioTrailingStop 
+  } : undefined,
+  portfolioTrailPercent: props.portfolioTrailPercent !== undefined ? {
+    equals: props.portfolioTrailPercent 
+  } : undefined,
+  portfolioProfitThresholdPercent: props.portfolioProfitThresholdPercent !== undefined ? {
+    equals: props.portfolioProfitThresholdPercent 
+  } : undefined,
+  reducedPortfolioTrailPercent: props.reducedPortfolioTrailPercent !== undefined ? {
+    equals: props.reducedPortfolioTrailPercent 
+  } : undefined,
+  portfolioAfternoonResetEt: props.portfolioAfternoonResetEt !== undefined ? {
+    equals: props.portfolioAfternoonResetEt 
+  } : undefined,
+  enablePortfolioTakeProfit: props.enablePortfolioTakeProfit !== undefined ? {
+    equals: props.enablePortfolioTakeProfit 
+  } : undefined,
+  portfolioTakeProfitThresholdPercent: props.portfolioTakeProfitThresholdPercent !== undefined ? {
+    equals: props.portfolioTakeProfitThresholdPercent 
+  } : undefined,
+  defaultTrailingStopPercentage100: props.defaultTrailingStopPercentage100 !== undefined ? {
+    equals: props.defaultTrailingStopPercentage100 
+  } : undefined,
+  firstTrailReductionThreshold100: props.firstTrailReductionThreshold100 !== undefined ? {
+    equals: props.firstTrailReductionThreshold100 
+  } : undefined,
+  secondTrailReductionThreshold100: props.secondTrailReductionThreshold100 !== undefined ? {
+    equals: props.secondTrailReductionThreshold100 
+  } : undefined,
+  firstReducedTrailPercentage100: props.firstReducedTrailPercentage100 !== undefined ? {
+    equals: props.firstReducedTrailPercentage100 
+  } : undefined,
+  secondReducedTrailPercentage100: props.secondReducedTrailPercentage100 !== undefined ? {
+    equals: props.secondReducedTrailPercentage100 
+  } : undefined,
+  minimumPriceChangePercent100: props.minimumPriceChangePercent100 !== undefined ? {
+    equals: props.minimumPriceChangePercent100 
+  } : undefined,
+  equityWashTradeCooldownMs: props.equityWashTradeCooldownMs !== undefined ? {
+    equals: props.equityWashTradeCooldownMs 
+  } : undefined,
+  minIntradayLiquidityShares: props.minIntradayLiquidityShares !== undefined ? {
+    equals: props.minIntradayLiquidityShares 
+  } : undefined,
+  maxEntrySpreadBps: props.maxEntrySpreadBps !== undefined ? {
+    equals: props.maxEntrySpreadBps 
+  } : undefined,
+  sameSideReentryDelayMs: props.sameSideReentryDelayMs !== undefined ? {
+    equals: props.sameSideReentryDelayMs 
+  } : undefined,
+  minAtrPercentage: props.minAtrPercentage !== undefined ? {
+    equals: props.minAtrPercentage 
+  } : undefined,
+  maxAtrPercentage: props.maxAtrPercentage !== undefined ? {
+    equals: props.maxAtrPercentage 
+  } : undefined,
+  minBookDepthShares: props.minBookDepthShares !== undefined ? {
+    equals: props.minBookDepthShares 
+  } : undefined,
+  maxAnomalousSlippageBps: props.maxAnomalousSlippageBps !== undefined ? {
+    equals: props.maxAnomalousSlippageBps 
+  } : undefined,
+  hardPositionExitMinutes: props.hardPositionExitMinutes !== undefined ? {
+    equals: props.hardPositionExitMinutes 
+  } : undefined,
+  maxOrdersPerWindow: props.maxOrdersPerWindow !== undefined ? {
+    equals: props.maxOrdersPerWindow 
+  } : undefined,
+  orderWindowSeconds: props.orderWindowSeconds !== undefined ? {
+    equals: props.orderWindowSeconds 
+  } : undefined,
+  dayTradeOnly: props.dayTradeOnly !== undefined ? {
+    equals: props.dayTradeOnly 
+  } : undefined,
+  macroOverlayEnabled: props.macroOverlayEnabled !== undefined ? {
+    equals: props.macroOverlayEnabled 
+  } : undefined,
+  sectorOverlayEnabled: props.sectorOverlayEnabled !== undefined ? {
+    equals: props.sectorOverlayEnabled 
+  } : undefined,
+  volatilityOverlayEnabled: props.volatilityOverlayEnabled !== undefined ? {
+    equals: props.volatilityOverlayEnabled 
+  } : undefined,
+  liquidityStressOverlayEnabled: props.liquidityStressOverlayEnabled !== undefined ? {
+    equals: props.liquidityStressOverlayEnabled 
+  } : undefined,
+  blackSwanProtectionEnabled: props.blackSwanProtectionEnabled !== undefined ? {
+    equals: props.blackSwanProtectionEnabled 
+  } : undefined,
+  drawdownGuardianEnabled: props.drawdownGuardianEnabled !== undefined ? {
+    equals: props.drawdownGuardianEnabled 
+  } : undefined,
+  correlationSpikeProtectionEnabled: props.correlationSpikeProtectionEnabled !== undefined ? {
+    equals: props.correlationSpikeProtectionEnabled 
+  } : undefined,
+  newsEventRiskOverlayEnabled: props.newsEventRiskOverlayEnabled !== undefined ? {
+    equals: props.newsEventRiskOverlayEnabled 
+  } : undefined,
+  exchangeHealthOverlayEnabled: props.exchangeHealthOverlayEnabled !== undefined ? {
+    equals: props.exchangeHealthOverlayEnabled 
+  } : undefined,
+  dataQualitySentinelEnabled: props.dataQualitySentinelEnabled !== undefined ? {
+    equals: props.dataQualitySentinelEnabled 
+  } : undefined,
+  miniModelProvider: props.miniModelProvider !== undefined ? {
+    equals: props.miniModelProvider 
+  } : undefined,
   miniModelId: props.miniModelId !== undefined ? {
     equals: props.miniModelId 
+  } : undefined,
+  normalModelProvider: props.normalModelProvider !== undefined ? {
+    equals: props.normalModelProvider 
   } : undefined,
   normalModelId: props.normalModelId !== undefined ? {
     equals: props.normalModelId 
   } : undefined,
+  advancedModelProvider: props.advancedModelProvider !== undefined ? {
+    equals: props.advancedModelProvider 
+  } : undefined,
   advancedModelId: props.advancedModelId !== undefined ? {
     equals: props.advancedModelId 
+  } : undefined,
+  currentRiskState: props.currentRiskState !== undefined ? {
+    equals: props.currentRiskState 
+  } : undefined,
+  currentRiskStateAt: props.currentRiskStateAt !== undefined ? {
+    equals: props.currentRiskStateAt 
+  } : undefined,
+  lastRiskStateChangedBy: props.lastRiskStateChangedBy !== undefined ? {
+    equals: props.lastRiskStateChangedBy 
+  } : undefined,
+  lastRiskEscalationEventId: props.lastRiskEscalationEventId !== undefined ? {
+    equals: props.lastRiskEscalationEventId 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

@@ -26645,13 +26645,111 @@ id
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'modelName', 'version', 'status', 'parentVersionId', 'performanceAccuracy', 'performancePrecision', 'performanceRecall', 'performanceF1Score', 'performanceAuc', 'performanceSharpeRatio', 'performanceMaxDrawdown', 'performanceWinRate', 'performanceAvgReturn', 'performanceCalibrationScore', 'performanceStabilityScore', 'validationCrossValidationScore', 'deploymentEnvironment', 'deploymentTrafficAllocation', 'deploymentRolloutStrategy', 'trainingStartTime', 'trainingEndTime', 'trainingDuration', 'trainingDatasetSize', 'trainingResourcePeakMemoryMB', 'trainingResourceTotalCpuHours', 'trainingResourceGpuHours', 'createdAt', 'updatedAt', 'deployedAt', 'deprecatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyModelVersion: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  modelName: props.modelName !== undefined ? {
+    equals: props.modelName 
+  } : undefined,
+  version: props.version !== undefined ? {
+    equals: props.version 
   } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  parentVersionId: props.parentVersionId !== undefined ? {
+    equals: props.parentVersionId 
+  } : undefined,
+  performanceAccuracy: props.performanceAccuracy !== undefined ? {
+    equals: props.performanceAccuracy 
+  } : undefined,
+  performancePrecision: props.performancePrecision !== undefined ? {
+    equals: props.performancePrecision 
+  } : undefined,
+  performanceRecall: props.performanceRecall !== undefined ? {
+    equals: props.performanceRecall 
+  } : undefined,
+  performanceF1Score: props.performanceF1Score !== undefined ? {
+    equals: props.performanceF1Score 
+  } : undefined,
+  performanceAuc: props.performanceAuc !== undefined ? {
+    equals: props.performanceAuc 
+  } : undefined,
+  performanceSharpeRatio: props.performanceSharpeRatio !== undefined ? {
+    equals: props.performanceSharpeRatio 
+  } : undefined,
+  performanceMaxDrawdown: props.performanceMaxDrawdown !== undefined ? {
+    equals: props.performanceMaxDrawdown 
+  } : undefined,
+  performanceWinRate: props.performanceWinRate !== undefined ? {
+    equals: props.performanceWinRate 
+  } : undefined,
+  performanceAvgReturn: props.performanceAvgReturn !== undefined ? {
+    equals: props.performanceAvgReturn 
+  } : undefined,
+  performanceCalibrationScore: props.performanceCalibrationScore !== undefined ? {
+    equals: props.performanceCalibrationScore 
+  } : undefined,
+  performanceStabilityScore: props.performanceStabilityScore !== undefined ? {
+    equals: props.performanceStabilityScore 
+  } : undefined,
+  validationCrossValidationScore: props.validationCrossValidationScore !== undefined ? {
+    equals: props.validationCrossValidationScore 
+  } : undefined,
+  deploymentEnvironment: props.deploymentEnvironment !== undefined ? {
+    equals: props.deploymentEnvironment 
+  } : undefined,
+  deploymentTrafficAllocation: props.deploymentTrafficAllocation !== undefined ? {
+    equals: props.deploymentTrafficAllocation 
+  } : undefined,
+  deploymentRolloutStrategy: props.deploymentRolloutStrategy !== undefined ? {
+    equals: props.deploymentRolloutStrategy 
+  } : undefined,
+  trainingStartTime: props.trainingStartTime !== undefined ? {
+    equals: props.trainingStartTime 
+  } : undefined,
+  trainingEndTime: props.trainingEndTime !== undefined ? {
+    equals: props.trainingEndTime 
+  } : undefined,
+  trainingDuration: props.trainingDuration !== undefined ? {
+    equals: props.trainingDuration 
+  } : undefined,
+  trainingDatasetSize: props.trainingDatasetSize !== undefined ? {
+    equals: props.trainingDatasetSize 
+  } : undefined,
+  trainingResourcePeakMemoryMB: props.trainingResourcePeakMemoryMB !== undefined ? {
+    equals: props.trainingResourcePeakMemoryMB 
+  } : undefined,
+  trainingResourceTotalCpuHours: props.trainingResourceTotalCpuHours !== undefined ? {
+    equals: props.trainingResourceTotalCpuHours 
+  } : undefined,
+  trainingResourceGpuHours: props.trainingResourceGpuHours !== undefined ? {
+    equals: props.trainingResourceGpuHours 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
+  deployedAt: props.deployedAt !== undefined ? {
+    equals: props.deployedAt 
+  } : undefined,
+  deprecatedAt: props.deprecatedAt !== undefined ? {
+    equals: props.deprecatedAt 
   } : undefined,
       },
         };

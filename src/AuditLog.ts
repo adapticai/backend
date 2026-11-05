@@ -1337,13 +1337,42 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'timestamp', 'userId', 'operationType', 'modelName', 'recordId', 'operationName', 'ipAddress'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyAuditLog: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  timestamp: props.timestamp !== undefined ? {
+    equals: props.timestamp 
+  } : undefined,
+  userId: props.userId !== undefined ? {
+    equals: props.userId 
+  } : undefined,
+  operationType: props.operationType !== undefined ? {
+    equals: props.operationType 
+  } : undefined,
+  modelName: props.modelName !== undefined ? {
+    equals: props.modelName 
   } : undefined,
   recordId: props.recordId !== undefined ? {
     equals: props.recordId 
+  } : undefined,
+  operationName: props.operationName !== undefined ? {
+    equals: props.operationName 
+  } : undefined,
+  ipAddress: props.ipAddress !== undefined ? {
+    equals: props.ipAddress 
   } : undefined,
       },
         };

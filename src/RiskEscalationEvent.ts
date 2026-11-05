@@ -24848,10 +24848,54 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'alpacaAccountId', 'scopeKind', 'scopeValue', 'fromState', 'toState', 'reason', 'severity', 'triggeringObserver', 'observedValue', 'breachedThreshold', 'breachedThresholdKey', 'correlationId', 'triggeringEventId', 'actor', 'actorUserId', 'rationale', 'triggeredByPolicyOverlayId', 'createdAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyRiskEscalationEvent: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  alpacaAccountId: props.alpacaAccountId !== undefined ? {
+    equals: props.alpacaAccountId 
+  } : undefined,
+  scopeKind: props.scopeKind !== undefined ? {
+    equals: props.scopeKind 
+  } : undefined,
+  scopeValue: props.scopeValue !== undefined ? {
+    equals: props.scopeValue 
+  } : undefined,
+  fromState: props.fromState !== undefined ? {
+    equals: props.fromState 
+  } : undefined,
+  toState: props.toState !== undefined ? {
+    equals: props.toState 
+  } : undefined,
+  reason: props.reason !== undefined ? {
+    equals: props.reason 
+  } : undefined,
+  severity: props.severity !== undefined ? {
+    equals: props.severity 
+  } : undefined,
+  triggeringObserver: props.triggeringObserver !== undefined ? {
+    equals: props.triggeringObserver 
+  } : undefined,
+  observedValue: props.observedValue !== undefined ? {
+    equals: props.observedValue 
+  } : undefined,
+  breachedThreshold: props.breachedThreshold !== undefined ? {
+    equals: props.breachedThreshold 
+  } : undefined,
+  breachedThresholdKey: props.breachedThresholdKey !== undefined ? {
+    equals: props.breachedThresholdKey 
   } : undefined,
   correlationId: props.correlationId !== undefined ? {
     equals: props.correlationId 
@@ -24859,8 +24903,20 @@ import { logger } from './utils/logger';
   triggeringEventId: props.triggeringEventId !== undefined ? {
     equals: props.triggeringEventId 
   } : undefined,
+  actor: props.actor !== undefined ? {
+    equals: props.actor 
+  } : undefined,
   actorUserId: props.actorUserId !== undefined ? {
     equals: props.actorUserId 
+  } : undefined,
+  rationale: props.rationale !== undefined ? {
+    equals: props.rationale 
+  } : undefined,
+  triggeredByPolicyOverlayId: props.triggeredByPolicyOverlayId !== undefined ? {
+    equals: props.triggeredByPolicyOverlayId 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
   } : undefined,
       },
         };

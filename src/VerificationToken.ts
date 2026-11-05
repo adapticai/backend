@@ -1265,10 +1265,30 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'identifier', 'token', 'expires'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyVerificationToken: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  identifier: props.identifier !== undefined ? {
+    equals: props.identifier 
+  } : undefined,
+  token: props.token !== undefined ? {
+    equals: props.token 
+  } : undefined,
+  expires: props.expires !== undefined ? {
+    equals: props.expires 
   } : undefined,
       },
         };

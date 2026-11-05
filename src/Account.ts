@@ -34111,9 +34111,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'userId', 'type', 'provider', 'providerAccountId', 'refresh_token', 'access_token', 'expires_at', 'token_type', 'scope', 'id_token', 'session_state', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyAccount: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   userId: props.userId !== undefined ? {
@@ -34122,8 +34133,38 @@ import { logger } from './utils/logger';
   type: props.type !== undefined ? {
     equals: props.type 
   } : undefined,
+  provider: props.provider !== undefined ? {
+    equals: props.provider 
+  } : undefined,
   providerAccountId: props.providerAccountId !== undefined ? {
     equals: props.providerAccountId 
+  } : undefined,
+  refresh_token: props.refresh_token !== undefined ? {
+    equals: props.refresh_token 
+  } : undefined,
+  access_token: props.access_token !== undefined ? {
+    equals: props.access_token 
+  } : undefined,
+  expires_at: props.expires_at !== undefined ? {
+    equals: props.expires_at 
+  } : undefined,
+  token_type: props.token_type !== undefined ? {
+    equals: props.token_type 
+  } : undefined,
+  scope: props.scope !== undefined ? {
+    equals: props.scope 
+  } : undefined,
+  id_token: props.id_token !== undefined ? {
+    equals: props.id_token 
+  } : undefined,
+  session_state: props.session_state !== undefined ? {
+    equals: props.session_state 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

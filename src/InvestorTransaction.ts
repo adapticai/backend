@@ -57899,9 +57899,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'investorId', 'fundId', 'holdingId', 'type', 'status', 'amount', 'units', 'requestNav', 'executionNav', 'executedUnits', 'fees', 'netAmount', 'currency', 'requestedAt', 'reviewedAt', 'executedAt', 'settledAt', 'rejectionReason', 'notes', 'externalRef', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyInvestorTransaction: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   investorId: props.investorId !== undefined ? {
@@ -57910,11 +57921,65 @@ import { logger } from './utils/logger';
   fundId: props.fundId !== undefined ? {
     equals: props.fundId 
   } : undefined,
+  holdingId: props.holdingId !== undefined ? {
+    equals: props.holdingId 
+  } : undefined,
   type: props.type !== undefined ? {
     equals: props.type 
   } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  amount: props.amount !== undefined ? {
+    equals: props.amount 
+  } : undefined,
+  units: props.units !== undefined ? {
+    equals: props.units 
+  } : undefined,
+  requestNav: props.requestNav !== undefined ? {
+    equals: props.requestNav 
+  } : undefined,
+  executionNav: props.executionNav !== undefined ? {
+    equals: props.executionNav 
+  } : undefined,
+  executedUnits: props.executedUnits !== undefined ? {
+    equals: props.executedUnits 
+  } : undefined,
+  fees: props.fees !== undefined ? {
+    equals: props.fees 
+  } : undefined,
+  netAmount: props.netAmount !== undefined ? {
+    equals: props.netAmount 
+  } : undefined,
+  currency: props.currency !== undefined ? {
+    equals: props.currency 
+  } : undefined,
+  requestedAt: props.requestedAt !== undefined ? {
+    equals: props.requestedAt 
+  } : undefined,
+  reviewedAt: props.reviewedAt !== undefined ? {
+    equals: props.reviewedAt 
+  } : undefined,
+  executedAt: props.executedAt !== undefined ? {
+    equals: props.executedAt 
+  } : undefined,
+  settledAt: props.settledAt !== undefined ? {
+    equals: props.settledAt 
+  } : undefined,
+  rejectionReason: props.rejectionReason !== undefined ? {
+    equals: props.rejectionReason 
+  } : undefined,
+  notes: props.notes !== undefined ? {
+    equals: props.notes 
+  } : undefined,
+  externalRef: props.externalRef !== undefined ? {
+    equals: props.externalRef 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

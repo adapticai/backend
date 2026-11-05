@@ -1342,9 +1342,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'configKey', 'type', 'scope', 'version', 'description', 'isActive', 'expiresAt', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyConfiguration: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   configKey: props.configKey !== undefined ? {
@@ -1352,6 +1363,27 @@ import { logger } from './utils/logger';
   } : undefined,
   type: props.type !== undefined ? {
     equals: props.type 
+  } : undefined,
+  scope: props.scope !== undefined ? {
+    equals: props.scope 
+  } : undefined,
+  version: props.version !== undefined ? {
+    equals: props.version 
+  } : undefined,
+  description: props.description !== undefined ? {
+    equals: props.description 
+  } : undefined,
+  isActive: props.isActive !== undefined ? {
+    equals: props.isActive 
+  } : undefined,
+  expiresAt: props.expiresAt !== undefined ? {
+    equals: props.expiresAt 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

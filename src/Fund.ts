@@ -128918,9 +128918,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'name', 'slug', 'description', 'status', 'currency', 'organizationId', 'managerId', 'operatorId', 'inceptionDate', 'aum', 'navPerShare', 'sharesOutstanding', 'highWaterMarkNav', 'createdAt', 'updatedAt', 'deletedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyFund: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   name: props.name !== undefined ? {
@@ -128929,11 +128940,47 @@ import { logger } from './utils/logger';
   slug: props.slug !== undefined ? {
     equals: props.slug 
   } : undefined,
+  description: props.description !== undefined ? {
+    equals: props.description 
+  } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
   } : undefined,
+  currency: props.currency !== undefined ? {
+    equals: props.currency 
+  } : undefined,
   organizationId: props.organizationId !== undefined ? {
     equals: props.organizationId 
+  } : undefined,
+  managerId: props.managerId !== undefined ? {
+    equals: props.managerId 
+  } : undefined,
+  operatorId: props.operatorId !== undefined ? {
+    equals: props.operatorId 
+  } : undefined,
+  inceptionDate: props.inceptionDate !== undefined ? {
+    equals: props.inceptionDate 
+  } : undefined,
+  aum: props.aum !== undefined ? {
+    equals: props.aum 
+  } : undefined,
+  navPerShare: props.navPerShare !== undefined ? {
+    equals: props.navPerShare 
+  } : undefined,
+  sharesOutstanding: props.sharesOutstanding !== undefined ? {
+    equals: props.sharesOutstanding 
+  } : undefined,
+  highWaterMarkNav: props.highWaterMarkNav !== undefined ? {
+    equals: props.highWaterMarkNav 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
+  deletedAt: props.deletedAt !== undefined ? {
+    equals: props.deletedAt 
   } : undefined,
       },
         };

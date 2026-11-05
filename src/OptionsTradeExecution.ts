@@ -6983,9 +6983,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'positionId', 'contractId', 'alpacaAccountId', 'brokerOrderId', 'executionSide', 'quantity', 'executionPrice', 'executionValue', 'fees', 'executionTime', 'underlyingPriceAtExecution', 'deltaAtExecution', 'gammaAtExecution', 'thetaAtExecution', 'vegaAtExecution', 'rhoAtExecution', 'impliedVolatilityAtExecution', 'orderType', 'limitPrice', 'stopPrice', 'timeInForce', 'venue', 'slippage', 'notes', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyOptionsTradeExecution: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   positionId: props.positionId !== undefined ? {
@@ -6999,6 +7010,72 @@ import { logger } from './utils/logger';
   } : undefined,
   brokerOrderId: props.brokerOrderId !== undefined ? {
     equals: props.brokerOrderId 
+  } : undefined,
+  executionSide: props.executionSide !== undefined ? {
+    equals: props.executionSide 
+  } : undefined,
+  quantity: props.quantity !== undefined ? {
+    equals: props.quantity 
+  } : undefined,
+  executionPrice: props.executionPrice !== undefined ? {
+    equals: props.executionPrice 
+  } : undefined,
+  executionValue: props.executionValue !== undefined ? {
+    equals: props.executionValue 
+  } : undefined,
+  fees: props.fees !== undefined ? {
+    equals: props.fees 
+  } : undefined,
+  executionTime: props.executionTime !== undefined ? {
+    equals: props.executionTime 
+  } : undefined,
+  underlyingPriceAtExecution: props.underlyingPriceAtExecution !== undefined ? {
+    equals: props.underlyingPriceAtExecution 
+  } : undefined,
+  deltaAtExecution: props.deltaAtExecution !== undefined ? {
+    equals: props.deltaAtExecution 
+  } : undefined,
+  gammaAtExecution: props.gammaAtExecution !== undefined ? {
+    equals: props.gammaAtExecution 
+  } : undefined,
+  thetaAtExecution: props.thetaAtExecution !== undefined ? {
+    equals: props.thetaAtExecution 
+  } : undefined,
+  vegaAtExecution: props.vegaAtExecution !== undefined ? {
+    equals: props.vegaAtExecution 
+  } : undefined,
+  rhoAtExecution: props.rhoAtExecution !== undefined ? {
+    equals: props.rhoAtExecution 
+  } : undefined,
+  impliedVolatilityAtExecution: props.impliedVolatilityAtExecution !== undefined ? {
+    equals: props.impliedVolatilityAtExecution 
+  } : undefined,
+  orderType: props.orderType !== undefined ? {
+    equals: props.orderType 
+  } : undefined,
+  limitPrice: props.limitPrice !== undefined ? {
+    equals: props.limitPrice 
+  } : undefined,
+  stopPrice: props.stopPrice !== undefined ? {
+    equals: props.stopPrice 
+  } : undefined,
+  timeInForce: props.timeInForce !== undefined ? {
+    equals: props.timeInForce 
+  } : undefined,
+  venue: props.venue !== undefined ? {
+    equals: props.venue 
+  } : undefined,
+  slippage: props.slippage !== undefined ? {
+    equals: props.slippage 
+  } : undefined,
+  notes: props.notes !== undefined ? {
+    equals: props.notes 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

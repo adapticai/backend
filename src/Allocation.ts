@@ -17170,13 +17170,54 @@ import { assertValidAllocation } from './validators/allocation-validator';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'equities', 'optionsContracts', 'futures', 'etfs', 'forex', 'crypto', 'stocks', 'options', 'alpacaAccountId', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyAllocation: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  equities: props.equities !== undefined ? {
+    equals: props.equities 
+  } : undefined,
+  optionsContracts: props.optionsContracts !== undefined ? {
+    equals: props.optionsContracts 
+  } : undefined,
+  futures: props.futures !== undefined ? {
+    equals: props.futures 
+  } : undefined,
+  etfs: props.etfs !== undefined ? {
+    equals: props.etfs 
+  } : undefined,
+  forex: props.forex !== undefined ? {
+    equals: props.forex 
+  } : undefined,
+  crypto: props.crypto !== undefined ? {
+    equals: props.crypto 
+  } : undefined,
+  stocks: props.stocks !== undefined ? {
+    equals: props.stocks 
+  } : undefined,
+  options: props.options !== undefined ? {
+    equals: props.options 
   } : undefined,
   alpacaAccountId: props.alpacaAccountId !== undefined ? {
     equals: props.alpacaAccountId 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

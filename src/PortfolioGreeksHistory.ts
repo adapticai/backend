@@ -1507,16 +1507,84 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'accountId', 'timestamp', 'contractId', 'symbol', 'underlying', 'delta', 'gamma', 'theta', 'vega', 'rho', 'totalDelta', 'totalGamma', 'totalTheta', 'totalVega', 'totalRho', 'positionCount', 'marketHours', 'vix', 'spyPrice', 'source', 'createdAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyPortfolioGreeksHistory: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   accountId: props.accountId !== undefined ? {
     equals: props.accountId 
   } : undefined,
+  timestamp: props.timestamp !== undefined ? {
+    equals: props.timestamp 
+  } : undefined,
+  contractId: props.contractId !== undefined ? {
+    equals: props.contractId 
+  } : undefined,
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
+  } : undefined,
+  underlying: props.underlying !== undefined ? {
+    equals: props.underlying 
+  } : undefined,
+  delta: props.delta !== undefined ? {
+    equals: props.delta 
+  } : undefined,
+  gamma: props.gamma !== undefined ? {
+    equals: props.gamma 
+  } : undefined,
+  theta: props.theta !== undefined ? {
+    equals: props.theta 
+  } : undefined,
+  vega: props.vega !== undefined ? {
+    equals: props.vega 
+  } : undefined,
+  rho: props.rho !== undefined ? {
+    equals: props.rho 
+  } : undefined,
+  totalDelta: props.totalDelta !== undefined ? {
+    equals: props.totalDelta 
+  } : undefined,
+  totalGamma: props.totalGamma !== undefined ? {
+    equals: props.totalGamma 
+  } : undefined,
+  totalTheta: props.totalTheta !== undefined ? {
+    equals: props.totalTheta 
+  } : undefined,
+  totalVega: props.totalVega !== undefined ? {
+    equals: props.totalVega 
+  } : undefined,
+  totalRho: props.totalRho !== undefined ? {
+    equals: props.totalRho 
+  } : undefined,
+  positionCount: props.positionCount !== undefined ? {
+    equals: props.positionCount 
+  } : undefined,
+  marketHours: props.marketHours !== undefined ? {
+    equals: props.marketHours 
+  } : undefined,
+  vix: props.vix !== undefined ? {
+    equals: props.vix 
+  } : undefined,
+  spyPrice: props.spyPrice !== undefined ? {
+    equals: props.spyPrice 
+  } : undefined,
+  source: props.source !== undefined ? {
+    equals: props.source 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
   } : undefined,
       },
         };

@@ -57462,9 +57462,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'investorId', 'fundId', 'units', 'costBasis', 'realizedPL', 'distributionsPaid', 'currency', 'status', 'firstInvestedAt', 'lastTransactionAt', 'createdAt', 'updatedAt', 'deletedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyHolding: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   investorId: props.investorId !== undefined ? {
@@ -57473,8 +57484,38 @@ import { logger } from './utils/logger';
   fundId: props.fundId !== undefined ? {
     equals: props.fundId 
   } : undefined,
+  units: props.units !== undefined ? {
+    equals: props.units 
+  } : undefined,
+  costBasis: props.costBasis !== undefined ? {
+    equals: props.costBasis 
+  } : undefined,
+  realizedPL: props.realizedPL !== undefined ? {
+    equals: props.realizedPL 
+  } : undefined,
+  distributionsPaid: props.distributionsPaid !== undefined ? {
+    equals: props.distributionsPaid 
+  } : undefined,
+  currency: props.currency !== undefined ? {
+    equals: props.currency 
+  } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  firstInvestedAt: props.firstInvestedAt !== undefined ? {
+    equals: props.firstInvestedAt 
+  } : undefined,
+  lastTransactionAt: props.lastTransactionAt !== undefined ? {
+    equals: props.lastTransactionAt 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
+  deletedAt: props.deletedAt !== undefined ? {
+    equals: props.deletedAt 
   } : undefined,
       },
         };

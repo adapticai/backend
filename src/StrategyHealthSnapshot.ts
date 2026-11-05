@@ -17266,13 +17266,90 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'alpacaAccountId', 'strategyName', 'currentState', 'stateChangedAt', 'stateChangedReason', 'windowSize', 'windowTradeCount', 'windowHitRate', 'windowExpectancy', 'windowProfitFactor', 'windowSortino', 'windowMaxDrawdownPct', 'windowCumulativePnlAmt', 'backtestExpectancy', 'backtestHitRate', 'backtestHitRateStdDev', 'backtestExpectancyStdDev', 'divergenceZScore', 'divergenceAlertActive', 'averageConfidence', 'confidenceTrend', 'lastUpdatedAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyStrategyHealthSnapshot: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   alpacaAccountId: props.alpacaAccountId !== undefined ? {
     equals: props.alpacaAccountId 
+  } : undefined,
+  strategyName: props.strategyName !== undefined ? {
+    equals: props.strategyName 
+  } : undefined,
+  currentState: props.currentState !== undefined ? {
+    equals: props.currentState 
+  } : undefined,
+  stateChangedAt: props.stateChangedAt !== undefined ? {
+    equals: props.stateChangedAt 
+  } : undefined,
+  stateChangedReason: props.stateChangedReason !== undefined ? {
+    equals: props.stateChangedReason 
+  } : undefined,
+  windowSize: props.windowSize !== undefined ? {
+    equals: props.windowSize 
+  } : undefined,
+  windowTradeCount: props.windowTradeCount !== undefined ? {
+    equals: props.windowTradeCount 
+  } : undefined,
+  windowHitRate: props.windowHitRate !== undefined ? {
+    equals: props.windowHitRate 
+  } : undefined,
+  windowExpectancy: props.windowExpectancy !== undefined ? {
+    equals: props.windowExpectancy 
+  } : undefined,
+  windowProfitFactor: props.windowProfitFactor !== undefined ? {
+    equals: props.windowProfitFactor 
+  } : undefined,
+  windowSortino: props.windowSortino !== undefined ? {
+    equals: props.windowSortino 
+  } : undefined,
+  windowMaxDrawdownPct: props.windowMaxDrawdownPct !== undefined ? {
+    equals: props.windowMaxDrawdownPct 
+  } : undefined,
+  windowCumulativePnlAmt: props.windowCumulativePnlAmt !== undefined ? {
+    equals: props.windowCumulativePnlAmt 
+  } : undefined,
+  backtestExpectancy: props.backtestExpectancy !== undefined ? {
+    equals: props.backtestExpectancy 
+  } : undefined,
+  backtestHitRate: props.backtestHitRate !== undefined ? {
+    equals: props.backtestHitRate 
+  } : undefined,
+  backtestHitRateStdDev: props.backtestHitRateStdDev !== undefined ? {
+    equals: props.backtestHitRateStdDev 
+  } : undefined,
+  backtestExpectancyStdDev: props.backtestExpectancyStdDev !== undefined ? {
+    equals: props.backtestExpectancyStdDev 
+  } : undefined,
+  divergenceZScore: props.divergenceZScore !== undefined ? {
+    equals: props.divergenceZScore 
+  } : undefined,
+  divergenceAlertActive: props.divergenceAlertActive !== undefined ? {
+    equals: props.divergenceAlertActive 
+  } : undefined,
+  averageConfidence: props.averageConfidence !== undefined ? {
+    equals: props.averageConfidence 
+  } : undefined,
+  confidenceTrend: props.confidenceTrend !== undefined ? {
+    equals: props.confidenceTrend 
+  } : undefined,
+  lastUpdatedAt: props.lastUpdatedAt !== undefined ? {
+    equals: props.lastUpdatedAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

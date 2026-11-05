@@ -55443,13 +55443,42 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'eventId', 'orgId', 'fundId', 'actorUserId', 'idempotencyKey', 'source', 'createdAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyNotificationEvent: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   eventId: props.eventId !== undefined ? {
     equals: props.eventId 
+  } : undefined,
+  orgId: props.orgId !== undefined ? {
+    equals: props.orgId 
+  } : undefined,
+  fundId: props.fundId !== undefined ? {
+    equals: props.fundId 
+  } : undefined,
+  actorUserId: props.actorUserId !== undefined ? {
+    equals: props.actorUserId 
+  } : undefined,
+  idempotencyKey: props.idempotencyKey !== undefined ? {
+    equals: props.idempotencyKey 
+  } : undefined,
+  source: props.source !== undefined ? {
+    equals: props.source 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
   } : undefined,
       },
         };

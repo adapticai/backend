@@ -1542,13 +1542,30 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'timestamp', 'eventId', 'eventType', 'symbol', 'accountId', 'tradeId', 'signalId', 'orderId', 'userId', 'systemId', 'retentionPolicyId', 'immutable', 'encrypted', 'eventCategory', 'severity', 'passed', 'createdAt', 'retentionDate'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyTradeAuditEvent: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  timestamp: props.timestamp !== undefined ? {
+    equals: props.timestamp 
   } : undefined,
   eventId: props.eventId !== undefined ? {
     equals: props.eventId 
+  } : undefined,
+  eventType: props.eventType !== undefined ? {
+    equals: props.eventType 
   } : undefined,
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
@@ -1573,6 +1590,27 @@ import { logger } from './utils/logger';
   } : undefined,
   retentionPolicyId: props.retentionPolicyId !== undefined ? {
     equals: props.retentionPolicyId 
+  } : undefined,
+  immutable: props.immutable !== undefined ? {
+    equals: props.immutable 
+  } : undefined,
+  encrypted: props.encrypted !== undefined ? {
+    equals: props.encrypted 
+  } : undefined,
+  eventCategory: props.eventCategory !== undefined ? {
+    equals: props.eventCategory 
+  } : undefined,
+  severity: props.severity !== undefined ? {
+    equals: props.severity 
+  } : undefined,
+  passed: props.passed !== undefined ? {
+    equals: props.passed 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  retentionDate: props.retentionDate !== undefined ? {
+    equals: props.retentionDate 
   } : undefined,
       },
         };

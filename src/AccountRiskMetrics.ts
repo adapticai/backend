@@ -17263,13 +17263,87 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'alpacaAccountId', 'currentRiskState', 'riskStateChangedAt', 'riskStateChangedBy', 'riskStateChangeReason', 'accountHighWaterMark', 'accountHighWaterMarkAt', 'currentEquity', 'currentDrawdownPct', 'intradayDrawdownPct', 'maxDrawdownPctLifetime', 'dailyPnlAmount', 'dailyPnlPct', 'weeklyPnlAmount', 'weeklyPnlPct', 'monthlyPnlAmount', 'monthlyPnlPct', 'peakToTroughAmount', 'peakToTroughPct', 'nextRecoveryEligibleAt', 'lastSyncedAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyAccountRiskMetrics: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   alpacaAccountId: props.alpacaAccountId !== undefined ? {
     equals: props.alpacaAccountId 
+  } : undefined,
+  currentRiskState: props.currentRiskState !== undefined ? {
+    equals: props.currentRiskState 
+  } : undefined,
+  riskStateChangedAt: props.riskStateChangedAt !== undefined ? {
+    equals: props.riskStateChangedAt 
+  } : undefined,
+  riskStateChangedBy: props.riskStateChangedBy !== undefined ? {
+    equals: props.riskStateChangedBy 
+  } : undefined,
+  riskStateChangeReason: props.riskStateChangeReason !== undefined ? {
+    equals: props.riskStateChangeReason 
+  } : undefined,
+  accountHighWaterMark: props.accountHighWaterMark !== undefined ? {
+    equals: props.accountHighWaterMark 
+  } : undefined,
+  accountHighWaterMarkAt: props.accountHighWaterMarkAt !== undefined ? {
+    equals: props.accountHighWaterMarkAt 
+  } : undefined,
+  currentEquity: props.currentEquity !== undefined ? {
+    equals: props.currentEquity 
+  } : undefined,
+  currentDrawdownPct: props.currentDrawdownPct !== undefined ? {
+    equals: props.currentDrawdownPct 
+  } : undefined,
+  intradayDrawdownPct: props.intradayDrawdownPct !== undefined ? {
+    equals: props.intradayDrawdownPct 
+  } : undefined,
+  maxDrawdownPctLifetime: props.maxDrawdownPctLifetime !== undefined ? {
+    equals: props.maxDrawdownPctLifetime 
+  } : undefined,
+  dailyPnlAmount: props.dailyPnlAmount !== undefined ? {
+    equals: props.dailyPnlAmount 
+  } : undefined,
+  dailyPnlPct: props.dailyPnlPct !== undefined ? {
+    equals: props.dailyPnlPct 
+  } : undefined,
+  weeklyPnlAmount: props.weeklyPnlAmount !== undefined ? {
+    equals: props.weeklyPnlAmount 
+  } : undefined,
+  weeklyPnlPct: props.weeklyPnlPct !== undefined ? {
+    equals: props.weeklyPnlPct 
+  } : undefined,
+  monthlyPnlAmount: props.monthlyPnlAmount !== undefined ? {
+    equals: props.monthlyPnlAmount 
+  } : undefined,
+  monthlyPnlPct: props.monthlyPnlPct !== undefined ? {
+    equals: props.monthlyPnlPct 
+  } : undefined,
+  peakToTroughAmount: props.peakToTroughAmount !== undefined ? {
+    equals: props.peakToTroughAmount 
+  } : undefined,
+  peakToTroughPct: props.peakToTroughPct !== undefined ? {
+    equals: props.peakToTroughPct 
+  } : undefined,
+  nextRecoveryEligibleAt: props.nextRecoveryEligibleAt !== undefined ? {
+    equals: props.nextRecoveryEligibleAt 
+  } : undefined,
+  lastSyncedAt: props.lastSyncedAt !== undefined ? {
+    equals: props.lastSyncedAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

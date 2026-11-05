@@ -46380,16 +46380,99 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'provider', 'type', 'label', 'fundId', 'engineAccountId', 'apiKey', 'apiSecret', 'marketOpen', 'realTime', 'autoAllocation', 'minPercentageChange', 'volumeThreshold', 'cryptoTradingPairs', 'enablePortfolioTrailingStop', 'portfolioTrailPercent', 'portfolioProfitThresholdPercent', 'reducedPortfolioTrailPercent', 'defaultTrailingStopPercentage100', 'firstTrailReductionThreshold100', 'secondTrailReductionThreshold100', 'firstReducedTrailPercentage100', 'secondReducedTrailPercentage100', 'minimumPriceChangePercent100', 'createdAt', 'updatedAt', 'deletedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyBrokerageAccount: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  provider: props.provider !== undefined ? {
+    equals: props.provider 
   } : undefined,
   type: props.type !== undefined ? {
     equals: props.type 
   } : undefined,
+  label: props.label !== undefined ? {
+    equals: props.label 
+  } : undefined,
   fundId: props.fundId !== undefined ? {
     equals: props.fundId 
+  } : undefined,
+  engineAccountId: props.engineAccountId !== undefined ? {
+    equals: props.engineAccountId 
+  } : undefined,
+  apiKey: props.apiKey !== undefined ? {
+    equals: props.apiKey 
+  } : undefined,
+  apiSecret: props.apiSecret !== undefined ? {
+    equals: props.apiSecret 
+  } : undefined,
+  marketOpen: props.marketOpen !== undefined ? {
+    equals: props.marketOpen 
+  } : undefined,
+  realTime: props.realTime !== undefined ? {
+    equals: props.realTime 
+  } : undefined,
+  autoAllocation: props.autoAllocation !== undefined ? {
+    equals: props.autoAllocation 
+  } : undefined,
+  minPercentageChange: props.minPercentageChange !== undefined ? {
+    equals: props.minPercentageChange 
+  } : undefined,
+  volumeThreshold: props.volumeThreshold !== undefined ? {
+    equals: props.volumeThreshold 
+  } : undefined,
+  cryptoTradingPairs: props.cryptoTradingPairs !== undefined ? {
+    equals: props.cryptoTradingPairs 
+  } : undefined,
+  enablePortfolioTrailingStop: props.enablePortfolioTrailingStop !== undefined ? {
+    equals: props.enablePortfolioTrailingStop 
+  } : undefined,
+  portfolioTrailPercent: props.portfolioTrailPercent !== undefined ? {
+    equals: props.portfolioTrailPercent 
+  } : undefined,
+  portfolioProfitThresholdPercent: props.portfolioProfitThresholdPercent !== undefined ? {
+    equals: props.portfolioProfitThresholdPercent 
+  } : undefined,
+  reducedPortfolioTrailPercent: props.reducedPortfolioTrailPercent !== undefined ? {
+    equals: props.reducedPortfolioTrailPercent 
+  } : undefined,
+  defaultTrailingStopPercentage100: props.defaultTrailingStopPercentage100 !== undefined ? {
+    equals: props.defaultTrailingStopPercentage100 
+  } : undefined,
+  firstTrailReductionThreshold100: props.firstTrailReductionThreshold100 !== undefined ? {
+    equals: props.firstTrailReductionThreshold100 
+  } : undefined,
+  secondTrailReductionThreshold100: props.secondTrailReductionThreshold100 !== undefined ? {
+    equals: props.secondTrailReductionThreshold100 
+  } : undefined,
+  firstReducedTrailPercentage100: props.firstReducedTrailPercentage100 !== undefined ? {
+    equals: props.firstReducedTrailPercentage100 
+  } : undefined,
+  secondReducedTrailPercentage100: props.secondReducedTrailPercentage100 !== undefined ? {
+    equals: props.secondReducedTrailPercentage100 
+  } : undefined,
+  minimumPriceChangePercent100: props.minimumPriceChangePercent100 !== undefined ? {
+    equals: props.minimumPriceChangePercent100 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
+  deletedAt: props.deletedAt !== undefined ? {
+    equals: props.deletedAt 
   } : undefined,
       },
         };

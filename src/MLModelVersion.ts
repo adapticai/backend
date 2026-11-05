@@ -1370,10 +1370,54 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'assetClass', 'slot', 'rankIC', 'trainedAt', 'promotedAt', 'checkpointPath', 'featureCount', 'trainingSymbols', 'trainingBarCount', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyMLModelVersion: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  assetClass: props.assetClass !== undefined ? {
+    equals: props.assetClass 
+  } : undefined,
+  slot: props.slot !== undefined ? {
+    equals: props.slot 
+  } : undefined,
+  rankIC: props.rankIC !== undefined ? {
+    equals: props.rankIC 
+  } : undefined,
+  trainedAt: props.trainedAt !== undefined ? {
+    equals: props.trainedAt 
+  } : undefined,
+  promotedAt: props.promotedAt !== undefined ? {
+    equals: props.promotedAt 
+  } : undefined,
+  checkpointPath: props.checkpointPath !== undefined ? {
+    equals: props.checkpointPath 
+  } : undefined,
+  featureCount: props.featureCount !== undefined ? {
+    equals: props.featureCount 
+  } : undefined,
+  trainingSymbols: props.trainingSymbols !== undefined ? {
+    equals: props.trainingSymbols 
+  } : undefined,
+  trainingBarCount: props.trainingBarCount !== undefined ? {
+    equals: props.trainingBarCount 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

@@ -3447,16 +3447,75 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'title', 'content', 'source', 'sourceDomain', 'url', 'sentiment', 'authors', 'summary', 'bannerImage', 'timePublished', 'category', 'topics', 'logo', 'symbols', 'relevance', 'publishedAt', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyNewsArticle: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   title: props.title !== undefined ? {
     equals: props.title 
   } : undefined,
+  content: props.content !== undefined ? {
+    equals: props.content 
+  } : undefined,
+  source: props.source !== undefined ? {
+    equals: props.source 
+  } : undefined,
+  sourceDomain: props.sourceDomain !== undefined ? {
+    equals: props.sourceDomain 
+  } : undefined,
   url: props.url !== undefined ? {
     equals: props.url 
+  } : undefined,
+  sentiment: props.sentiment !== undefined ? {
+    equals: props.sentiment 
+  } : undefined,
+  authors: props.authors !== undefined ? {
+    equals: props.authors 
+  } : undefined,
+  summary: props.summary !== undefined ? {
+    equals: props.summary 
+  } : undefined,
+  bannerImage: props.bannerImage !== undefined ? {
+    equals: props.bannerImage 
+  } : undefined,
+  timePublished: props.timePublished !== undefined ? {
+    equals: props.timePublished 
+  } : undefined,
+  category: props.category !== undefined ? {
+    equals: props.category 
+  } : undefined,
+  topics: props.topics !== undefined ? {
+    equals: props.topics 
+  } : undefined,
+  logo: props.logo !== undefined ? {
+    equals: props.logo 
+  } : undefined,
+  symbols: props.symbols !== undefined ? {
+    equals: props.symbols 
+  } : undefined,
+  relevance: props.relevance !== undefined ? {
+    equals: props.relevance 
+  } : undefined,
+  publishedAt: props.publishedAt !== undefined ? {
+    equals: props.publishedAt 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

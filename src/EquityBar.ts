@@ -1383,13 +1383,57 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'symbol', 'timeStamp', 'timespan', 'open', 'high', 'low', 'close', 'vol', 'vwap', 'trades', 'source', 'createdAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyEquityBar: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
+  } : undefined,
+  timeStamp: props.timeStamp !== undefined ? {
+    equals: props.timeStamp 
+  } : undefined,
+  timespan: props.timespan !== undefined ? {
+    equals: props.timespan 
+  } : undefined,
+  open: props.open !== undefined ? {
+    equals: props.open 
+  } : undefined,
+  high: props.high !== undefined ? {
+    equals: props.high 
+  } : undefined,
+  low: props.low !== undefined ? {
+    equals: props.low 
+  } : undefined,
+  close: props.close !== undefined ? {
+    equals: props.close 
+  } : undefined,
+  vol: props.vol !== undefined ? {
+    equals: props.vol 
+  } : undefined,
+  vwap: props.vwap !== undefined ? {
+    equals: props.vwap 
+  } : undefined,
+  trades: props.trades !== undefined ? {
+    equals: props.trades 
+  } : undefined,
+  source: props.source !== undefined ? {
+    equals: props.source 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
   } : undefined,
       },
         };

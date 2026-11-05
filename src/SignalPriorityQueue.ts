@@ -1469,10 +1469,24 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'timestamp', 'signalId', 'symbol', 'signalType', 'generatorSource', 'priorityScore', 'generatorWinRate', 'generatorSharpe', 'priorityTier', 'queuePosition', 'status', 'queuedAt', 'processingStartedAt', 'processingCompletedAt', 'timeInQueueMs', 'signalConfidence', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManySignalPriorityQueue: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  timestamp: props.timestamp !== undefined ? {
+    equals: props.timestamp 
   } : undefined,
   signalId: props.signalId !== undefined ? {
     equals: props.signalId 
@@ -1480,8 +1494,47 @@ import { logger } from './utils/logger';
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
   } : undefined,
+  signalType: props.signalType !== undefined ? {
+    equals: props.signalType 
+  } : undefined,
+  generatorSource: props.generatorSource !== undefined ? {
+    equals: props.generatorSource 
+  } : undefined,
+  priorityScore: props.priorityScore !== undefined ? {
+    equals: props.priorityScore 
+  } : undefined,
+  generatorWinRate: props.generatorWinRate !== undefined ? {
+    equals: props.generatorWinRate 
+  } : undefined,
+  generatorSharpe: props.generatorSharpe !== undefined ? {
+    equals: props.generatorSharpe 
+  } : undefined,
+  priorityTier: props.priorityTier !== undefined ? {
+    equals: props.priorityTier 
+  } : undefined,
+  queuePosition: props.queuePosition !== undefined ? {
+    equals: props.queuePosition 
+  } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  queuedAt: props.queuedAt !== undefined ? {
+    equals: props.queuedAt 
+  } : undefined,
+  processingStartedAt: props.processingStartedAt !== undefined ? {
+    equals: props.processingStartedAt 
+  } : undefined,
+  processingCompletedAt: props.processingCompletedAt !== undefined ? {
+    equals: props.processingCompletedAt 
+  } : undefined,
+  timeInQueueMs: props.timeInQueueMs !== undefined ? {
+    equals: props.timeInQueueMs 
+  } : undefined,
+  signalConfidence: props.signalConfidence !== undefined ? {
+    equals: props.signalConfidence 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

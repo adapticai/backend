@@ -27109,22 +27109,69 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'tradingPolicyId', 'overlayType', 'source', 'reason', 'severity', 'version', 'status', 'activatedAt', 'expiresAt', 'deactivatedAt', 'deactivatedBy', 'correlationId', 'triggerEventId', 'riskEscalationEventId', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyPolicyOverlay: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   tradingPolicyId: props.tradingPolicyId !== undefined ? {
     equals: props.tradingPolicyId 
   } : undefined,
+  overlayType: props.overlayType !== undefined ? {
+    equals: props.overlayType 
+  } : undefined,
+  source: props.source !== undefined ? {
+    equals: props.source 
+  } : undefined,
+  reason: props.reason !== undefined ? {
+    equals: props.reason 
+  } : undefined,
+  severity: props.severity !== undefined ? {
+    equals: props.severity 
+  } : undefined,
+  version: props.version !== undefined ? {
+    equals: props.version 
+  } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  activatedAt: props.activatedAt !== undefined ? {
+    equals: props.activatedAt 
+  } : undefined,
+  expiresAt: props.expiresAt !== undefined ? {
+    equals: props.expiresAt 
+  } : undefined,
+  deactivatedAt: props.deactivatedAt !== undefined ? {
+    equals: props.deactivatedAt 
+  } : undefined,
+  deactivatedBy: props.deactivatedBy !== undefined ? {
+    equals: props.deactivatedBy 
   } : undefined,
   correlationId: props.correlationId !== undefined ? {
     equals: props.correlationId 
   } : undefined,
   triggerEventId: props.triggerEventId !== undefined ? {
     equals: props.triggerEventId 
+  } : undefined,
+  riskEscalationEventId: props.riskEscalationEventId !== undefined ? {
+    equals: props.riskEscalationEventId 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

@@ -1400,9 +1400,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'alpacaAccountId', 'symbol', 'sector', 'assetClass', 'summary', 'outcome', 'decisionRecordId', 'correlationId', 'relevanceScore', 'expiresAt', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyDecisionMemorySummary: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   alpacaAccountId: props.alpacaAccountId !== undefined ? {
@@ -1411,11 +1422,35 @@ import { logger } from './utils/logger';
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
   } : undefined,
+  sector: props.sector !== undefined ? {
+    equals: props.sector 
+  } : undefined,
+  assetClass: props.assetClass !== undefined ? {
+    equals: props.assetClass 
+  } : undefined,
+  summary: props.summary !== undefined ? {
+    equals: props.summary 
+  } : undefined,
+  outcome: props.outcome !== undefined ? {
+    equals: props.outcome 
+  } : undefined,
   decisionRecordId: props.decisionRecordId !== undefined ? {
     equals: props.decisionRecordId 
   } : undefined,
   correlationId: props.correlationId !== undefined ? {
     equals: props.correlationId 
+  } : undefined,
+  relevanceScore: props.relevanceScore !== undefined ? {
+    equals: props.relevanceScore 
+  } : undefined,
+  expiresAt: props.expiresAt !== undefined ? {
+    equals: props.expiresAt 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

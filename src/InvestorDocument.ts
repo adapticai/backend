@@ -63638,13 +63638,30 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'organizationId', 'fundId', 'investorId', 'type', 'status', 'title', 'description', 'url', 'storageKey', 'version', 'periodStart', 'periodEnd', 'effectiveDate', 'requiresAcknowledgment', 'isPublic', 'publishedAt', 'createdAt', 'updatedAt', 'deletedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyInvestorDocument: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   organizationId: props.organizationId !== undefined ? {
     equals: props.organizationId 
+  } : undefined,
+  fundId: props.fundId !== undefined ? {
+    equals: props.fundId 
+  } : undefined,
+  investorId: props.investorId !== undefined ? {
+    equals: props.investorId 
   } : undefined,
   type: props.type !== undefined ? {
     equals: props.type 
@@ -63655,8 +63672,44 @@ import { logger } from './utils/logger';
   title: props.title !== undefined ? {
     equals: props.title 
   } : undefined,
+  description: props.description !== undefined ? {
+    equals: props.description 
+  } : undefined,
   url: props.url !== undefined ? {
     equals: props.url 
+  } : undefined,
+  storageKey: props.storageKey !== undefined ? {
+    equals: props.storageKey 
+  } : undefined,
+  version: props.version !== undefined ? {
+    equals: props.version 
+  } : undefined,
+  periodStart: props.periodStart !== undefined ? {
+    equals: props.periodStart 
+  } : undefined,
+  periodEnd: props.periodEnd !== undefined ? {
+    equals: props.periodEnd 
+  } : undefined,
+  effectiveDate: props.effectiveDate !== undefined ? {
+    equals: props.effectiveDate 
+  } : undefined,
+  requiresAcknowledgment: props.requiresAcknowledgment !== undefined ? {
+    equals: props.requiresAcknowledgment 
+  } : undefined,
+  isPublic: props.isPublic !== undefined ? {
+    equals: props.isPublic 
+  } : undefined,
+  publishedAt: props.publishedAt !== undefined ? {
+    equals: props.publishedAt 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
+  deletedAt: props.deletedAt !== undefined ? {
+    equals: props.deletedAt 
   } : undefined,
       },
         };

@@ -3015,9 +3015,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'symbol', 'name', 'type', 'logoUrl', 'description', 'cik', 'exchange', 'currency', 'country', 'sector', 'industry', 'address', 'officialSite', 'fiscalYearEnd', 'latestQuarter', 'marketCapitalization', 'ebitda', 'peRatio', 'pegRatio', 'bookValue', 'dividendPerShare', 'dividendYield', 'eps', 'revenuePerShareTTM', 'profitMargin', 'operatingMarginTTM', 'returnOnAssetsTTM', 'returnOnEquityTTM', 'revenueTTM', 'grossProfitTTM', 'dilutedEPSTTM', 'quarterlyEarningsGrowthYOY', 'quarterlyRevenueGrowthYOY', 'analystTargetPrice', 'analystRatingStrongBuy', 'analystRatingBuy', 'analystRatingHold', 'analystRatingSell', 'analystRatingStrongSell', 'trailingPE', 'forwardPE', 'priceToSalesRatioTTM', 'priceToBookRatio', 'evToRevenue', 'evToEbitda', 'beta', 'week52High', 'week52Low', 'day50MovingAverage', 'day200MovingAverage', 'sharesOutstanding', 'dividendDate', 'exDividendDate', 'askPrice', 'bidPrice', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyAsset: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   symbol: props.symbol !== undefined ? {
@@ -3028,6 +3039,168 @@ import { logger } from './utils/logger';
   } : undefined,
   type: props.type !== undefined ? {
     equals: props.type 
+  } : undefined,
+  logoUrl: props.logoUrl !== undefined ? {
+    equals: props.logoUrl 
+  } : undefined,
+  description: props.description !== undefined ? {
+    equals: props.description 
+  } : undefined,
+  cik: props.cik !== undefined ? {
+    equals: props.cik 
+  } : undefined,
+  exchange: props.exchange !== undefined ? {
+    equals: props.exchange 
+  } : undefined,
+  currency: props.currency !== undefined ? {
+    equals: props.currency 
+  } : undefined,
+  country: props.country !== undefined ? {
+    equals: props.country 
+  } : undefined,
+  sector: props.sector !== undefined ? {
+    equals: props.sector 
+  } : undefined,
+  industry: props.industry !== undefined ? {
+    equals: props.industry 
+  } : undefined,
+  address: props.address !== undefined ? {
+    equals: props.address 
+  } : undefined,
+  officialSite: props.officialSite !== undefined ? {
+    equals: props.officialSite 
+  } : undefined,
+  fiscalYearEnd: props.fiscalYearEnd !== undefined ? {
+    equals: props.fiscalYearEnd 
+  } : undefined,
+  latestQuarter: props.latestQuarter !== undefined ? {
+    equals: props.latestQuarter 
+  } : undefined,
+  marketCapitalization: props.marketCapitalization !== undefined ? {
+    equals: props.marketCapitalization 
+  } : undefined,
+  ebitda: props.ebitda !== undefined ? {
+    equals: props.ebitda 
+  } : undefined,
+  peRatio: props.peRatio !== undefined ? {
+    equals: props.peRatio 
+  } : undefined,
+  pegRatio: props.pegRatio !== undefined ? {
+    equals: props.pegRatio 
+  } : undefined,
+  bookValue: props.bookValue !== undefined ? {
+    equals: props.bookValue 
+  } : undefined,
+  dividendPerShare: props.dividendPerShare !== undefined ? {
+    equals: props.dividendPerShare 
+  } : undefined,
+  dividendYield: props.dividendYield !== undefined ? {
+    equals: props.dividendYield 
+  } : undefined,
+  eps: props.eps !== undefined ? {
+    equals: props.eps 
+  } : undefined,
+  revenuePerShareTTM: props.revenuePerShareTTM !== undefined ? {
+    equals: props.revenuePerShareTTM 
+  } : undefined,
+  profitMargin: props.profitMargin !== undefined ? {
+    equals: props.profitMargin 
+  } : undefined,
+  operatingMarginTTM: props.operatingMarginTTM !== undefined ? {
+    equals: props.operatingMarginTTM 
+  } : undefined,
+  returnOnAssetsTTM: props.returnOnAssetsTTM !== undefined ? {
+    equals: props.returnOnAssetsTTM 
+  } : undefined,
+  returnOnEquityTTM: props.returnOnEquityTTM !== undefined ? {
+    equals: props.returnOnEquityTTM 
+  } : undefined,
+  revenueTTM: props.revenueTTM !== undefined ? {
+    equals: props.revenueTTM 
+  } : undefined,
+  grossProfitTTM: props.grossProfitTTM !== undefined ? {
+    equals: props.grossProfitTTM 
+  } : undefined,
+  dilutedEPSTTM: props.dilutedEPSTTM !== undefined ? {
+    equals: props.dilutedEPSTTM 
+  } : undefined,
+  quarterlyEarningsGrowthYOY: props.quarterlyEarningsGrowthYOY !== undefined ? {
+    equals: props.quarterlyEarningsGrowthYOY 
+  } : undefined,
+  quarterlyRevenueGrowthYOY: props.quarterlyRevenueGrowthYOY !== undefined ? {
+    equals: props.quarterlyRevenueGrowthYOY 
+  } : undefined,
+  analystTargetPrice: props.analystTargetPrice !== undefined ? {
+    equals: props.analystTargetPrice 
+  } : undefined,
+  analystRatingStrongBuy: props.analystRatingStrongBuy !== undefined ? {
+    equals: props.analystRatingStrongBuy 
+  } : undefined,
+  analystRatingBuy: props.analystRatingBuy !== undefined ? {
+    equals: props.analystRatingBuy 
+  } : undefined,
+  analystRatingHold: props.analystRatingHold !== undefined ? {
+    equals: props.analystRatingHold 
+  } : undefined,
+  analystRatingSell: props.analystRatingSell !== undefined ? {
+    equals: props.analystRatingSell 
+  } : undefined,
+  analystRatingStrongSell: props.analystRatingStrongSell !== undefined ? {
+    equals: props.analystRatingStrongSell 
+  } : undefined,
+  trailingPE: props.trailingPE !== undefined ? {
+    equals: props.trailingPE 
+  } : undefined,
+  forwardPE: props.forwardPE !== undefined ? {
+    equals: props.forwardPE 
+  } : undefined,
+  priceToSalesRatioTTM: props.priceToSalesRatioTTM !== undefined ? {
+    equals: props.priceToSalesRatioTTM 
+  } : undefined,
+  priceToBookRatio: props.priceToBookRatio !== undefined ? {
+    equals: props.priceToBookRatio 
+  } : undefined,
+  evToRevenue: props.evToRevenue !== undefined ? {
+    equals: props.evToRevenue 
+  } : undefined,
+  evToEbitda: props.evToEbitda !== undefined ? {
+    equals: props.evToEbitda 
+  } : undefined,
+  beta: props.beta !== undefined ? {
+    equals: props.beta 
+  } : undefined,
+  week52High: props.week52High !== undefined ? {
+    equals: props.week52High 
+  } : undefined,
+  week52Low: props.week52Low !== undefined ? {
+    equals: props.week52Low 
+  } : undefined,
+  day50MovingAverage: props.day50MovingAverage !== undefined ? {
+    equals: props.day50MovingAverage 
+  } : undefined,
+  day200MovingAverage: props.day200MovingAverage !== undefined ? {
+    equals: props.day200MovingAverage 
+  } : undefined,
+  sharesOutstanding: props.sharesOutstanding !== undefined ? {
+    equals: props.sharesOutstanding 
+  } : undefined,
+  dividendDate: props.dividendDate !== undefined ? {
+    equals: props.dividendDate 
+  } : undefined,
+  exDividendDate: props.exDividendDate !== undefined ? {
+    equals: props.exDividendDate 
+  } : undefined,
+  askPrice: props.askPrice !== undefined ? {
+    equals: props.askPrice 
+  } : undefined,
+  bidPrice: props.bidPrice !== undefined ? {
+    equals: props.bidPrice 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

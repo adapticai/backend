@@ -1631,16 +1631,105 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'timestamp', 'accountId', 'ticker', 'action', 'quantity', 'strikePrice', 'expirationDate', 'optionType', 'strategy', 'orderType', 'limitPrice', 'errorMessage', 'errorCode', 'errorStack', 'retryCount', 'maxRetries', 'lastRetryAt', 'nextRetryAt', 'backoffMs', 'status', 'resolvedAt', 'resolvedBy', 'resolution', 'failureCategory', 'severity', 'createdBy', 'updatedAt', 'notes'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyDeadLetterMessage: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  timestamp: props.timestamp !== undefined ? {
+    equals: props.timestamp 
   } : undefined,
   accountId: props.accountId !== undefined ? {
     equals: props.accountId 
   } : undefined,
+  ticker: props.ticker !== undefined ? {
+    equals: props.ticker 
+  } : undefined,
+  action: props.action !== undefined ? {
+    equals: props.action 
+  } : undefined,
+  quantity: props.quantity !== undefined ? {
+    equals: props.quantity 
+  } : undefined,
+  strikePrice: props.strikePrice !== undefined ? {
+    equals: props.strikePrice 
+  } : undefined,
+  expirationDate: props.expirationDate !== undefined ? {
+    equals: props.expirationDate 
+  } : undefined,
+  optionType: props.optionType !== undefined ? {
+    equals: props.optionType 
+  } : undefined,
+  strategy: props.strategy !== undefined ? {
+    equals: props.strategy 
+  } : undefined,
+  orderType: props.orderType !== undefined ? {
+    equals: props.orderType 
+  } : undefined,
+  limitPrice: props.limitPrice !== undefined ? {
+    equals: props.limitPrice 
+  } : undefined,
+  errorMessage: props.errorMessage !== undefined ? {
+    equals: props.errorMessage 
+  } : undefined,
+  errorCode: props.errorCode !== undefined ? {
+    equals: props.errorCode 
+  } : undefined,
+  errorStack: props.errorStack !== undefined ? {
+    equals: props.errorStack 
+  } : undefined,
+  retryCount: props.retryCount !== undefined ? {
+    equals: props.retryCount 
+  } : undefined,
+  maxRetries: props.maxRetries !== undefined ? {
+    equals: props.maxRetries 
+  } : undefined,
+  lastRetryAt: props.lastRetryAt !== undefined ? {
+    equals: props.lastRetryAt 
+  } : undefined,
+  nextRetryAt: props.nextRetryAt !== undefined ? {
+    equals: props.nextRetryAt 
+  } : undefined,
+  backoffMs: props.backoffMs !== undefined ? {
+    equals: props.backoffMs 
+  } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  resolvedAt: props.resolvedAt !== undefined ? {
+    equals: props.resolvedAt 
+  } : undefined,
+  resolvedBy: props.resolvedBy !== undefined ? {
+    equals: props.resolvedBy 
+  } : undefined,
+  resolution: props.resolution !== undefined ? {
+    equals: props.resolution 
+  } : undefined,
+  failureCategory: props.failureCategory !== undefined ? {
+    equals: props.failureCategory 
+  } : undefined,
+  severity: props.severity !== undefined ? {
+    equals: props.severity 
+  } : undefined,
+  createdBy: props.createdBy !== undefined ? {
+    equals: props.createdBy 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
+  notes: props.notes !== undefined ? {
+    equals: props.notes 
   } : undefined,
       },
         };

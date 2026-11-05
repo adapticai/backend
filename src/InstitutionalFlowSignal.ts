@@ -3410,13 +3410,42 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'symbol', 'signalDate', 'signalType', 'signalStrength', 'netFlow', 'confidence', 'createdAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyInstitutionalFlowSignal: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
+  } : undefined,
+  signalDate: props.signalDate !== undefined ? {
+    equals: props.signalDate 
+  } : undefined,
+  signalType: props.signalType !== undefined ? {
+    equals: props.signalType 
+  } : undefined,
+  signalStrength: props.signalStrength !== undefined ? {
+    equals: props.signalStrength 
+  } : undefined,
+  netFlow: props.netFlow !== undefined ? {
+    equals: props.netFlow 
+  } : undefined,
+  confidence: props.confidence !== undefined ? {
+    equals: props.confidence 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
   } : undefined,
       },
         };

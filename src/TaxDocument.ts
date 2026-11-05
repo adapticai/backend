@@ -63997,9 +63997,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'organizationId', 'investorId', 'fundId', 'taxYear', 'formType', 'status', 'url', 'storageKey', 'issuedAt', 'createdAt', 'updatedAt', 'deletedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyTaxDocument: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   organizationId: props.organizationId !== undefined ? {
@@ -64008,11 +64019,35 @@ import { logger } from './utils/logger';
   investorId: props.investorId !== undefined ? {
     equals: props.investorId 
   } : undefined,
+  fundId: props.fundId !== undefined ? {
+    equals: props.fundId 
+  } : undefined,
+  taxYear: props.taxYear !== undefined ? {
+    equals: props.taxYear 
+  } : undefined,
+  formType: props.formType !== undefined ? {
+    equals: props.formType 
+  } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
   } : undefined,
   url: props.url !== undefined ? {
     equals: props.url 
+  } : undefined,
+  storageKey: props.storageKey !== undefined ? {
+    equals: props.storageKey 
+  } : undefined,
+  issuedAt: props.issuedAt !== undefined ? {
+    equals: props.issuedAt 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
+  deletedAt: props.deletedAt !== undefined ? {
+    equals: props.deletedAt 
   } : undefined,
       },
         };

@@ -34070,9 +34070,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'userId', 'email', 'provider', 'providerAccountId', 'status', 'verificationToken', 'userAgent', 'ipAddress', 'createdAt', 'expiresAt', 'verifiedAt', 'approvedAt', 'rejectedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyAccountLinkingRequest: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   userId: props.userId !== undefined ? {
@@ -34081,11 +34092,38 @@ import { logger } from './utils/logger';
   email: props.email !== undefined ? {
     equals: props.email 
   } : undefined,
+  provider: props.provider !== undefined ? {
+    equals: props.provider 
+  } : undefined,
   providerAccountId: props.providerAccountId !== undefined ? {
     equals: props.providerAccountId 
   } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  verificationToken: props.verificationToken !== undefined ? {
+    equals: props.verificationToken 
+  } : undefined,
+  userAgent: props.userAgent !== undefined ? {
+    equals: props.userAgent 
+  } : undefined,
+  ipAddress: props.ipAddress !== undefined ? {
+    equals: props.ipAddress 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  expiresAt: props.expiresAt !== undefined ? {
+    equals: props.expiresAt 
+  } : undefined,
+  verifiedAt: props.verifiedAt !== undefined ? {
+    equals: props.verifiedAt 
+  } : undefined,
+  approvedAt: props.approvedAt !== undefined ? {
+    equals: props.approvedAt 
+  } : undefined,
+  rejectedAt: props.rejectedAt !== undefined ? {
+    equals: props.rejectedAt 
   } : undefined,
       },
         };

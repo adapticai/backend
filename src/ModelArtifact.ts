@@ -5819,10 +5819,63 @@ id
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'modelName', 'version', 'artifactType', 'storageUrl', 'storageProvider', 'fileSize', 'checksum', 'compressionType', 'metadataFramework', 'metadataPythonVersion', 'metadataTrainingDate', 'metadataDatasetSize', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyModelArtifact: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  modelName: props.modelName !== undefined ? {
+    equals: props.modelName 
+  } : undefined,
+  version: props.version !== undefined ? {
+    equals: props.version 
+  } : undefined,
+  artifactType: props.artifactType !== undefined ? {
+    equals: props.artifactType 
+  } : undefined,
+  storageUrl: props.storageUrl !== undefined ? {
+    equals: props.storageUrl 
+  } : undefined,
+  storageProvider: props.storageProvider !== undefined ? {
+    equals: props.storageProvider 
+  } : undefined,
+  fileSize: props.fileSize !== undefined ? {
+    equals: props.fileSize 
+  } : undefined,
+  checksum: props.checksum !== undefined ? {
+    equals: props.checksum 
+  } : undefined,
+  compressionType: props.compressionType !== undefined ? {
+    equals: props.compressionType 
+  } : undefined,
+  metadataFramework: props.metadataFramework !== undefined ? {
+    equals: props.metadataFramework 
+  } : undefined,
+  metadataPythonVersion: props.metadataPythonVersion !== undefined ? {
+    equals: props.metadataPythonVersion 
+  } : undefined,
+  metadataTrainingDate: props.metadataTrainingDate !== undefined ? {
+    equals: props.metadataTrainingDate 
+  } : undefined,
+  metadataDatasetSize: props.metadataDatasetSize !== undefined ? {
+    equals: props.metadataDatasetSize 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

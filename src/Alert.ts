@@ -17080,9 +17080,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'alpacaAccountId', 'title', 'message', 'type', 'severity', 'category', 'status', 'isRead', 'acknowledgedAt', 'resolvedAt', 'suppressedUntil', 'retryCount', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyAlert: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   alpacaAccountId: props.alpacaAccountId !== undefined ? {
@@ -17091,11 +17102,41 @@ import { logger } from './utils/logger';
   title: props.title !== undefined ? {
     equals: props.title 
   } : undefined,
+  message: props.message !== undefined ? {
+    equals: props.message 
+  } : undefined,
   type: props.type !== undefined ? {
     equals: props.type 
   } : undefined,
+  severity: props.severity !== undefined ? {
+    equals: props.severity 
+  } : undefined,
+  category: props.category !== undefined ? {
+    equals: props.category 
+  } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  isRead: props.isRead !== undefined ? {
+    equals: props.isRead 
+  } : undefined,
+  acknowledgedAt: props.acknowledgedAt !== undefined ? {
+    equals: props.acknowledgedAt 
+  } : undefined,
+  resolvedAt: props.resolvedAt !== undefined ? {
+    equals: props.resolvedAt 
+  } : undefined,
+  suppressedUntil: props.suppressedUntil !== undefined ? {
+    equals: props.suppressedUntil 
+  } : undefined,
+  retryCount: props.retryCount !== undefined ? {
+    equals: props.retryCount 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

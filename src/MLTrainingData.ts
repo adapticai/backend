@@ -1864,9 +1864,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'signalId', 'symbol', 'signalType', 'signalStrength', 'predictedConfidence', 'actualOutcomeSuccess', 'actualOutcomeProfitLoss', 'actualOutcomeReturnPercent', 'actualOutcomeSharpeRatio', 'actualOutcomeMaxDrawdown', 'actualOutcomeDaysHeld', 'actualOutcomeExitReason', 'actualOutcomeQuality', 'entryPrice', 'exitPrice', 'entryTime', 'exitTime', 'holdingPeriod', 'returnPercent', 'maxDrawdown', 'maxGain', 'volatilityDuringHold', 'marketContextRegime', 'marketContextVolatility', 'marketContextSentiment', 'marketContextVolume', 'marketContextCorrelation', 'marketContextBreadth', 'executionMetricsLatency', 'executionMetricsSlippage', 'executionMetricsMarketImpact', 'executionMetricsTimingAccuracy', 'executionMetricsFillQuality', 'executionMetricsOrderSize', 'executionMetricsLiquidityScore', 'slippageAnalysisExpected', 'slippageAnalysisActual', 'slippageAnalysisDifference', 'slippageAnalysisMarketConditions', 'slippageAnalysisTimeOfExecution', 'slippageAnalysisVolumeAtExecution', 'slippageAnalysisSpreadAtExecution', 'attributionAlphaGeneration', 'attributionBetaExposure', 'attributionSkillVsLuck', 'attributionInformationRatio', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyMLTrainingData: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   signalId: props.signalId !== undefined ? {
@@ -1874,6 +1885,144 @@ import { logger } from './utils/logger';
   } : undefined,
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
+  } : undefined,
+  signalType: props.signalType !== undefined ? {
+    equals: props.signalType 
+  } : undefined,
+  signalStrength: props.signalStrength !== undefined ? {
+    equals: props.signalStrength 
+  } : undefined,
+  predictedConfidence: props.predictedConfidence !== undefined ? {
+    equals: props.predictedConfidence 
+  } : undefined,
+  actualOutcomeSuccess: props.actualOutcomeSuccess !== undefined ? {
+    equals: props.actualOutcomeSuccess 
+  } : undefined,
+  actualOutcomeProfitLoss: props.actualOutcomeProfitLoss !== undefined ? {
+    equals: props.actualOutcomeProfitLoss 
+  } : undefined,
+  actualOutcomeReturnPercent: props.actualOutcomeReturnPercent !== undefined ? {
+    equals: props.actualOutcomeReturnPercent 
+  } : undefined,
+  actualOutcomeSharpeRatio: props.actualOutcomeSharpeRatio !== undefined ? {
+    equals: props.actualOutcomeSharpeRatio 
+  } : undefined,
+  actualOutcomeMaxDrawdown: props.actualOutcomeMaxDrawdown !== undefined ? {
+    equals: props.actualOutcomeMaxDrawdown 
+  } : undefined,
+  actualOutcomeDaysHeld: props.actualOutcomeDaysHeld !== undefined ? {
+    equals: props.actualOutcomeDaysHeld 
+  } : undefined,
+  actualOutcomeExitReason: props.actualOutcomeExitReason !== undefined ? {
+    equals: props.actualOutcomeExitReason 
+  } : undefined,
+  actualOutcomeQuality: props.actualOutcomeQuality !== undefined ? {
+    equals: props.actualOutcomeQuality 
+  } : undefined,
+  entryPrice: props.entryPrice !== undefined ? {
+    equals: props.entryPrice 
+  } : undefined,
+  exitPrice: props.exitPrice !== undefined ? {
+    equals: props.exitPrice 
+  } : undefined,
+  entryTime: props.entryTime !== undefined ? {
+    equals: props.entryTime 
+  } : undefined,
+  exitTime: props.exitTime !== undefined ? {
+    equals: props.exitTime 
+  } : undefined,
+  holdingPeriod: props.holdingPeriod !== undefined ? {
+    equals: props.holdingPeriod 
+  } : undefined,
+  returnPercent: props.returnPercent !== undefined ? {
+    equals: props.returnPercent 
+  } : undefined,
+  maxDrawdown: props.maxDrawdown !== undefined ? {
+    equals: props.maxDrawdown 
+  } : undefined,
+  maxGain: props.maxGain !== undefined ? {
+    equals: props.maxGain 
+  } : undefined,
+  volatilityDuringHold: props.volatilityDuringHold !== undefined ? {
+    equals: props.volatilityDuringHold 
+  } : undefined,
+  marketContextRegime: props.marketContextRegime !== undefined ? {
+    equals: props.marketContextRegime 
+  } : undefined,
+  marketContextVolatility: props.marketContextVolatility !== undefined ? {
+    equals: props.marketContextVolatility 
+  } : undefined,
+  marketContextSentiment: props.marketContextSentiment !== undefined ? {
+    equals: props.marketContextSentiment 
+  } : undefined,
+  marketContextVolume: props.marketContextVolume !== undefined ? {
+    equals: props.marketContextVolume 
+  } : undefined,
+  marketContextCorrelation: props.marketContextCorrelation !== undefined ? {
+    equals: props.marketContextCorrelation 
+  } : undefined,
+  marketContextBreadth: props.marketContextBreadth !== undefined ? {
+    equals: props.marketContextBreadth 
+  } : undefined,
+  executionMetricsLatency: props.executionMetricsLatency !== undefined ? {
+    equals: props.executionMetricsLatency 
+  } : undefined,
+  executionMetricsSlippage: props.executionMetricsSlippage !== undefined ? {
+    equals: props.executionMetricsSlippage 
+  } : undefined,
+  executionMetricsMarketImpact: props.executionMetricsMarketImpact !== undefined ? {
+    equals: props.executionMetricsMarketImpact 
+  } : undefined,
+  executionMetricsTimingAccuracy: props.executionMetricsTimingAccuracy !== undefined ? {
+    equals: props.executionMetricsTimingAccuracy 
+  } : undefined,
+  executionMetricsFillQuality: props.executionMetricsFillQuality !== undefined ? {
+    equals: props.executionMetricsFillQuality 
+  } : undefined,
+  executionMetricsOrderSize: props.executionMetricsOrderSize !== undefined ? {
+    equals: props.executionMetricsOrderSize 
+  } : undefined,
+  executionMetricsLiquidityScore: props.executionMetricsLiquidityScore !== undefined ? {
+    equals: props.executionMetricsLiquidityScore 
+  } : undefined,
+  slippageAnalysisExpected: props.slippageAnalysisExpected !== undefined ? {
+    equals: props.slippageAnalysisExpected 
+  } : undefined,
+  slippageAnalysisActual: props.slippageAnalysisActual !== undefined ? {
+    equals: props.slippageAnalysisActual 
+  } : undefined,
+  slippageAnalysisDifference: props.slippageAnalysisDifference !== undefined ? {
+    equals: props.slippageAnalysisDifference 
+  } : undefined,
+  slippageAnalysisMarketConditions: props.slippageAnalysisMarketConditions !== undefined ? {
+    equals: props.slippageAnalysisMarketConditions 
+  } : undefined,
+  slippageAnalysisTimeOfExecution: props.slippageAnalysisTimeOfExecution !== undefined ? {
+    equals: props.slippageAnalysisTimeOfExecution 
+  } : undefined,
+  slippageAnalysisVolumeAtExecution: props.slippageAnalysisVolumeAtExecution !== undefined ? {
+    equals: props.slippageAnalysisVolumeAtExecution 
+  } : undefined,
+  slippageAnalysisSpreadAtExecution: props.slippageAnalysisSpreadAtExecution !== undefined ? {
+    equals: props.slippageAnalysisSpreadAtExecution 
+  } : undefined,
+  attributionAlphaGeneration: props.attributionAlphaGeneration !== undefined ? {
+    equals: props.attributionAlphaGeneration 
+  } : undefined,
+  attributionBetaExposure: props.attributionBetaExposure !== undefined ? {
+    equals: props.attributionBetaExposure 
+  } : undefined,
+  attributionSkillVsLuck: props.attributionSkillVsLuck !== undefined ? {
+    equals: props.attributionSkillVsLuck 
+  } : undefined,
+  attributionInformationRatio: props.attributionInformationRatio !== undefined ? {
+    equals: props.attributionInformationRatio 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

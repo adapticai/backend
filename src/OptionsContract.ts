@@ -6353,13 +6353,105 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'symbol', 'contractSymbol', 'optionType', 'strikePrice', 'expirationDate', 'daysToExpiration', 'lastPrice', 'bidPrice', 'askPrice', 'midPrice', 'bidSize', 'askSize', 'volume', 'openInterest', 'impliedVolatility', 'delta', 'gamma', 'theta', 'vega', 'rho', 'inTheMoney', 'intrinsicValue', 'extrinsicValue', 'theoreticalPrice', 'underlyingPrice', 'dataTimestamp', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyOptionsContract: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
+  } : undefined,
+  contractSymbol: props.contractSymbol !== undefined ? {
+    equals: props.contractSymbol 
+  } : undefined,
+  optionType: props.optionType !== undefined ? {
+    equals: props.optionType 
+  } : undefined,
+  strikePrice: props.strikePrice !== undefined ? {
+    equals: props.strikePrice 
+  } : undefined,
+  expirationDate: props.expirationDate !== undefined ? {
+    equals: props.expirationDate 
+  } : undefined,
+  daysToExpiration: props.daysToExpiration !== undefined ? {
+    equals: props.daysToExpiration 
+  } : undefined,
+  lastPrice: props.lastPrice !== undefined ? {
+    equals: props.lastPrice 
+  } : undefined,
+  bidPrice: props.bidPrice !== undefined ? {
+    equals: props.bidPrice 
+  } : undefined,
+  askPrice: props.askPrice !== undefined ? {
+    equals: props.askPrice 
+  } : undefined,
+  midPrice: props.midPrice !== undefined ? {
+    equals: props.midPrice 
+  } : undefined,
+  bidSize: props.bidSize !== undefined ? {
+    equals: props.bidSize 
+  } : undefined,
+  askSize: props.askSize !== undefined ? {
+    equals: props.askSize 
+  } : undefined,
+  volume: props.volume !== undefined ? {
+    equals: props.volume 
+  } : undefined,
+  openInterest: props.openInterest !== undefined ? {
+    equals: props.openInterest 
+  } : undefined,
+  impliedVolatility: props.impliedVolatility !== undefined ? {
+    equals: props.impliedVolatility 
+  } : undefined,
+  delta: props.delta !== undefined ? {
+    equals: props.delta 
+  } : undefined,
+  gamma: props.gamma !== undefined ? {
+    equals: props.gamma 
+  } : undefined,
+  theta: props.theta !== undefined ? {
+    equals: props.theta 
+  } : undefined,
+  vega: props.vega !== undefined ? {
+    equals: props.vega 
+  } : undefined,
+  rho: props.rho !== undefined ? {
+    equals: props.rho 
+  } : undefined,
+  inTheMoney: props.inTheMoney !== undefined ? {
+    equals: props.inTheMoney 
+  } : undefined,
+  intrinsicValue: props.intrinsicValue !== undefined ? {
+    equals: props.intrinsicValue 
+  } : undefined,
+  extrinsicValue: props.extrinsicValue !== undefined ? {
+    equals: props.extrinsicValue 
+  } : undefined,
+  theoreticalPrice: props.theoreticalPrice !== undefined ? {
+    equals: props.theoreticalPrice 
+  } : undefined,
+  underlyingPrice: props.underlyingPrice !== undefined ? {
+    equals: props.underlyingPrice 
+  } : undefined,
+  dataTimestamp: props.dataTimestamp !== undefined ? {
+    equals: props.dataTimestamp 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

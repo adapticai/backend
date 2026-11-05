@@ -40458,13 +40458,51 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'key', 'displayName', 'description', 'origin', 'lifecycleState', 'manifestHash', 'ownerUserId', 'createdAt', 'updatedAt', 'deletedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyStrategy: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   key: props.key !== undefined ? {
     equals: props.key 
+  } : undefined,
+  displayName: props.displayName !== undefined ? {
+    equals: props.displayName 
+  } : undefined,
+  description: props.description !== undefined ? {
+    equals: props.description 
+  } : undefined,
+  origin: props.origin !== undefined ? {
+    equals: props.origin 
+  } : undefined,
+  lifecycleState: props.lifecycleState !== undefined ? {
+    equals: props.lifecycleState 
+  } : undefined,
+  manifestHash: props.manifestHash !== undefined ? {
+    equals: props.manifestHash 
+  } : undefined,
+  ownerUserId: props.ownerUserId !== undefined ? {
+    equals: props.ownerUserId 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
+  deletedAt: props.deletedAt !== undefined ? {
+    equals: props.deletedAt 
   } : undefined,
       },
         };

@@ -22020,13 +22020,27 @@ id
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'name', 'description', 'status', 'modelVersionAId', 'modelVersionBId', 'trafficSplitControlPercent', 'trafficSplitTreatmentPercent', 'successCriteriaPrimaryMetric', 'successCriteriaMinimumDetectableEffect', 'successCriteriaSignificanceLevel', 'successCriteriaPowerLevel', 'startDate', 'endDate', 'plannedDuration', 'resultsRecommendation', 'metadataEnvironment', 'createdAt', 'updatedAt', 'completedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyABTest: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   name: props.name !== undefined ? {
     equals: props.name 
+  } : undefined,
+  description: props.description !== undefined ? {
+    equals: props.description 
   } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
@@ -22036,6 +22050,48 @@ id
   } : undefined,
   modelVersionBId: props.modelVersionBId !== undefined ? {
     equals: props.modelVersionBId 
+  } : undefined,
+  trafficSplitControlPercent: props.trafficSplitControlPercent !== undefined ? {
+    equals: props.trafficSplitControlPercent 
+  } : undefined,
+  trafficSplitTreatmentPercent: props.trafficSplitTreatmentPercent !== undefined ? {
+    equals: props.trafficSplitTreatmentPercent 
+  } : undefined,
+  successCriteriaPrimaryMetric: props.successCriteriaPrimaryMetric !== undefined ? {
+    equals: props.successCriteriaPrimaryMetric 
+  } : undefined,
+  successCriteriaMinimumDetectableEffect: props.successCriteriaMinimumDetectableEffect !== undefined ? {
+    equals: props.successCriteriaMinimumDetectableEffect 
+  } : undefined,
+  successCriteriaSignificanceLevel: props.successCriteriaSignificanceLevel !== undefined ? {
+    equals: props.successCriteriaSignificanceLevel 
+  } : undefined,
+  successCriteriaPowerLevel: props.successCriteriaPowerLevel !== undefined ? {
+    equals: props.successCriteriaPowerLevel 
+  } : undefined,
+  startDate: props.startDate !== undefined ? {
+    equals: props.startDate 
+  } : undefined,
+  endDate: props.endDate !== undefined ? {
+    equals: props.endDate 
+  } : undefined,
+  plannedDuration: props.plannedDuration !== undefined ? {
+    equals: props.plannedDuration 
+  } : undefined,
+  resultsRecommendation: props.resultsRecommendation !== undefined ? {
+    equals: props.resultsRecommendation 
+  } : undefined,
+  metadataEnvironment: props.metadataEnvironment !== undefined ? {
+    equals: props.metadataEnvironment 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
+  completedAt: props.completedAt !== undefined ? {
+    equals: props.completedAt 
   } : undefined,
       },
         };

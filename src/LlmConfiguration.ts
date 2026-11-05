@@ -34104,13 +34104,75 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'userId', 'defaultProvider', 'miniProvider', 'normalProvider', 'advancedProvider', 'miniModel', 'normalModel', 'advancedModel', 'openaiApiKey', 'anthropicApiKey', 'deepseekApiKey', 'kimiApiKey', 'qwenApiKey', 'xaiApiKey', 'geminiApiKey', 'deepinfraApiKey', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyLlmConfiguration: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   userId: props.userId !== undefined ? {
     equals: props.userId 
+  } : undefined,
+  defaultProvider: props.defaultProvider !== undefined ? {
+    equals: props.defaultProvider 
+  } : undefined,
+  miniProvider: props.miniProvider !== undefined ? {
+    equals: props.miniProvider 
+  } : undefined,
+  normalProvider: props.normalProvider !== undefined ? {
+    equals: props.normalProvider 
+  } : undefined,
+  advancedProvider: props.advancedProvider !== undefined ? {
+    equals: props.advancedProvider 
+  } : undefined,
+  miniModel: props.miniModel !== undefined ? {
+    equals: props.miniModel 
+  } : undefined,
+  normalModel: props.normalModel !== undefined ? {
+    equals: props.normalModel 
+  } : undefined,
+  advancedModel: props.advancedModel !== undefined ? {
+    equals: props.advancedModel 
+  } : undefined,
+  openaiApiKey: props.openaiApiKey !== undefined ? {
+    equals: props.openaiApiKey 
+  } : undefined,
+  anthropicApiKey: props.anthropicApiKey !== undefined ? {
+    equals: props.anthropicApiKey 
+  } : undefined,
+  deepseekApiKey: props.deepseekApiKey !== undefined ? {
+    equals: props.deepseekApiKey 
+  } : undefined,
+  kimiApiKey: props.kimiApiKey !== undefined ? {
+    equals: props.kimiApiKey 
+  } : undefined,
+  qwenApiKey: props.qwenApiKey !== undefined ? {
+    equals: props.qwenApiKey 
+  } : undefined,
+  xaiApiKey: props.xaiApiKey !== undefined ? {
+    equals: props.xaiApiKey 
+  } : undefined,
+  geminiApiKey: props.geminiApiKey !== undefined ? {
+    equals: props.geminiApiKey 
+  } : undefined,
+  deepinfraApiKey: props.deepinfraApiKey !== undefined ? {
+    equals: props.deepinfraApiKey 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

@@ -1818,13 +1818,159 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'timestamp', 'symbol', 'overallSentiment', 'confidence', 'secFilingsSentiment', 'secFilingsConfidence', 'secInsiderTradingSignal', 'secInstitutionalFlowSignal', 'secAnalystRevisionsSignal', 'secGuidanceChangesSignal', 'secShortTrend', 'secMediumTrend', 'secLongTrend', 'insiderTradingOverall', 'insiderBuyingSentiment', 'insiderSellingSentiment', 'insiderSignificantCount', 'insiderTotalValue', 'insiderRecentActivity', 'analystOverall', 'analystAverageRating', 'analystAverageTarget', 'analystUpgrades', 'analystDowngrades', 'analystTargetChanges', 'analystConsensus', 'optionsFlowOverall', 'optionsCallFlow', 'optionsPutFlow', 'optionsUnusualActivity', 'optionsBlockActivity', 'optionsSweepActivity', 'optionsSentimentScore', 'institutionalFlowOverall', 'institutionalNetFlow', 'institutionalIncreasingPositions', 'institutionalDecreasingPositions', 'institutionalNewPositions', 'institutionalClosedPositions', 'darkPoolOverall', 'darkPoolBuyPressure', 'darkPoolSellPressure', 'darkPoolVolumeSignificance', 'darkPoolPriceImpact', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyInstitutionalSentimentHistory: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  timestamp: props.timestamp !== undefined ? {
+    equals: props.timestamp 
   } : undefined,
   symbol: props.symbol !== undefined ? {
     equals: props.symbol 
+  } : undefined,
+  overallSentiment: props.overallSentiment !== undefined ? {
+    equals: props.overallSentiment 
+  } : undefined,
+  confidence: props.confidence !== undefined ? {
+    equals: props.confidence 
+  } : undefined,
+  secFilingsSentiment: props.secFilingsSentiment !== undefined ? {
+    equals: props.secFilingsSentiment 
+  } : undefined,
+  secFilingsConfidence: props.secFilingsConfidence !== undefined ? {
+    equals: props.secFilingsConfidence 
+  } : undefined,
+  secInsiderTradingSignal: props.secInsiderTradingSignal !== undefined ? {
+    equals: props.secInsiderTradingSignal 
+  } : undefined,
+  secInstitutionalFlowSignal: props.secInstitutionalFlowSignal !== undefined ? {
+    equals: props.secInstitutionalFlowSignal 
+  } : undefined,
+  secAnalystRevisionsSignal: props.secAnalystRevisionsSignal !== undefined ? {
+    equals: props.secAnalystRevisionsSignal 
+  } : undefined,
+  secGuidanceChangesSignal: props.secGuidanceChangesSignal !== undefined ? {
+    equals: props.secGuidanceChangesSignal 
+  } : undefined,
+  secShortTrend: props.secShortTrend !== undefined ? {
+    equals: props.secShortTrend 
+  } : undefined,
+  secMediumTrend: props.secMediumTrend !== undefined ? {
+    equals: props.secMediumTrend 
+  } : undefined,
+  secLongTrend: props.secLongTrend !== undefined ? {
+    equals: props.secLongTrend 
+  } : undefined,
+  insiderTradingOverall: props.insiderTradingOverall !== undefined ? {
+    equals: props.insiderTradingOverall 
+  } : undefined,
+  insiderBuyingSentiment: props.insiderBuyingSentiment !== undefined ? {
+    equals: props.insiderBuyingSentiment 
+  } : undefined,
+  insiderSellingSentiment: props.insiderSellingSentiment !== undefined ? {
+    equals: props.insiderSellingSentiment 
+  } : undefined,
+  insiderSignificantCount: props.insiderSignificantCount !== undefined ? {
+    equals: props.insiderSignificantCount 
+  } : undefined,
+  insiderTotalValue: props.insiderTotalValue !== undefined ? {
+    equals: props.insiderTotalValue 
+  } : undefined,
+  insiderRecentActivity: props.insiderRecentActivity !== undefined ? {
+    equals: props.insiderRecentActivity 
+  } : undefined,
+  analystOverall: props.analystOverall !== undefined ? {
+    equals: props.analystOverall 
+  } : undefined,
+  analystAverageRating: props.analystAverageRating !== undefined ? {
+    equals: props.analystAverageRating 
+  } : undefined,
+  analystAverageTarget: props.analystAverageTarget !== undefined ? {
+    equals: props.analystAverageTarget 
+  } : undefined,
+  analystUpgrades: props.analystUpgrades !== undefined ? {
+    equals: props.analystUpgrades 
+  } : undefined,
+  analystDowngrades: props.analystDowngrades !== undefined ? {
+    equals: props.analystDowngrades 
+  } : undefined,
+  analystTargetChanges: props.analystTargetChanges !== undefined ? {
+    equals: props.analystTargetChanges 
+  } : undefined,
+  analystConsensus: props.analystConsensus !== undefined ? {
+    equals: props.analystConsensus 
+  } : undefined,
+  optionsFlowOverall: props.optionsFlowOverall !== undefined ? {
+    equals: props.optionsFlowOverall 
+  } : undefined,
+  optionsCallFlow: props.optionsCallFlow !== undefined ? {
+    equals: props.optionsCallFlow 
+  } : undefined,
+  optionsPutFlow: props.optionsPutFlow !== undefined ? {
+    equals: props.optionsPutFlow 
+  } : undefined,
+  optionsUnusualActivity: props.optionsUnusualActivity !== undefined ? {
+    equals: props.optionsUnusualActivity 
+  } : undefined,
+  optionsBlockActivity: props.optionsBlockActivity !== undefined ? {
+    equals: props.optionsBlockActivity 
+  } : undefined,
+  optionsSweepActivity: props.optionsSweepActivity !== undefined ? {
+    equals: props.optionsSweepActivity 
+  } : undefined,
+  optionsSentimentScore: props.optionsSentimentScore !== undefined ? {
+    equals: props.optionsSentimentScore 
+  } : undefined,
+  institutionalFlowOverall: props.institutionalFlowOverall !== undefined ? {
+    equals: props.institutionalFlowOverall 
+  } : undefined,
+  institutionalNetFlow: props.institutionalNetFlow !== undefined ? {
+    equals: props.institutionalNetFlow 
+  } : undefined,
+  institutionalIncreasingPositions: props.institutionalIncreasingPositions !== undefined ? {
+    equals: props.institutionalIncreasingPositions 
+  } : undefined,
+  institutionalDecreasingPositions: props.institutionalDecreasingPositions !== undefined ? {
+    equals: props.institutionalDecreasingPositions 
+  } : undefined,
+  institutionalNewPositions: props.institutionalNewPositions !== undefined ? {
+    equals: props.institutionalNewPositions 
+  } : undefined,
+  institutionalClosedPositions: props.institutionalClosedPositions !== undefined ? {
+    equals: props.institutionalClosedPositions 
+  } : undefined,
+  darkPoolOverall: props.darkPoolOverall !== undefined ? {
+    equals: props.darkPoolOverall 
+  } : undefined,
+  darkPoolBuyPressure: props.darkPoolBuyPressure !== undefined ? {
+    equals: props.darkPoolBuyPressure 
+  } : undefined,
+  darkPoolSellPressure: props.darkPoolSellPressure !== undefined ? {
+    equals: props.darkPoolSellPressure 
+  } : undefined,
+  darkPoolVolumeSignificance: props.darkPoolVolumeSignificance !== undefined ? {
+    equals: props.darkPoolVolumeSignificance 
+  } : undefined,
+  darkPoolPriceImpact: props.darkPoolPriceImpact !== undefined ? {
+    equals: props.darkPoolPriceImpact 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

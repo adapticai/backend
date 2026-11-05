@@ -26967,9 +26967,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'accountId', 'strategyId', 'status', 'units', 'costBasis', 'realizedPL', 'targetAllocationPct', 'currency', 'subscribedAt', 'lastRebalancedAt', 'createdAt', 'updatedAt', 'deletedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyStrategySubscription: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   accountId: props.accountId !== undefined ? {
@@ -26980,6 +26991,36 @@ import { logger } from './utils/logger';
   } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  units: props.units !== undefined ? {
+    equals: props.units 
+  } : undefined,
+  costBasis: props.costBasis !== undefined ? {
+    equals: props.costBasis 
+  } : undefined,
+  realizedPL: props.realizedPL !== undefined ? {
+    equals: props.realizedPL 
+  } : undefined,
+  targetAllocationPct: props.targetAllocationPct !== undefined ? {
+    equals: props.targetAllocationPct 
+  } : undefined,
+  currency: props.currency !== undefined ? {
+    equals: props.currency 
+  } : undefined,
+  subscribedAt: props.subscribedAt !== undefined ? {
+    equals: props.subscribedAt 
+  } : undefined,
+  lastRebalancedAt: props.lastRebalancedAt !== undefined ? {
+    equals: props.lastRebalancedAt 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
+  } : undefined,
+  deletedAt: props.deletedAt !== undefined ? {
+    equals: props.deletedAt 
   } : undefined,
       },
         };

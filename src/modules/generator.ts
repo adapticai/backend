@@ -4,6 +4,10 @@ import pluralize from 'pluralize';
 import { FieldDefinition, FieldType, InputTypePaths } from './types';
 import { capitalizeFirstLetter, lowerCaseFirstLetter } from './utils';
 import { getInputTypeDefinition } from './parser';
+import {
+  buildFindManyPropsGuard,
+  buildFindManyWhereBody,
+} from './find-many-where';
 import { selectionSets } from '../generated/selectionSets';
 import { logger } from '../utils/logger';
 
@@ -48,7 +52,6 @@ type OperationType =
   | 'updateMany'
   | 'where'
   | 'updateWhere' // Special where clause for update mutations - only uses 'id' as identifier
-  | 'findMany'
   | 'none'
   | 'upsert'
   | 'delete'
@@ -67,7 +70,7 @@ type OperationType =
  * @param maxDepth - Maximum allowed depth for recursion.
  * @returns Variables object as a string.
  */
-const constructVariablesObject = (
+export const constructVariablesObject = (
   propsAccessor: string,
   modelPath: string | null = null,
   rootModelName: string,
@@ -150,7 +153,6 @@ const constructVariablesObject = (
         );
         break;
       case 'where':
-      case 'findMany':
       case 'get':
         variablesObject += handleWhereOperation(
           field,
@@ -919,6 +921,17 @@ export const generateModelFunctions = (
     scalarWhere: path.join(inputsPath, inputTypes.scalarWhere),
     where: path.join(inputsPath, inputTypes.where),
   };
+
+  // findMany's props-only where covers every filterable column of the
+  // model's WhereInput (see find-many-where.ts). A model without a
+  // WhereInput cannot produce a correct findMany, so generation fails here
+  // rather than emitting one that filters on nothing.
+  if (!fs.existsSync(inputTypePaths.where)) {
+    throw new Error(
+      `generateModelFunctions(${capitalModelName}): ${inputTypePaths.where} does not exist; findMany needs the model's WhereInput`
+    );
+  }
+  const findManyWhereFields = getInputTypeDefinition(inputTypePaths.where);
 
   // Add validation import for Allocation model
   const allocationValidationImport =
@@ -2242,16 +2255,10 @@ ${allocationValidationImport}  `;
             }
           }\`;
 
+${buildFindManyPropsGuard(capitalModelName, findManyWhereFields)}
         const variables = {
           where: whereInput ? whereInput : {
-    ${constructVariablesObject(
-      'props',
-      inputTypePaths.where,
-      capitalModelName,
-      inputsPath,
-      modelsPath,
-      'findMany'
-    )}      },
+${buildFindManyWhereBody(findManyWhereFields, 'props')}      },
         };
 
         const filteredVariables = removeUndefinedProps(variables);

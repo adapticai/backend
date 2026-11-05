@@ -1349,16 +1349,45 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'timestamp', 'type', 'direction', 'entityType', 'entityId', 'duration', 'success', 'error'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManySyncEvent: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  timestamp: props.timestamp !== undefined ? {
+    equals: props.timestamp 
   } : undefined,
   type: props.type !== undefined ? {
     equals: props.type 
   } : undefined,
+  direction: props.direction !== undefined ? {
+    equals: props.direction 
+  } : undefined,
+  entityType: props.entityType !== undefined ? {
+    equals: props.entityType 
+  } : undefined,
   entityId: props.entityId !== undefined ? {
     equals: props.entityId 
+  } : undefined,
+  duration: props.duration !== undefined ? {
+    equals: props.duration 
+  } : undefined,
+  success: props.success !== undefined ? {
+    equals: props.success 
+  } : undefined,
+  error: props.error !== undefined ? {
+    equals: props.error 
   } : undefined,
       },
         };

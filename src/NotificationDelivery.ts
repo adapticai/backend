@@ -42747,9 +42747,20 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'eventId', 'recipientUserId', 'channel', 'templateId', 'templateVersion', 'provider', 'providerMessageId', 'status', 'statusDetail', 'sentAt', 'deliveredAt', 'readAt', 'createdAt', 'updatedAt'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyNotificationDelivery: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
   } : undefined,
   eventId: props.eventId !== undefined ? {
@@ -42758,14 +42769,41 @@ import { logger } from './utils/logger';
   recipientUserId: props.recipientUserId !== undefined ? {
     equals: props.recipientUserId 
   } : undefined,
+  channel: props.channel !== undefined ? {
+    equals: props.channel 
+  } : undefined,
   templateId: props.templateId !== undefined ? {
     equals: props.templateId 
+  } : undefined,
+  templateVersion: props.templateVersion !== undefined ? {
+    equals: props.templateVersion 
+  } : undefined,
+  provider: props.provider !== undefined ? {
+    equals: props.provider 
   } : undefined,
   providerMessageId: props.providerMessageId !== undefined ? {
     equals: props.providerMessageId 
   } : undefined,
   status: props.status !== undefined ? {
     equals: props.status 
+  } : undefined,
+  statusDetail: props.statusDetail !== undefined ? {
+    equals: props.statusDetail 
+  } : undefined,
+  sentAt: props.sentAt !== undefined ? {
+    equals: props.sentAt 
+  } : undefined,
+  deliveredAt: props.deliveredAt !== undefined ? {
+    equals: props.deliveredAt 
+  } : undefined,
+  readAt: props.readAt !== undefined ? {
+    equals: props.readAt 
+  } : undefined,
+  createdAt: props.createdAt !== undefined ? {
+    equals: props.createdAt 
+  } : undefined,
+  updatedAt: props.updatedAt !== undefined ? {
+    equals: props.updatedAt 
   } : undefined,
       },
         };

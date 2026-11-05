@@ -1324,13 +1324,39 @@ import { logger } from './utils/logger';
             }
           }`;
 
+        if (!whereInput) {
+          const propsFilterFields: readonly string[] = ['id', 'timestamp', 'entityType', 'entityId', 'strategy', 'resolved', 'resolutionTime'];
+          const propsRecord = props as unknown as Record<string, unknown>;
+          const inexpressible = Object.keys(propsRecord).filter(
+            (key) => propsRecord[key] !== undefined && !propsFilterFields.includes(key)
+          );
+          if (inexpressible.length > 0) {
+            throw new Error(`findManyConflictEvent: filter field(s) ${inexpressible.join(', ')} are not expressible via props; pass whereInput`);
+          }
+        }
+
         const variables = {
           where: whereInput ? whereInput : {
-      id: props.id !== undefined ? {
+  id: props.id !== undefined ? {
     equals: props.id 
+  } : undefined,
+  timestamp: props.timestamp !== undefined ? {
+    equals: props.timestamp 
+  } : undefined,
+  entityType: props.entityType !== undefined ? {
+    equals: props.entityType 
   } : undefined,
   entityId: props.entityId !== undefined ? {
     equals: props.entityId 
+  } : undefined,
+  strategy: props.strategy !== undefined ? {
+    equals: props.strategy 
+  } : undefined,
+  resolved: props.resolved !== undefined ? {
+    equals: props.resolved 
+  } : undefined,
+  resolutionTime: props.resolutionTime !== undefined ? {
+    equals: props.resolutionTime 
   } : undefined,
       },
         };
