@@ -1,6 +1,15 @@
 # CLAUDE.md — @adaptic/backend
 
-Root of the type chain and system-of-record for all Adaptic-domain data: the Prisma schema, the TypeGraphQL/Apollo server, and the codegen pipeline that produces the `adaptic.*` CRUD functions, types, selection sets, and typeStrings every other repo consumes. **Highest blast radius in the workspace** — the generated surface IS the monorepo's contract. The root `~/adapticai/CLAUDE.md` loads alongside this file and carries the shared standards (ownership doctrine, code standards, delivery bar, trading doctrines, publish chain, GitNexus/Graphify usage); this file adds only what is backend-legacy-specific.
+Root of the type chain and system-of-record for all Adaptic-domain data: the Prisma schema, the TypeGraphQL/Apollo server, and the codegen pipeline that produces the `adaptic.*` CRUD functions, types, selection sets, and typeStrings every other repo consumes. **Highest blast radius in the workspace** — the generated surface IS the monorepo's contract. The root `~/adapticai/CLAUDE.md` loads alongside this file when the checkout sits under `~/adapticai`, and carries the shared standards (ownership doctrine, code standards, delivery bar, trading doctrines, publish chain, GitNexus/Graphify usage); otherwise the floor below is what binds. This file adds only what is backend-legacy-specific.
+
+<!-- BEGIN generated: package-floor (scripts/claude-setup/render-package-floors.mjs) -->
+Generated copy of the root `CLAUDE.md`'s lines (full text: <https://github.com/adapticai/mono/blob/main/CLAUDE.md>); edit the root, never this block.
+
+- **Code standards.** ESLint, hooks, and CI enforce these; they bind while writing regardless: no `any` / `@ts-ignore` / `eslint-disable`; no direct `process.env` in engine code (`SecretsManager`); no `console.log` in production (Pino / proper logging — scripts, tests, config exempt); floating promises handled; no mock/stub implementations, `setTimeout`-simulated async, or `Math.random()` fake data in production; no TODO/FIXME; no commented-out code (git has history); no magic numbers; no hardcoded secrets. Explicit parameter and return types; strict mode. Style: 2-space, K&R, camelCase / PascalCase / UPPER_SNAKE_CASE.
+- **Delivery standard.** Work is **delivered, not attempted**. "Done" means all of: (1) **wired to the live path**; (2) **root cause**; (3) **tests that fail without the change**; (4) **type-safe**; (5) **no new silent failure**; (6) **integrated**; (7) **gates green**. Anything less is reported as `PARTIAL`, never described as complete.
+- **Trading doctrines.** Never diagnose from a point-in-time snapshot — a snapshot hides the shape and has produced mis-diagnoses (a leveraged directional-beta drawdown read as "churn"). "No edge" is a BANNED conclusion from realized P&L — decompose ENTRY vs EXIT first. "It's churn" is a BANNED terminal diagnosis — name the mechanism.
+
+<!-- END generated: package-floor -->
 
 ## Commands
 
@@ -68,4 +77,4 @@ Codegen emits one near-identical file per model — hundreds of them — so grep
 
 ---
 
-Keep this file to backend-legacy deltas only — shared rules live in the root file; no point-in-time counts or file-by-file tables (its own history shows they're the first thing to go stale).
+Keep this file to backend-legacy deltas only — shared rules live in the root file, and the floor above is its generated copy (`npm run check:package-floors` in mono), never edited here; no point-in-time counts or file-by-file tables (its own history shows they're the first thing to go stale).
