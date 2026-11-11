@@ -47,6 +47,7 @@
   "author": "Adaptic Team",
   "license": "MIT",
   "devDependencies": {
+    "@adaptic/utils": "0.0.1022",
     "@eslint/js": "^9.18.0",
     "@types/body-parser": "^1.19.6",
     "@types/cors": "^2.8.19",
@@ -70,7 +71,6 @@
     "yaml": "^2.8.2"
   },
   "dependencies": {
-    "@adaptic/utils": "0.0.1022",
     "@apollo/client": "^3.13.9",
     "@apollo/server": "^5.4.1",
     "@as-integrations/express4": "^1.1.2",
