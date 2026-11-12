@@ -162,6 +162,39 @@ function resolveServiceSecrets(): Array<{ slot: ServiceKeySlot; secret: string }
   return slots;
 }
 
+const SECRET_COLLISION_MESSAGE =
+  '[auth] BACKEND_SERVICE_JWT_SECRET (or its _PREVIOUS slot) is identical to JWT_SECRET. ' +
+  'These MUST be distinct secrets — sharing them collapses the ' +
+  'separation between end-user and service identity. Refusing to ' +
+  'verify service tokens until they differ.';
+
+function collidesWithUserSecret(
+  slots: ReadonlyArray<{ secret: string }>
+): boolean {
+  return slots.some(({ secret }) => secret === jwtSecret);
+}
+
+/**
+ * Boot-time guard: refuse to start when a provisioned service secret (either
+ * slot) equals `JWT_SECRET`.
+ *
+ * `verifyServiceToken` already refuses per request, but that surfaces only as
+ * a stream of 401s on service calls after a deploy. Failing at boot puts the
+ * misconfiguration on the deploy, where it is caught before traffic. An
+ * unprovisioned service path is not an error — it is simply disabled.
+ *
+ * @throws {Error} When a service secret collides with the user-session secret.
+ */
+export function assertServiceSecretsDistinctFromJwtSecret(): void {
+  const slots = resolveServiceSecrets();
+  if (slots !== null && collidesWithUserSecret(slots)) {
+    logger.error(SECRET_COLLISION_MESSAGE);
+    throw new Error(
+      'BACKEND_SERVICE_JWT_SECRET (or _PREVIOUS) must differ from JWT_SECRET.'
+    );
+  }
+}
+
 /**
  * Verify a token's signature and bound claims against one secret.
  *
@@ -244,13 +277,8 @@ export function verifyServiceToken(
   // which bypasses every tenancy scope and role gate. Refuse rather than
   // silently operate with the separation collapsed. This holds for the
   // previous slot too: a rotation must not reopen the hole.
-  if (slots.some(({ secret }) => secret === jwtSecret)) {
-    logger.error(
-      '[auth] BACKEND_SERVICE_JWT_SECRET (or its _PREVIOUS slot) is identical to JWT_SECRET. ' +
-        'These MUST be distinct secrets — sharing them collapses the ' +
-        'separation between end-user and service identity. Refusing to ' +
-        'verify service tokens until they differ.'
-    );
+  if (collidesWithUserSecret(slots)) {
+    logger.error(SECRET_COLLISION_MESSAGE);
     throw new AuthError('invalid_token', 'misconfigured');
   }
 

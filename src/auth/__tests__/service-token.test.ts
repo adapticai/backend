@@ -29,6 +29,7 @@ import {
   MAX_SERVICE_TOKEN_LIFETIME_SEC,
   MINIMUM_SERVICE_SECRET_LENGTH,
   MAX_SERVICE_TOKEN_CLOCK_SKEW_SEC,
+  assertServiceSecretsDistinctFromJwtSecret,
 } from '../service-token';
 import { verifyBackendToken, AuthError } from '../token-verifier';
 import { logger } from '../../utils/logger';
@@ -361,6 +362,35 @@ describe('verifyServiceToken — rotation (previous-key slot)', () => {
     }
   });
 
+  it('refuses when the previous slot equals the user secret up to whitespace', () => {
+    process.env.BACKEND_SERVICE_JWT_SECRET_PREVIOUS = `${TEST_JWT_SECRET}\n`;
+    expect(() => verifyServiceToken(mint())).toThrow(AuthError);
+  });
+
+  it('rejects an expired credential signed with the outgoing key as expired', () => {
+    const now = Math.floor(Date.now() / 1000);
+    const token = mint({
+      secret: OUTGOING_SECRET,
+      issuedAtSec: now - 1200,
+      lifetimeSec: 600,
+    });
+    try {
+      verifyServiceToken(token);
+      expect.unreachable('an expired outgoing-key credential must throw');
+    } catch (error) {
+      expect(error).toBeInstanceOf(AuthError);
+      expect((error as AuthError).reason).toBe('expired');
+    }
+  });
+
+  it('does not log a previous-slot verification for a rejected credential', () => {
+    const info = vi.spyOn(logger, 'info').mockImplementation(() => undefined);
+    expect(() =>
+      verifyServiceToken(mint({ secret: OUTGOING_SECRET, sub: null }))
+    ).toThrow(AuthError);
+    expect(info).not.toHaveBeenCalled();
+  });
+
   it('promotes an outgoing-key credential end to end', async () => {
     await expect(
       verifyBackendToken(mint({ secret: OUTGOING_SECRET }))
@@ -408,5 +438,41 @@ describe('verifyBackendToken — service path integration', () => {
 
   it('still rejects an anonymous empty token', async () => {
     await expect(verifyBackendToken('')).rejects.toBeInstanceOf(AuthError);
+  });
+});
+
+describe('assertServiceSecretsDistinctFromJwtSecret (boot-time)', () => {
+  afterEach(() => {
+    delete process.env.BACKEND_SERVICE_JWT_SECRET;
+    delete process.env.BACKEND_SERVICE_JWT_SECRET_PREVIOUS;
+    vi.restoreAllMocks();
+  });
+
+  it('passes when the service path is not provisioned', () => {
+    expect(() => assertServiceSecretsDistinctFromJwtSecret()).not.toThrow();
+  });
+
+  it('passes when the service secret is distinct', () => {
+    process.env.BACKEND_SERVICE_JWT_SECRET = SERVICE_SECRET;
+    expect(() => assertServiceSecretsDistinctFromJwtSecret()).not.toThrow();
+  });
+
+  it('throws when the primary equals JWT_SECRET', () => {
+    vi.spyOn(logger, 'error').mockImplementation(() => undefined);
+    process.env.BACKEND_SERVICE_JWT_SECRET = TEST_JWT_SECRET;
+    expect(() => assertServiceSecretsDistinctFromJwtSecret()).toThrow(/differ/);
+  });
+
+  it('throws when only the previous slot equals JWT_SECRET', () => {
+    vi.spyOn(logger, 'error').mockImplementation(() => undefined);
+    process.env.BACKEND_SERVICE_JWT_SECRET = SERVICE_SECRET;
+    process.env.BACKEND_SERVICE_JWT_SECRET_PREVIOUS = TEST_JWT_SECRET;
+    expect(() => assertServiceSecretsDistinctFromJwtSecret()).toThrow(/differ/);
+  });
+
+  it('throws when the primary equals JWT_SECRET up to a trailing newline', () => {
+    vi.spyOn(logger, 'error').mockImplementation(() => undefined);
+    process.env.BACKEND_SERVICE_JWT_SECRET = `${TEST_JWT_SECRET}\n`;
+    expect(() => assertServiceSecretsDistinctFromJwtSecret()).toThrow(/differ/);
   });
 });
