@@ -21,6 +21,7 @@ import {
   withoutServerOnlySchemaSurface,
 } from './config/server-only-models';
 import {
+  AccountEquityCurveResolver,
   BrokerageAccountCredentialStatusResolver,
   OptionsGreeksHistoryCustomResolver,
   TradingSettingsResolver,
@@ -172,6 +173,7 @@ const startServer = async () => {
       OptionsGreeksHistoryCustomResolver,
       TradingSettingsResolver,
       BrokerageAccountCredentialStatusResolver,
+      AccountEquityCurveResolver,
     ],
     validate: false,
     // Row-level tenancy scoping (SP2-G7 / SOC2). Applies ONLY to user-scoped
