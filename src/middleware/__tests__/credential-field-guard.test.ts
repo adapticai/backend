@@ -84,6 +84,9 @@ describe('output surface', () => {
     expect(CREDENTIAL_READ_REMEDY).toMatch(/deliberately/);
     expect(CREDENTIAL_READ_REMEDY).toMatch(/since 2026-09-26/);
     expect(CREDENTIAL_READ_REMEDY).toMatch(/run-with-identity\.mjs/);
+    expect(CREDENTIAL_READ_REMEDY).toMatch(/adapticai\/mono/);
+    expect(CREDENTIAL_READ_REMEDY).toMatch(/mono checkout/);
+    expect(CREDENTIAL_READ_REMEDY).toMatch(/service principal from research engineering/);
   });
 
   it('leaves non-credential fields readable for an unauthenticated caller', () => {

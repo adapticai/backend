@@ -504,7 +504,8 @@ export const CREDENTIAL_READ_REMEDY =
   'Refused deliberately: since 2026-09-26 14:00Z stored broker credentials are readable ' +
   'only by a verified service principal (a control on the risk register). Run operator ' +
   'tools through the service-identity wrapper (scripts/account-audit/run-with-identity.mjs ' +
-  'in the mono repo), or request a service principal from research engineering. Do not ask ' +
+  'in the adapticai/mono repo; it needs a mono checkout, which backend alone does not ' +
+  'include), or request a service principal from research engineering. Do not ask ' +
   'for this guard to be returned to shadow.';
 
 /**
