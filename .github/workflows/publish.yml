@@ -122,10 +122,10 @@ jobs:
       - name: Build npm package
         run: npm run build:package
         env:
-          # tsc peaks >4GB compiling the full generated CRUD surface (grew with the
-          # IR domain); the default Node heap OOMs here. Railway builds via the
-          # Dockerfile (NODE_OPTIONS=--max-old-space-size=6144); match with headroom.
-          NODE_OPTIONS: --max-old-space-size=8192
+          # tsc compiling the full generated CRUD surface outgrew an 8GB heap when the
+          # desk models landed (OOM at ~8,000MB mark-compact). The Dockerfile builds
+          # with --max-old-space-size=12288; CI matches it (ubuntu-latest has 16GB).
+          NODE_OPTIONS: --max-old-space-size=12288
 
       # Quality gate (audit B01-backend-legacy-01): the publish flow previously ran
       # zero tests/lint before shipping @stable to npm — the branch the trading
@@ -139,7 +139,7 @@ jobs:
           npm run lint
           npm run test
         env:
-          NODE_OPTIONS: --max-old-space-size=8192
+          NODE_OPTIONS: --max-old-space-size=12288
 
       - name: Install dependencies in dist folder
         working-directory: dist

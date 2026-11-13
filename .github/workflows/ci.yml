@@ -62,7 +62,7 @@ jobs:
       # all — every rule it would have enforced goes unchecked.
       - run: npm run lint
         env:
-          NODE_OPTIONS: --max-old-space-size=6144
+          NODE_OPTIONS: --max-old-space-size=12288
       # Type-checking the full surface incl. ~1.3M generated lines exceeds
       # the runner's default Node heap (observed OOM at exit 134). 6144 MB was
       # not enough either — it only looked sufficient while the lint step above
@@ -70,7 +70,7 @@ jobs:
       # walks the same surface and has held at this allowance.
       - run: npx tsc --noEmit
         env:
-          NODE_OPTIONS: --max-old-space-size=8192
+          NODE_OPTIONS: --max-old-space-size=12288
 
   test:
     name: Test & Coverage
@@ -171,4 +171,4 @@ jobs:
       # publish workflow grants (Dockerfile parity: 6-8GB); default 4GB OOMs.
       - run: npm run build
         env:
-          NODE_OPTIONS: --max-old-space-size=8192
+          NODE_OPTIONS: --max-old-space-size=12288
