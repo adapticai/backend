@@ -1045,25 +1045,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.mandateVersion.authoredBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.mandateVersion.authoredBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.mandateVersion.authoredBy.preference ? 
-        typeof props.mandateVersion.authoredBy.preference === 'object' && Object.keys(props.mandateVersion.authoredBy.preference).length === 1 && Object.keys(props.mandateVersion.authoredBy.preference)[0] === 'id'
-    ? { connect: {
-            id: props.mandateVersion.authoredBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.mandateVersion.authoredBy.preference.id !== undefined ? props.mandateVersion.authoredBy.preference.id : undefined,
-            userId: props.mandateVersion.authoredBy.preference.userId !== undefined ? props.mandateVersion.authoredBy.preference.userId : undefined,
-          },
-          create: {
-            theme: props.mandateVersion.authoredBy.preference.theme !== undefined ? props.mandateVersion.authoredBy.preference.theme : undefined,
-            density: props.mandateVersion.authoredBy.preference.density !== undefined ? props.mandateVersion.authoredBy.preference.density : undefined,
-            deskPrefs: props.mandateVersion.authoredBy.preference.deskPrefs !== undefined ? props.mandateVersion.authoredBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.mandateVersion.authoredBy.preference.notificationPrefs !== undefined ? props.mandateVersion.authoredBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.mandateVersion.authoredBy.totp.lastUsedStep !== undefined ? props.mandateVersion.authoredBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -3707,6 +3689,9 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.mandateVersion.authoredBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.mandateVersion.authoredBy.totp.recoveryCodesHash
               } : undefined,
+            lastUsedStep: props.mandateVersion.authoredBy.totp.lastUsedStep !== undefined ? {
+                set: props.mandateVersion.authoredBy.totp.lastUsedStep
+              } : undefined,
           },
           create: {
             secretEnc: props.mandateVersion.authoredBy.totp.secretEnc !== undefined ? props.mandateVersion.authoredBy.totp.secretEnc : undefined,
@@ -3714,42 +3699,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.mandateVersion.authoredBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.mandateVersion.authoredBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.mandateVersion.authoredBy.preference ? 
-      typeof props.mandateVersion.authoredBy.preference === 'object' && Object.keys(props.mandateVersion.authoredBy.preference).length === 1 && (Object.keys(props.mandateVersion.authoredBy.preference)[0] === 'id' || Object.keys(props.mandateVersion.authoredBy.preference)[0] === 'symbol')
-? {
-      connect: {
-        id: props.mandateVersion.authoredBy.preference.id
-      }
-} : { upsert: {
-          where: {
-            id: props.mandateVersion.authoredBy.preference.id !== undefined ? {
-                equals: props.mandateVersion.authoredBy.preference.id
-              } : undefined,
-            userId: props.mandateVersion.authoredBy.preference.userId !== undefined ? {
-                equals: props.mandateVersion.authoredBy.preference.userId
-              } : undefined,
-          },
-          update: {
-            id: props.mandateVersion.authoredBy.preference.id !== undefined ? {
-                set: props.mandateVersion.authoredBy.preference.id
-              } : undefined,
-            theme: props.mandateVersion.authoredBy.preference.theme !== undefined ? {
-                set: props.mandateVersion.authoredBy.preference.theme
-              } : undefined,
-            density: props.mandateVersion.authoredBy.preference.density !== undefined ? {
-                set: props.mandateVersion.authoredBy.preference.density
-              } : undefined,
-            deskPrefs: props.mandateVersion.authoredBy.preference.deskPrefs !== undefined ? props.mandateVersion.authoredBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.mandateVersion.authoredBy.preference.notificationPrefs !== undefined ? props.mandateVersion.authoredBy.preference.notificationPrefs : undefined,
-          },
-          create: {
-            theme: props.mandateVersion.authoredBy.preference.theme !== undefined ? props.mandateVersion.authoredBy.preference.theme : undefined,
-            density: props.mandateVersion.authoredBy.preference.density !== undefined ? props.mandateVersion.authoredBy.preference.density : undefined,
-            deskPrefs: props.mandateVersion.authoredBy.preference.deskPrefs !== undefined ? props.mandateVersion.authoredBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.mandateVersion.authoredBy.preference.notificationPrefs !== undefined ? props.mandateVersion.authoredBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.mandateVersion.authoredBy.totp.lastUsedStep !== undefined ? props.mandateVersion.authoredBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -4498,25 +4448,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.mandateVersion.authoredBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.mandateVersion.authoredBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.mandateVersion.authoredBy.preference ? 
-        typeof props.mandateVersion.authoredBy.preference === 'object' && Object.keys(props.mandateVersion.authoredBy.preference).length === 1 && Object.keys(props.mandateVersion.authoredBy.preference)[0] === 'id'
-    ? { connect: {
-            id: props.mandateVersion.authoredBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.mandateVersion.authoredBy.preference.id !== undefined ? props.mandateVersion.authoredBy.preference.id : undefined,
-            userId: props.mandateVersion.authoredBy.preference.userId !== undefined ? props.mandateVersion.authoredBy.preference.userId : undefined,
-          },
-          create: {
-            theme: props.mandateVersion.authoredBy.preference.theme !== undefined ? props.mandateVersion.authoredBy.preference.theme : undefined,
-            density: props.mandateVersion.authoredBy.preference.density !== undefined ? props.mandateVersion.authoredBy.preference.density : undefined,
-            deskPrefs: props.mandateVersion.authoredBy.preference.deskPrefs !== undefined ? props.mandateVersion.authoredBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.mandateVersion.authoredBy.preference.notificationPrefs !== undefined ? props.mandateVersion.authoredBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.mandateVersion.authoredBy.totp.lastUsedStep !== undefined ? props.mandateVersion.authoredBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -6149,25 +6081,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.mandateVersion.authoredBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.mandateVersion.authoredBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.mandateVersion.authoredBy.preference ? 
-        typeof props.mandateVersion.authoredBy.preference === 'object' && Object.keys(props.mandateVersion.authoredBy.preference).length === 1 && Object.keys(props.mandateVersion.authoredBy.preference)[0] === 'id'
-    ? { connect: {
-            id: props.mandateVersion.authoredBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.mandateVersion.authoredBy.preference.id !== undefined ? props.mandateVersion.authoredBy.preference.id : undefined,
-            userId: props.mandateVersion.authoredBy.preference.userId !== undefined ? props.mandateVersion.authoredBy.preference.userId : undefined,
-          },
-          create: {
-            theme: props.mandateVersion.authoredBy.preference.theme !== undefined ? props.mandateVersion.authoredBy.preference.theme : undefined,
-            density: props.mandateVersion.authoredBy.preference.density !== undefined ? props.mandateVersion.authoredBy.preference.density : undefined,
-            deskPrefs: props.mandateVersion.authoredBy.preference.deskPrefs !== undefined ? props.mandateVersion.authoredBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.mandateVersion.authoredBy.preference.notificationPrefs !== undefined ? props.mandateVersion.authoredBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.mandateVersion.authoredBy.totp.lastUsedStep !== undefined ? props.mandateVersion.authoredBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -7524,25 +7438,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.mandateVersion.authoredBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.mandateVersion.authoredBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.mandateVersion.authoredBy.preference ? 
-        typeof props.mandateVersion.authoredBy.preference === 'object' && Object.keys(props.mandateVersion.authoredBy.preference).length === 1 && Object.keys(props.mandateVersion.authoredBy.preference)[0] === 'id'
-    ? { connect: {
-            id: props.mandateVersion.authoredBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.mandateVersion.authoredBy.preference.id !== undefined ? props.mandateVersion.authoredBy.preference.id : undefined,
-            userId: props.mandateVersion.authoredBy.preference.userId !== undefined ? props.mandateVersion.authoredBy.preference.userId : undefined,
-          },
-          create: {
-            theme: props.mandateVersion.authoredBy.preference.theme !== undefined ? props.mandateVersion.authoredBy.preference.theme : undefined,
-            density: props.mandateVersion.authoredBy.preference.density !== undefined ? props.mandateVersion.authoredBy.preference.density : undefined,
-            deskPrefs: props.mandateVersion.authoredBy.preference.deskPrefs !== undefined ? props.mandateVersion.authoredBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.mandateVersion.authoredBy.preference.notificationPrefs !== undefined ? props.mandateVersion.authoredBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.mandateVersion.authoredBy.totp.lastUsedStep !== undefined ? props.mandateVersion.authoredBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -9866,6 +9762,9 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.mandateVersion.authoredBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.mandateVersion.authoredBy.totp.recoveryCodesHash
               } : undefined,
+            lastUsedStep: props.mandateVersion.authoredBy.totp.lastUsedStep !== undefined ? {
+                set: props.mandateVersion.authoredBy.totp.lastUsedStep
+              } : undefined,
           },
           create: {
             secretEnc: props.mandateVersion.authoredBy.totp.secretEnc !== undefined ? props.mandateVersion.authoredBy.totp.secretEnc : undefined,
@@ -9873,42 +9772,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.mandateVersion.authoredBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.mandateVersion.authoredBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.mandateVersion.authoredBy.preference ? 
-      typeof props.mandateVersion.authoredBy.preference === 'object' && Object.keys(props.mandateVersion.authoredBy.preference).length === 1 && (Object.keys(props.mandateVersion.authoredBy.preference)[0] === 'id' || Object.keys(props.mandateVersion.authoredBy.preference)[0] === 'symbol')
-? {
-      connect: {
-        id: props.mandateVersion.authoredBy.preference.id
-      }
-} : { upsert: {
-          where: {
-            id: props.mandateVersion.authoredBy.preference.id !== undefined ? {
-                equals: props.mandateVersion.authoredBy.preference.id
-              } : undefined,
-            userId: props.mandateVersion.authoredBy.preference.userId !== undefined ? {
-                equals: props.mandateVersion.authoredBy.preference.userId
-              } : undefined,
-          },
-          update: {
-            id: props.mandateVersion.authoredBy.preference.id !== undefined ? {
-                set: props.mandateVersion.authoredBy.preference.id
-              } : undefined,
-            theme: props.mandateVersion.authoredBy.preference.theme !== undefined ? {
-                set: props.mandateVersion.authoredBy.preference.theme
-              } : undefined,
-            density: props.mandateVersion.authoredBy.preference.density !== undefined ? {
-                set: props.mandateVersion.authoredBy.preference.density
-              } : undefined,
-            deskPrefs: props.mandateVersion.authoredBy.preference.deskPrefs !== undefined ? props.mandateVersion.authoredBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.mandateVersion.authoredBy.preference.notificationPrefs !== undefined ? props.mandateVersion.authoredBy.preference.notificationPrefs : undefined,
-          },
-          create: {
-            theme: props.mandateVersion.authoredBy.preference.theme !== undefined ? props.mandateVersion.authoredBy.preference.theme : undefined,
-            density: props.mandateVersion.authoredBy.preference.density !== undefined ? props.mandateVersion.authoredBy.preference.density : undefined,
-            deskPrefs: props.mandateVersion.authoredBy.preference.deskPrefs !== undefined ? props.mandateVersion.authoredBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.mandateVersion.authoredBy.preference.notificationPrefs !== undefined ? props.mandateVersion.authoredBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.mandateVersion.authoredBy.totp.lastUsedStep !== undefined ? props.mandateVersion.authoredBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -10657,25 +10521,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.mandateVersion.authoredBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.mandateVersion.authoredBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.mandateVersion.authoredBy.preference ? 
-        typeof props.mandateVersion.authoredBy.preference === 'object' && Object.keys(props.mandateVersion.authoredBy.preference).length === 1 && Object.keys(props.mandateVersion.authoredBy.preference)[0] === 'id'
-    ? { connect: {
-            id: props.mandateVersion.authoredBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.mandateVersion.authoredBy.preference.id !== undefined ? props.mandateVersion.authoredBy.preference.id : undefined,
-            userId: props.mandateVersion.authoredBy.preference.userId !== undefined ? props.mandateVersion.authoredBy.preference.userId : undefined,
-          },
-          create: {
-            theme: props.mandateVersion.authoredBy.preference.theme !== undefined ? props.mandateVersion.authoredBy.preference.theme : undefined,
-            density: props.mandateVersion.authoredBy.preference.density !== undefined ? props.mandateVersion.authoredBy.preference.density : undefined,
-            deskPrefs: props.mandateVersion.authoredBy.preference.deskPrefs !== undefined ? props.mandateVersion.authoredBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.mandateVersion.authoredBy.preference.notificationPrefs !== undefined ? props.mandateVersion.authoredBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.mandateVersion.authoredBy.totp.lastUsedStep !== undefined ? props.mandateVersion.authoredBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -12308,25 +12154,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.mandateVersion.authoredBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.mandateVersion.authoredBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.mandateVersion.authoredBy.preference ? 
-        typeof props.mandateVersion.authoredBy.preference === 'object' && Object.keys(props.mandateVersion.authoredBy.preference).length === 1 && Object.keys(props.mandateVersion.authoredBy.preference)[0] === 'id'
-    ? { connect: {
-            id: props.mandateVersion.authoredBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.mandateVersion.authoredBy.preference.id !== undefined ? props.mandateVersion.authoredBy.preference.id : undefined,
-            userId: props.mandateVersion.authoredBy.preference.userId !== undefined ? props.mandateVersion.authoredBy.preference.userId : undefined,
-          },
-          create: {
-            theme: props.mandateVersion.authoredBy.preference.theme !== undefined ? props.mandateVersion.authoredBy.preference.theme : undefined,
-            density: props.mandateVersion.authoredBy.preference.density !== undefined ? props.mandateVersion.authoredBy.preference.density : undefined,
-            deskPrefs: props.mandateVersion.authoredBy.preference.deskPrefs !== undefined ? props.mandateVersion.authoredBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.mandateVersion.authoredBy.preference.notificationPrefs !== undefined ? props.mandateVersion.authoredBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.mandateVersion.authoredBy.totp.lastUsedStep !== undefined ? props.mandateVersion.authoredBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -14813,6 +14641,9 @@ import { logger } from './utils/logger';
             recoveryCodesHash: prop.mandateVersion.authoredBy.totp.recoveryCodesHash !== undefined ? {
                 set: prop.mandateVersion.authoredBy.totp.recoveryCodesHash
               } : undefined,
+            lastUsedStep: prop.mandateVersion.authoredBy.totp.lastUsedStep !== undefined ? {
+                set: prop.mandateVersion.authoredBy.totp.lastUsedStep
+              } : undefined,
           },
           create: {
             secretEnc: prop.mandateVersion.authoredBy.totp.secretEnc !== undefined ? prop.mandateVersion.authoredBy.totp.secretEnc : undefined,
@@ -14820,42 +14651,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: prop.mandateVersion.authoredBy.totp.recoveryCodesHash !== undefined ? {
                 set: prop.mandateVersion.authoredBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: prop.mandateVersion.authoredBy.preference ? 
-      typeof prop.mandateVersion.authoredBy.preference === 'object' && Object.keys(prop.mandateVersion.authoredBy.preference).length === 1 && (Object.keys(prop.mandateVersion.authoredBy.preference)[0] === 'id' || Object.keys(prop.mandateVersion.authoredBy.preference)[0] === 'symbol')
-? {
-      connect: {
-        id: prop.mandateVersion.authoredBy.preference.id
-      }
-} : { upsert: {
-          where: {
-            id: prop.mandateVersion.authoredBy.preference.id !== undefined ? {
-                equals: prop.mandateVersion.authoredBy.preference.id
-              } : undefined,
-            userId: prop.mandateVersion.authoredBy.preference.userId !== undefined ? {
-                equals: prop.mandateVersion.authoredBy.preference.userId
-              } : undefined,
-          },
-          update: {
-            id: prop.mandateVersion.authoredBy.preference.id !== undefined ? {
-                set: prop.mandateVersion.authoredBy.preference.id
-              } : undefined,
-            theme: prop.mandateVersion.authoredBy.preference.theme !== undefined ? {
-                set: prop.mandateVersion.authoredBy.preference.theme
-              } : undefined,
-            density: prop.mandateVersion.authoredBy.preference.density !== undefined ? {
-                set: prop.mandateVersion.authoredBy.preference.density
-              } : undefined,
-            deskPrefs: prop.mandateVersion.authoredBy.preference.deskPrefs !== undefined ? prop.mandateVersion.authoredBy.preference.deskPrefs : undefined,
-            notificationPrefs: prop.mandateVersion.authoredBy.preference.notificationPrefs !== undefined ? prop.mandateVersion.authoredBy.preference.notificationPrefs : undefined,
-          },
-          create: {
-            theme: prop.mandateVersion.authoredBy.preference.theme !== undefined ? prop.mandateVersion.authoredBy.preference.theme : undefined,
-            density: prop.mandateVersion.authoredBy.preference.density !== undefined ? prop.mandateVersion.authoredBy.preference.density : undefined,
-            deskPrefs: prop.mandateVersion.authoredBy.preference.deskPrefs !== undefined ? prop.mandateVersion.authoredBy.preference.deskPrefs : undefined,
-            notificationPrefs: prop.mandateVersion.authoredBy.preference.notificationPrefs !== undefined ? prop.mandateVersion.authoredBy.preference.notificationPrefs : undefined,
+            lastUsedStep: prop.mandateVersion.authoredBy.totp.lastUsedStep !== undefined ? prop.mandateVersion.authoredBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -15604,25 +15400,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: prop.mandateVersion.authoredBy.totp.recoveryCodesHash !== undefined ? {
                 set: prop.mandateVersion.authoredBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: prop.mandateVersion.authoredBy.preference ? 
-        typeof prop.mandateVersion.authoredBy.preference === 'object' && Object.keys(prop.mandateVersion.authoredBy.preference).length === 1 && Object.keys(prop.mandateVersion.authoredBy.preference)[0] === 'id'
-    ? { connect: {
-            id: prop.mandateVersion.authoredBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: prop.mandateVersion.authoredBy.preference.id !== undefined ? prop.mandateVersion.authoredBy.preference.id : undefined,
-            userId: prop.mandateVersion.authoredBy.preference.userId !== undefined ? prop.mandateVersion.authoredBy.preference.userId : undefined,
-          },
-          create: {
-            theme: prop.mandateVersion.authoredBy.preference.theme !== undefined ? prop.mandateVersion.authoredBy.preference.theme : undefined,
-            density: prop.mandateVersion.authoredBy.preference.density !== undefined ? prop.mandateVersion.authoredBy.preference.density : undefined,
-            deskPrefs: prop.mandateVersion.authoredBy.preference.deskPrefs !== undefined ? prop.mandateVersion.authoredBy.preference.deskPrefs : undefined,
-            notificationPrefs: prop.mandateVersion.authoredBy.preference.notificationPrefs !== undefined ? prop.mandateVersion.authoredBy.preference.notificationPrefs : undefined,
+            lastUsedStep: prop.mandateVersion.authoredBy.totp.lastUsedStep !== undefined ? prop.mandateVersion.authoredBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -17255,25 +17033,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: prop.mandateVersion.authoredBy.totp.recoveryCodesHash !== undefined ? {
                 set: prop.mandateVersion.authoredBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: prop.mandateVersion.authoredBy.preference ? 
-        typeof prop.mandateVersion.authoredBy.preference === 'object' && Object.keys(prop.mandateVersion.authoredBy.preference).length === 1 && Object.keys(prop.mandateVersion.authoredBy.preference)[0] === 'id'
-    ? { connect: {
-            id: prop.mandateVersion.authoredBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: prop.mandateVersion.authoredBy.preference.id !== undefined ? prop.mandateVersion.authoredBy.preference.id : undefined,
-            userId: prop.mandateVersion.authoredBy.preference.userId !== undefined ? prop.mandateVersion.authoredBy.preference.userId : undefined,
-          },
-          create: {
-            theme: prop.mandateVersion.authoredBy.preference.theme !== undefined ? prop.mandateVersion.authoredBy.preference.theme : undefined,
-            density: prop.mandateVersion.authoredBy.preference.density !== undefined ? prop.mandateVersion.authoredBy.preference.density : undefined,
-            deskPrefs: prop.mandateVersion.authoredBy.preference.deskPrefs !== undefined ? prop.mandateVersion.authoredBy.preference.deskPrefs : undefined,
-            notificationPrefs: prop.mandateVersion.authoredBy.preference.notificationPrefs !== undefined ? prop.mandateVersion.authoredBy.preference.notificationPrefs : undefined,
+            lastUsedStep: prop.mandateVersion.authoredBy.totp.lastUsedStep !== undefined ? prop.mandateVersion.authoredBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,

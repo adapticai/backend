@@ -1043,25 +1043,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
                 set: props.alpacaAccount.user.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.alpacaAccount.user.preference ? 
-        typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && Object.keys(props.alpacaAccount.user.preference)[0] === 'id'
-    ? { connect: {
-            id: props.alpacaAccount.user.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.alpacaAccount.user.preference.id !== undefined ? props.alpacaAccount.user.preference.id : undefined,
-            userId: props.alpacaAccount.user.preference.userId !== undefined ? props.alpacaAccount.user.preference.userId : undefined,
-          },
-          create: {
-            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
-            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
-            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
-            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+            lastUsedStep: props.alpacaAccount.user.totp.lastUsedStep !== undefined ? props.alpacaAccount.user.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -3916,6 +3898,9 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
                 set: props.alpacaAccount.user.totp.recoveryCodesHash
               } : undefined,
+            lastUsedStep: props.alpacaAccount.user.totp.lastUsedStep !== undefined ? {
+                set: props.alpacaAccount.user.totp.lastUsedStep
+              } : undefined,
           },
           create: {
             secretEnc: props.alpacaAccount.user.totp.secretEnc !== undefined ? props.alpacaAccount.user.totp.secretEnc : undefined,
@@ -3923,42 +3908,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
                 set: props.alpacaAccount.user.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.alpacaAccount.user.preference ? 
-      typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && (Object.keys(props.alpacaAccount.user.preference)[0] === 'id' || Object.keys(props.alpacaAccount.user.preference)[0] === 'symbol')
-? {
-      connect: {
-        id: props.alpacaAccount.user.preference.id
-      }
-} : { upsert: {
-          where: {
-            id: props.alpacaAccount.user.preference.id !== undefined ? {
-                equals: props.alpacaAccount.user.preference.id
-              } : undefined,
-            userId: props.alpacaAccount.user.preference.userId !== undefined ? {
-                equals: props.alpacaAccount.user.preference.userId
-              } : undefined,
-          },
-          update: {
-            id: props.alpacaAccount.user.preference.id !== undefined ? {
-                set: props.alpacaAccount.user.preference.id
-              } : undefined,
-            theme: props.alpacaAccount.user.preference.theme !== undefined ? {
-                set: props.alpacaAccount.user.preference.theme
-              } : undefined,
-            density: props.alpacaAccount.user.preference.density !== undefined ? {
-                set: props.alpacaAccount.user.preference.density
-              } : undefined,
-            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
-            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
-          },
-          create: {
-            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
-            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
-            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
-            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+            lastUsedStep: props.alpacaAccount.user.totp.lastUsedStep !== undefined ? props.alpacaAccount.user.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -4692,25 +4642,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
                 set: props.alpacaAccount.user.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.alpacaAccount.user.preference ? 
-        typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && Object.keys(props.alpacaAccount.user.preference)[0] === 'id'
-    ? { connect: {
-            id: props.alpacaAccount.user.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.alpacaAccount.user.preference.id !== undefined ? props.alpacaAccount.user.preference.id : undefined,
-            userId: props.alpacaAccount.user.preference.userId !== undefined ? props.alpacaAccount.user.preference.userId : undefined,
-          },
-          create: {
-            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
-            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
-            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
-            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+            lastUsedStep: props.alpacaAccount.user.totp.lastUsedStep !== undefined ? props.alpacaAccount.user.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -6861,25 +6793,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
                 set: props.alpacaAccount.user.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.alpacaAccount.user.preference ? 
-        typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && Object.keys(props.alpacaAccount.user.preference)[0] === 'id'
-    ? { connect: {
-            id: props.alpacaAccount.user.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.alpacaAccount.user.preference.id !== undefined ? props.alpacaAccount.user.preference.id : undefined,
-            userId: props.alpacaAccount.user.preference.userId !== undefined ? props.alpacaAccount.user.preference.userId : undefined,
-          },
-          create: {
-            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
-            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
-            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
-            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+            lastUsedStep: props.alpacaAccount.user.totp.lastUsedStep !== undefined ? props.alpacaAccount.user.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -8451,25 +8365,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
                 set: props.alpacaAccount.user.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.alpacaAccount.user.preference ? 
-        typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && Object.keys(props.alpacaAccount.user.preference)[0] === 'id'
-    ? { connect: {
-            id: props.alpacaAccount.user.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.alpacaAccount.user.preference.id !== undefined ? props.alpacaAccount.user.preference.id : undefined,
-            userId: props.alpacaAccount.user.preference.userId !== undefined ? props.alpacaAccount.user.preference.userId : undefined,
-          },
-          create: {
-            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
-            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
-            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
-            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+            lastUsedStep: props.alpacaAccount.user.totp.lastUsedStep !== undefined ? props.alpacaAccount.user.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -11000,6 +10896,9 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
                 set: props.alpacaAccount.user.totp.recoveryCodesHash
               } : undefined,
+            lastUsedStep: props.alpacaAccount.user.totp.lastUsedStep !== undefined ? {
+                set: props.alpacaAccount.user.totp.lastUsedStep
+              } : undefined,
           },
           create: {
             secretEnc: props.alpacaAccount.user.totp.secretEnc !== undefined ? props.alpacaAccount.user.totp.secretEnc : undefined,
@@ -11007,42 +10906,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
                 set: props.alpacaAccount.user.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.alpacaAccount.user.preference ? 
-      typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && (Object.keys(props.alpacaAccount.user.preference)[0] === 'id' || Object.keys(props.alpacaAccount.user.preference)[0] === 'symbol')
-? {
-      connect: {
-        id: props.alpacaAccount.user.preference.id
-      }
-} : { upsert: {
-          where: {
-            id: props.alpacaAccount.user.preference.id !== undefined ? {
-                equals: props.alpacaAccount.user.preference.id
-              } : undefined,
-            userId: props.alpacaAccount.user.preference.userId !== undefined ? {
-                equals: props.alpacaAccount.user.preference.userId
-              } : undefined,
-          },
-          update: {
-            id: props.alpacaAccount.user.preference.id !== undefined ? {
-                set: props.alpacaAccount.user.preference.id
-              } : undefined,
-            theme: props.alpacaAccount.user.preference.theme !== undefined ? {
-                set: props.alpacaAccount.user.preference.theme
-              } : undefined,
-            density: props.alpacaAccount.user.preference.density !== undefined ? {
-                set: props.alpacaAccount.user.preference.density
-              } : undefined,
-            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
-            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
-          },
-          create: {
-            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
-            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
-            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
-            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+            lastUsedStep: props.alpacaAccount.user.totp.lastUsedStep !== undefined ? props.alpacaAccount.user.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -11776,25 +11640,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
                 set: props.alpacaAccount.user.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.alpacaAccount.user.preference ? 
-        typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && Object.keys(props.alpacaAccount.user.preference)[0] === 'id'
-    ? { connect: {
-            id: props.alpacaAccount.user.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.alpacaAccount.user.preference.id !== undefined ? props.alpacaAccount.user.preference.id : undefined,
-            userId: props.alpacaAccount.user.preference.userId !== undefined ? props.alpacaAccount.user.preference.userId : undefined,
-          },
-          create: {
-            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
-            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
-            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
-            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+            lastUsedStep: props.alpacaAccount.user.totp.lastUsedStep !== undefined ? props.alpacaAccount.user.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -13945,25 +13791,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
                 set: props.alpacaAccount.user.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.alpacaAccount.user.preference ? 
-        typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && Object.keys(props.alpacaAccount.user.preference)[0] === 'id'
-    ? { connect: {
-            id: props.alpacaAccount.user.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.alpacaAccount.user.preference.id !== undefined ? props.alpacaAccount.user.preference.id : undefined,
-            userId: props.alpacaAccount.user.preference.userId !== undefined ? props.alpacaAccount.user.preference.userId : undefined,
-          },
-          create: {
-            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
-            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
-            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
-            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+            lastUsedStep: props.alpacaAccount.user.totp.lastUsedStep !== undefined ? props.alpacaAccount.user.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -16657,6 +16485,9 @@ import { logger } from './utils/logger';
             recoveryCodesHash: prop.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
                 set: prop.alpacaAccount.user.totp.recoveryCodesHash
               } : undefined,
+            lastUsedStep: prop.alpacaAccount.user.totp.lastUsedStep !== undefined ? {
+                set: prop.alpacaAccount.user.totp.lastUsedStep
+              } : undefined,
           },
           create: {
             secretEnc: prop.alpacaAccount.user.totp.secretEnc !== undefined ? prop.alpacaAccount.user.totp.secretEnc : undefined,
@@ -16664,42 +16495,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: prop.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
                 set: prop.alpacaAccount.user.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: prop.alpacaAccount.user.preference ? 
-      typeof prop.alpacaAccount.user.preference === 'object' && Object.keys(prop.alpacaAccount.user.preference).length === 1 && (Object.keys(prop.alpacaAccount.user.preference)[0] === 'id' || Object.keys(prop.alpacaAccount.user.preference)[0] === 'symbol')
-? {
-      connect: {
-        id: prop.alpacaAccount.user.preference.id
-      }
-} : { upsert: {
-          where: {
-            id: prop.alpacaAccount.user.preference.id !== undefined ? {
-                equals: prop.alpacaAccount.user.preference.id
-              } : undefined,
-            userId: prop.alpacaAccount.user.preference.userId !== undefined ? {
-                equals: prop.alpacaAccount.user.preference.userId
-              } : undefined,
-          },
-          update: {
-            id: prop.alpacaAccount.user.preference.id !== undefined ? {
-                set: prop.alpacaAccount.user.preference.id
-              } : undefined,
-            theme: prop.alpacaAccount.user.preference.theme !== undefined ? {
-                set: prop.alpacaAccount.user.preference.theme
-              } : undefined,
-            density: prop.alpacaAccount.user.preference.density !== undefined ? {
-                set: prop.alpacaAccount.user.preference.density
-              } : undefined,
-            deskPrefs: prop.alpacaAccount.user.preference.deskPrefs !== undefined ? prop.alpacaAccount.user.preference.deskPrefs : undefined,
-            notificationPrefs: prop.alpacaAccount.user.preference.notificationPrefs !== undefined ? prop.alpacaAccount.user.preference.notificationPrefs : undefined,
-          },
-          create: {
-            theme: prop.alpacaAccount.user.preference.theme !== undefined ? prop.alpacaAccount.user.preference.theme : undefined,
-            density: prop.alpacaAccount.user.preference.density !== undefined ? prop.alpacaAccount.user.preference.density : undefined,
-            deskPrefs: prop.alpacaAccount.user.preference.deskPrefs !== undefined ? prop.alpacaAccount.user.preference.deskPrefs : undefined,
-            notificationPrefs: prop.alpacaAccount.user.preference.notificationPrefs !== undefined ? prop.alpacaAccount.user.preference.notificationPrefs : undefined,
+            lastUsedStep: prop.alpacaAccount.user.totp.lastUsedStep !== undefined ? prop.alpacaAccount.user.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -17433,25 +17229,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: prop.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
                 set: prop.alpacaAccount.user.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: prop.alpacaAccount.user.preference ? 
-        typeof prop.alpacaAccount.user.preference === 'object' && Object.keys(prop.alpacaAccount.user.preference).length === 1 && Object.keys(prop.alpacaAccount.user.preference)[0] === 'id'
-    ? { connect: {
-            id: prop.alpacaAccount.user.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: prop.alpacaAccount.user.preference.id !== undefined ? prop.alpacaAccount.user.preference.id : undefined,
-            userId: prop.alpacaAccount.user.preference.userId !== undefined ? prop.alpacaAccount.user.preference.userId : undefined,
-          },
-          create: {
-            theme: prop.alpacaAccount.user.preference.theme !== undefined ? prop.alpacaAccount.user.preference.theme : undefined,
-            density: prop.alpacaAccount.user.preference.density !== undefined ? prop.alpacaAccount.user.preference.density : undefined,
-            deskPrefs: prop.alpacaAccount.user.preference.deskPrefs !== undefined ? prop.alpacaAccount.user.preference.deskPrefs : undefined,
-            notificationPrefs: prop.alpacaAccount.user.preference.notificationPrefs !== undefined ? prop.alpacaAccount.user.preference.notificationPrefs : undefined,
+            lastUsedStep: prop.alpacaAccount.user.totp.lastUsedStep !== undefined ? prop.alpacaAccount.user.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -19602,25 +19380,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: prop.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
                 set: prop.alpacaAccount.user.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: prop.alpacaAccount.user.preference ? 
-        typeof prop.alpacaAccount.user.preference === 'object' && Object.keys(prop.alpacaAccount.user.preference).length === 1 && Object.keys(prop.alpacaAccount.user.preference)[0] === 'id'
-    ? { connect: {
-            id: prop.alpacaAccount.user.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: prop.alpacaAccount.user.preference.id !== undefined ? prop.alpacaAccount.user.preference.id : undefined,
-            userId: prop.alpacaAccount.user.preference.userId !== undefined ? prop.alpacaAccount.user.preference.userId : undefined,
-          },
-          create: {
-            theme: prop.alpacaAccount.user.preference.theme !== undefined ? prop.alpacaAccount.user.preference.theme : undefined,
-            density: prop.alpacaAccount.user.preference.density !== undefined ? prop.alpacaAccount.user.preference.density : undefined,
-            deskPrefs: prop.alpacaAccount.user.preference.deskPrefs !== undefined ? prop.alpacaAccount.user.preference.deskPrefs : undefined,
-            notificationPrefs: prop.alpacaAccount.user.preference.notificationPrefs !== undefined ? prop.alpacaAccount.user.preference.notificationPrefs : undefined,
+            lastUsedStep: prop.alpacaAccount.user.totp.lastUsedStep !== undefined ? prop.alpacaAccount.user.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,

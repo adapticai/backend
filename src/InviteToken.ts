@@ -857,25 +857,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.waitlistEntry.reviewedBy.preference ? 
-        typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id'
-    ? { connect: {
-            id: props.waitlistEntry.reviewedBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? props.waitlistEntry.reviewedBy.preference.id : undefined,
-            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? props.waitlistEntry.reviewedBy.preference.userId : undefined,
-          },
-          create: {
-            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
-            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
-            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.waitlistEntry.reviewedBy.totp.lastUsedStep !== undefined ? props.waitlistEntry.reviewedBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -2767,6 +2749,9 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash
               } : undefined,
+            lastUsedStep: props.waitlistEntry.reviewedBy.totp.lastUsedStep !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.lastUsedStep
+              } : undefined,
           },
           create: {
             secretEnc: props.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? props.waitlistEntry.reviewedBy.totp.secretEnc : undefined,
@@ -2774,42 +2759,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.waitlistEntry.reviewedBy.preference ? 
-      typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && (Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id' || Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'symbol')
-? {
-      connect: {
-        id: props.waitlistEntry.reviewedBy.preference.id
-      }
-} : { upsert: {
-          where: {
-            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? {
-                equals: props.waitlistEntry.reviewedBy.preference.id
-              } : undefined,
-            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? {
-                equals: props.waitlistEntry.reviewedBy.preference.userId
-              } : undefined,
-          },
-          update: {
-            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? {
-                set: props.waitlistEntry.reviewedBy.preference.id
-              } : undefined,
-            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? {
-                set: props.waitlistEntry.reviewedBy.preference.theme
-              } : undefined,
-            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? {
-                set: props.waitlistEntry.reviewedBy.preference.density
-              } : undefined,
-            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
-          },
-          create: {
-            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
-            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
-            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.waitlistEntry.reviewedBy.totp.lastUsedStep !== undefined ? props.waitlistEntry.reviewedBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -3562,25 +3512,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.waitlistEntry.reviewedBy.preference ? 
-        typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id'
-    ? { connect: {
-            id: props.waitlistEntry.reviewedBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? props.waitlistEntry.reviewedBy.preference.id : undefined,
-            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? props.waitlistEntry.reviewedBy.preference.userId : undefined,
-          },
-          create: {
-            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
-            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
-            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.waitlistEntry.reviewedBy.totp.lastUsedStep !== undefined ? props.waitlistEntry.reviewedBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -4360,25 +4292,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.waitlistEntry.reviewedBy.preference ? 
-        typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id'
-    ? { connect: {
-            id: props.waitlistEntry.reviewedBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? props.waitlistEntry.reviewedBy.preference.id : undefined,
-            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? props.waitlistEntry.reviewedBy.preference.userId : undefined,
-          },
-          create: {
-            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
-            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
-            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.waitlistEntry.reviewedBy.totp.lastUsedStep !== undefined ? props.waitlistEntry.reviewedBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -5338,25 +5252,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.waitlistEntry.reviewedBy.preference ? 
-        typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id'
-    ? { connect: {
-            id: props.waitlistEntry.reviewedBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? props.waitlistEntry.reviewedBy.preference.id : undefined,
-            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? props.waitlistEntry.reviewedBy.preference.userId : undefined,
-          },
-          create: {
-            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
-            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
-            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.waitlistEntry.reviewedBy.totp.lastUsedStep !== undefined ? props.waitlistEntry.reviewedBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -6934,6 +6830,9 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash
               } : undefined,
+            lastUsedStep: props.waitlistEntry.reviewedBy.totp.lastUsedStep !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.lastUsedStep
+              } : undefined,
           },
           create: {
             secretEnc: props.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? props.waitlistEntry.reviewedBy.totp.secretEnc : undefined,
@@ -6941,42 +6840,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.waitlistEntry.reviewedBy.preference ? 
-      typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && (Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id' || Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'symbol')
-? {
-      connect: {
-        id: props.waitlistEntry.reviewedBy.preference.id
-      }
-} : { upsert: {
-          where: {
-            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? {
-                equals: props.waitlistEntry.reviewedBy.preference.id
-              } : undefined,
-            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? {
-                equals: props.waitlistEntry.reviewedBy.preference.userId
-              } : undefined,
-          },
-          update: {
-            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? {
-                set: props.waitlistEntry.reviewedBy.preference.id
-              } : undefined,
-            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? {
-                set: props.waitlistEntry.reviewedBy.preference.theme
-              } : undefined,
-            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? {
-                set: props.waitlistEntry.reviewedBy.preference.density
-              } : undefined,
-            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
-          },
-          create: {
-            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
-            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
-            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.waitlistEntry.reviewedBy.totp.lastUsedStep !== undefined ? props.waitlistEntry.reviewedBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -7729,25 +7593,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.waitlistEntry.reviewedBy.preference ? 
-        typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id'
-    ? { connect: {
-            id: props.waitlistEntry.reviewedBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? props.waitlistEntry.reviewedBy.preference.id : undefined,
-            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? props.waitlistEntry.reviewedBy.preference.userId : undefined,
-          },
-          create: {
-            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
-            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
-            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.waitlistEntry.reviewedBy.totp.lastUsedStep !== undefined ? props.waitlistEntry.reviewedBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -8527,25 +8373,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
                 set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: props.waitlistEntry.reviewedBy.preference ? 
-        typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id'
-    ? { connect: {
-            id: props.waitlistEntry.reviewedBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? props.waitlistEntry.reviewedBy.preference.id : undefined,
-            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? props.waitlistEntry.reviewedBy.preference.userId : undefined,
-          },
-          create: {
-            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
-            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
-            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
-            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+            lastUsedStep: props.waitlistEntry.reviewedBy.totp.lastUsedStep !== undefined ? props.waitlistEntry.reviewedBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -10283,6 +10111,9 @@ import { logger } from './utils/logger';
             recoveryCodesHash: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
                 set: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash
               } : undefined,
+            lastUsedStep: prop.waitlistEntry.reviewedBy.totp.lastUsedStep !== undefined ? {
+                set: prop.waitlistEntry.reviewedBy.totp.lastUsedStep
+              } : undefined,
           },
           create: {
             secretEnc: prop.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? prop.waitlistEntry.reviewedBy.totp.secretEnc : undefined,
@@ -10290,42 +10121,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
                 set: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: prop.waitlistEntry.reviewedBy.preference ? 
-      typeof prop.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(prop.waitlistEntry.reviewedBy.preference).length === 1 && (Object.keys(prop.waitlistEntry.reviewedBy.preference)[0] === 'id' || Object.keys(prop.waitlistEntry.reviewedBy.preference)[0] === 'symbol')
-? {
-      connect: {
-        id: prop.waitlistEntry.reviewedBy.preference.id
-      }
-} : { upsert: {
-          where: {
-            id: prop.waitlistEntry.reviewedBy.preference.id !== undefined ? {
-                equals: prop.waitlistEntry.reviewedBy.preference.id
-              } : undefined,
-            userId: prop.waitlistEntry.reviewedBy.preference.userId !== undefined ? {
-                equals: prop.waitlistEntry.reviewedBy.preference.userId
-              } : undefined,
-          },
-          update: {
-            id: prop.waitlistEntry.reviewedBy.preference.id !== undefined ? {
-                set: prop.waitlistEntry.reviewedBy.preference.id
-              } : undefined,
-            theme: prop.waitlistEntry.reviewedBy.preference.theme !== undefined ? {
-                set: prop.waitlistEntry.reviewedBy.preference.theme
-              } : undefined,
-            density: prop.waitlistEntry.reviewedBy.preference.density !== undefined ? {
-                set: prop.waitlistEntry.reviewedBy.preference.density
-              } : undefined,
-            deskPrefs: prop.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
-            notificationPrefs: prop.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
-          },
-          create: {
-            theme: prop.waitlistEntry.reviewedBy.preference.theme !== undefined ? prop.waitlistEntry.reviewedBy.preference.theme : undefined,
-            density: prop.waitlistEntry.reviewedBy.preference.density !== undefined ? prop.waitlistEntry.reviewedBy.preference.density : undefined,
-            deskPrefs: prop.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
-            notificationPrefs: prop.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+            lastUsedStep: prop.waitlistEntry.reviewedBy.totp.lastUsedStep !== undefined ? prop.waitlistEntry.reviewedBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -11078,25 +10874,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
                 set: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: prop.waitlistEntry.reviewedBy.preference ? 
-        typeof prop.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(prop.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(prop.waitlistEntry.reviewedBy.preference)[0] === 'id'
-    ? { connect: {
-            id: prop.waitlistEntry.reviewedBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: prop.waitlistEntry.reviewedBy.preference.id !== undefined ? prop.waitlistEntry.reviewedBy.preference.id : undefined,
-            userId: prop.waitlistEntry.reviewedBy.preference.userId !== undefined ? prop.waitlistEntry.reviewedBy.preference.userId : undefined,
-          },
-          create: {
-            theme: prop.waitlistEntry.reviewedBy.preference.theme !== undefined ? prop.waitlistEntry.reviewedBy.preference.theme : undefined,
-            density: prop.waitlistEntry.reviewedBy.preference.density !== undefined ? prop.waitlistEntry.reviewedBy.preference.density : undefined,
-            deskPrefs: prop.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
-            notificationPrefs: prop.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+            lastUsedStep: prop.waitlistEntry.reviewedBy.totp.lastUsedStep !== undefined ? prop.waitlistEntry.reviewedBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,
@@ -11876,25 +11654,7 @@ import { logger } from './utils/logger';
             recoveryCodesHash: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
                 set: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
                } : undefined,
-          },
-        }
-      } : undefined,
-      preference: prop.waitlistEntry.reviewedBy.preference ? 
-        typeof prop.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(prop.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(prop.waitlistEntry.reviewedBy.preference)[0] === 'id'
-    ? { connect: {
-            id: prop.waitlistEntry.reviewedBy.preference.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: prop.waitlistEntry.reviewedBy.preference.id !== undefined ? prop.waitlistEntry.reviewedBy.preference.id : undefined,
-            userId: prop.waitlistEntry.reviewedBy.preference.userId !== undefined ? prop.waitlistEntry.reviewedBy.preference.userId : undefined,
-          },
-          create: {
-            theme: prop.waitlistEntry.reviewedBy.preference.theme !== undefined ? prop.waitlistEntry.reviewedBy.preference.theme : undefined,
-            density: prop.waitlistEntry.reviewedBy.preference.density !== undefined ? prop.waitlistEntry.reviewedBy.preference.density : undefined,
-            deskPrefs: prop.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
-            notificationPrefs: prop.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+            lastUsedStep: prop.waitlistEntry.reviewedBy.totp.lastUsedStep !== undefined ? prop.waitlistEntry.reviewedBy.totp.lastUsedStep : undefined,
           },
         }
       } : undefined,

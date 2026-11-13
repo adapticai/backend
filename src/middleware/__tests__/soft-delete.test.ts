@@ -16,18 +16,19 @@ describe('Soft Delete Utilities', () => {
       expect(SOFT_DELETE_MODELS.has('AlpacaAccount')).toBe(true);
       expect(SOFT_DELETE_MODELS.has('Trade')).toBe(true);
       expect(SOFT_DELETE_MODELS.has('Action')).toBe(true);
-      expect(SOFT_DELETE_MODELS.has('AdaConversation')).toBe(true);
     });
 
     it('should not include non-soft-delete models', () => {
       expect(SOFT_DELETE_MODELS.has('Alert')).toBe(false);
+      // Its soft delete is the consumer's update of deletedAt; nothing here filters it.
+      expect(SOFT_DELETE_MODELS.has('AdaConversation')).toBe(false);
       expect(SOFT_DELETE_MODELS.has('Session')).toBe(false);
       expect(SOFT_DELETE_MODELS.has('AuditLog')).toBe(false);
       expect(SOFT_DELETE_MODELS.has('Asset')).toBe(false);
     });
 
     it('should contain exactly 5 models', () => {
-      expect(SOFT_DELETE_MODELS.size).toBe(5);
+      expect(SOFT_DELETE_MODELS.size).toBe(4);
     });
   });
 

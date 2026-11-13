@@ -1407,26 +1407,30 @@ model User {
   /// Strategies authored/owned by this user. TYPESTRING.SKIP=true GQL.SKIP=true
   ownedStrategies Strategy[] @relation("StrategyOwner")
 
-  /// Per-user feature-flag overrides. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// Per-user feature-flag overrides. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to their owner; the back-relation is not on the GraphQL output.
+  /// @TypeGraphQL.omit(output: true)
   featureFlagOverrides FeatureFlagOverride[]
 
-  /// Desk follows held by this user. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// Desk follows held by this user. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to their owner; the back-relation is not on the GraphQL output.
+  /// @TypeGraphQL.omit(output: true)
   follows Follow[]
 
-  /// Auto-follow rules this user owns. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// Auto-follow rules this user owns. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to their owner; the back-relation is not on the GraphQL output.
+  /// @TypeGraphQL.omit(output: true)
   autoFollowRules AutoFollowRule[] @relation("AutoFollowRuleOwner")
 
-  /// Web-push subscriptions registered by this user's browsers and devices. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// Web-push subscriptions registered by this user's browsers and devices. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to their owner; the back-relation is not on the GraphQL output.
+  /// @TypeGraphQL.omit(output: true)
   pushSubscriptions PushSubscription[]
 
-  /// Conversations this user has held with Ada. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// Conversations this user has held with Ada. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to their owner; the back-relation is not on the GraphQL output.
+  /// @TypeGraphQL.omit(output: true)
   adaConversations AdaConversation[]
 
-  /// TOTP second-factor enrolment. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// TOTP second-factor enrolment. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to their owner; the back-relation is not on the GraphQL output.
+  /// @TypeGraphQL.omit(output: true)
   totp UserTotp?
 
-  /// Desk and UI preferences. TYPESTRING.SKIP=true GQL.SKIP=true
-  preference UserPreference?
 
   @@index([customerId])
   @@map(name: "users")
@@ -1703,7 +1707,8 @@ model AlpacaAccount {
   /// Strategy opt-ins held by this account (Stage-2 multi-strategy). TYPESTRING.SKIP=true GQL.SKIP=true
   strategySubscriptions StrategySubscription[]
 
-  /// Desk decisions scoped to this account. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// Desk decisions scoped to this account. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to their owner; the back-relation is not on the GraphQL output.
+  /// @TypeGraphQL.omit(output: true)
   deskDecisions DeskDecision[]
 
   @@index([userId])
@@ -6078,7 +6083,8 @@ model Organization {
   /// Governance mandates owned by this organization (org-scoped mandates plus the roll-up of its fund-scoped mandates); read via adaptic.mandate.* rather than through the org to avoid pulling the version/rules tree on every org read. TYPESTRING.SKIP=true GQL.SKIP=true
   mandates Mandate[]
 
-  /// Per-organization feature-flag overrides. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// Per-organization feature-flag overrides. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to their owner; the back-relation is not on the GraphQL output.
+  /// @TypeGraphQL.omit(output: true)
   featureFlagOverrides FeatureFlagOverride[]
 
   /// Timestamp when the organization was created. TYPESTRING.SKIP=true
@@ -6220,16 +6226,20 @@ model Fund {
   /// Governance mandates scoped to this fund; read via adaptic.mandate.* rather than through the fund to avoid pulling the version/rules tree on every fund read. TYPESTRING.SKIP=true GQL.SKIP=true
   mandates Mandate[]
 
-  /// Desk follows held against this fund. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// Desk follows held against this fund. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to their owner; the back-relation is not on the GraphQL output.
+  /// @TypeGraphQL.omit(output: true)
   follows Follow[]
 
-  /// Auto-follow rules scoped to this fund. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// Auto-follow rules scoped to this fund. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to their owner; the back-relation is not on the GraphQL output.
+  /// @TypeGraphQL.omit(output: true)
   autoFollowRules AutoFollowRule[]
 
-  /// Ada conversations held in this fund's context. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// Ada conversations held in this fund's context. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to their owner; the back-relation is not on the GraphQL output.
+  /// @TypeGraphQL.omit(output: true)
   adaConversations AdaConversation[]
 
-  /// Desk decisions raised for this fund. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// Desk decisions raised for this fund. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to their owner; the back-relation is not on the GraphQL output.
+  /// @TypeGraphQL.omit(output: true)
   deskDecisions DeskDecision[]
 
   /// Timestamp when the fund was created. TYPESTRING.SKIP=true
@@ -7653,9 +7663,10 @@ model StrategySubscription {
 // ============================================================================
 // Trading desk
 // Feature-flag overrides, follows and auto-follow rules, web-push
-// subscriptions, Ada conversations, user availability, TOTP enrolment, the desk
-// decision queue and desk preferences. The platform desk reads and writes these;
-// the contracts live in platform `apps/web/docs/desk/engine-gaps.md`.
+// subscriptions, Ada conversations, user availability, TOTP enrolment and the
+// desk decision queue. The platform desk reads and writes these; the contracts
+// live in platform `apps/web/docs/desk/engine-gaps.md`. Desk preferences are
+// not a model: they are Configuration rows (docs/desk-preferences.md).
 // Enum values are lowercase because they are the wire values the desk contract
 // names, as EquityBarTimespan's are.
 // ============================================================================
@@ -7730,6 +7741,18 @@ enum StrategyKind {
 }
 
 /// A per-user or per-organization override of a platform feature flag (e.g. `desk_ia`).
+///
+/// Uniqueness is "one override per flag per principal", enforced by two partial
+/// unique indexes in the migration (`feature_flag_overrides_flag_user_key` on
+/// (flag, userId) where organizationId IS NULL, `feature_flag_overrides_flag_org_key`
+/// on (flag, organizationId) where userId IS NULL) plus a CHECK that exactly one
+/// principal column is set. Prisma cannot express a partial index, so there is no
+/// natural-key WhereUniqueInput: `adaptic.featureFlagOverride.upsert` keys on `id`
+/// only. To set an override, find it first
+/// (`findMany({ flag, userId })` or `findMany({ flag, organizationId })`), then
+/// `update` by the found `id`, or `create` when none exists; a concurrent create
+/// loses on the partial index with a unique violation and retries as an update.
+/// Writes are service-principal only.
 model FeatureFlagOverride {
   /// Unique identifier for the override. TYPESTRING.SKIP=true
   id String @id @default(uuid()) @db.Uuid
@@ -7761,7 +7784,6 @@ model FeatureFlagOverride {
   /// Timestamp when the override was last updated. TYPESTRING.SKIP=true
   updatedAt DateTime @updatedAt
 
-  @@unique([flag, userId, organizationId])
   @@index([flag])
   @@index([organizationId])
   @@map(name: "feature_flag_overrides")
@@ -7883,7 +7905,15 @@ model PushSubscription {
   @@map(name: "push_subscriptions")
 }
 
-/// A conversation between a user and Ada in a fund's context. Soft-deleted via `deletedAt`.
+/// A conversation between a user and Ada in a fund's context.
+///
+/// Deletion is a soft delete the CONSUMER performs: set `deletedAt` with
+/// `adaptic.adaConversation.update({ id, deletedAt: <now> })`, and filter every
+/// read with `deletedAt: null` (the platform's list and open paths do). Nothing
+/// in the backend filters soft-deleted rows for you. A hard `deleteOne` of a
+/// conversation that still has messages is refused by the database
+/// (`ada_messages.conversationId` is ON DELETE RESTRICT), so messages are never
+/// lost to an accidental delete; a deliberate purge deletes the messages first.
 model AdaConversation {
   /// Unique identifier for the conversation. TYPESTRING.SKIP=true
   id String @id @default(uuid()) @db.Uuid
@@ -7932,7 +7962,7 @@ model AdaMessage {
   conversationId String @db.Uuid
 
   /// Relation to the AdaConversation. TYPESTRING.SKIP=true GQL.EXCLUDE=['messages']
-  conversation AdaConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversation AdaConversation @relation(fields: [conversationId], references: [id], onDelete: Restrict)
 
   /// Author of the message.
   role AdaMessageRole
@@ -7954,6 +7984,12 @@ model AdaMessage {
 /// hashes are write-only: they are omitted from every GraphQL output type and
 /// from every filter and sort input, from the generated selection sets and
 /// from typeStrings, and read only server-side through Prisma.
+///
+/// Enrolment, confirmation, verification and removal go through the
+/// service-principal-only custom mutations `enrollUserTotp`, `confirmUserTotp`,
+/// `verifyUserTotp` and `disableUserTotp` (src/resolvers/custom/UserTotpResolver.ts),
+/// which hold the encryption key (`TOTP_ENCRYPTION_KEY`). Generated writes to
+/// this model are service-principal only and always enforced.
 model UserTotp {
   /// Unique identifier for the enrolment. TYPESTRING.SKIP=true
   id String @id @default(uuid()) @db.Uuid
@@ -7974,6 +8010,9 @@ model UserTotp {
   /// Hashes of the unused recovery codes. Never returned. TYPESTRING.SKIP=true GQL.SKIP=true
   /// @TypeGraphQL.omit(output: true, input: ["where", "orderBy"])
   recoveryCodesHash String[]
+
+  /// RFC 6238 time step of the last accepted code. A code at or before this step is refused, so an observed code cannot be replayed inside its validity window. Null until a code is accepted. TYPESTRING.SKIP=true
+  lastUsedStep Int?
 
   /// Timestamp when the enrolment was created. TYPESTRING.SKIP=true
   createdAt DateTime @default(now())
@@ -8058,36 +8097,4 @@ model DeskDecision {
   @@index([fundId, status, dueAt])
   @@index([accountId])
   @@map(name: "desk_decisions")
-}
-
-/// A user's desk and UI preferences. One row per user.
-model UserPreference {
-  /// Unique identifier for the preference row. TYPESTRING.SKIP=true
-  id String @id @default(uuid()) @db.Uuid
-
-  /// The User these preferences belong to; one row per user. TYPESTRING.SKIP=true
-  userId String @unique @db.Uuid
-
-  /// Relation to the User. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','email']
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  /// Colour theme (e.g. 'light', 'dark', 'system'). Null means the platform default.
-  theme String?
-
-  /// Layout density (e.g. 'comfortable', 'compact'). Null means the platform default.
-  density String?
-
-  /// Desk preferences (JSON). Null means none are set.
-  deskPrefs Json?
-
-  /// Notification preferences beyond the per-event NotificationPreference rows (JSON). Null means none are set.
-  notificationPrefs Json?
-
-  /// Timestamp when the preferences were created. TYPESTRING.SKIP=true
-  createdAt DateTime @default(now())
-
-  /// Timestamp when the preferences were last updated. TYPESTRING.SKIP=true
-  updatedAt DateTime @updatedAt
-
-  @@map(name: "user_preferences")
 }

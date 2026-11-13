@@ -2991,25 +2991,7 @@ import { logger } from './utils/logger';
           recoveryCodesHash: props.owner.totp.recoveryCodesHash !== undefined ? {
               set: props.owner.totp.recoveryCodesHash 
              } : undefined,
-        },
-      }
-    } : undefined,
-    preference: props.owner.preference ? 
-      typeof props.owner.preference === 'object' && Object.keys(props.owner.preference).length === 1 && Object.keys(props.owner.preference)[0] === 'id'
-    ? { connect: {
-          id: props.owner.preference.id
-          }
-        }
-    : { connectOrCreate: {
-        where: {
-          id: props.owner.preference.id !== undefined ? props.owner.preference.id : undefined,
-          userId: props.owner.preference.userId !== undefined ? props.owner.preference.userId : undefined,
-        },
-        create: {
-          theme: props.owner.preference.theme !== undefined ? props.owner.preference.theme : undefined,
-          density: props.owner.preference.density !== undefined ? props.owner.preference.density : undefined,
-          deskPrefs: props.owner.preference.deskPrefs !== undefined ? props.owner.preference.deskPrefs : undefined,
-          notificationPrefs: props.owner.preference.notificationPrefs !== undefined ? props.owner.preference.notificationPrefs : undefined,
+          lastUsedStep: props.owner.totp.lastUsedStep !== undefined ? props.owner.totp.lastUsedStep : undefined,
         },
       }
     } : undefined,
@@ -12331,6 +12313,9 @@ import { logger } from './utils/logger';
           recoveryCodesHash: props.owner.totp.recoveryCodesHash !== undefined ? {
               set: props.owner.totp.recoveryCodesHash
             } : undefined,
+          lastUsedStep: props.owner.totp.lastUsedStep !== undefined ? {
+              set: props.owner.totp.lastUsedStep
+            } : undefined,
         },
         create: {
           secretEnc: props.owner.totp.secretEnc !== undefined ? props.owner.totp.secretEnc : undefined,
@@ -12338,42 +12323,7 @@ import { logger } from './utils/logger';
           recoveryCodesHash: props.owner.totp.recoveryCodesHash !== undefined ? {
               set: props.owner.totp.recoveryCodesHash 
              } : undefined,
-        },
-      }
-    } : undefined,
-    preference: props.owner.preference ? 
-    typeof props.owner.preference === 'object' && Object.keys(props.owner.preference).length === 1 && (Object.keys(props.owner.preference)[0] === 'id' || Object.keys(props.owner.preference)[0] === 'symbol')
-? {
-    connect: {
-      id: props.owner.preference.id
-    }
-} : { upsert: {
-        where: {
-          id: props.owner.preference.id !== undefined ? {
-              equals: props.owner.preference.id
-            } : undefined,
-          userId: props.owner.preference.userId !== undefined ? {
-              equals: props.owner.preference.userId
-            } : undefined,
-        },
-        update: {
-          id: props.owner.preference.id !== undefined ? {
-              set: props.owner.preference.id
-            } : undefined,
-          theme: props.owner.preference.theme !== undefined ? {
-              set: props.owner.preference.theme
-            } : undefined,
-          density: props.owner.preference.density !== undefined ? {
-              set: props.owner.preference.density
-            } : undefined,
-          deskPrefs: props.owner.preference.deskPrefs !== undefined ? props.owner.preference.deskPrefs : undefined,
-          notificationPrefs: props.owner.preference.notificationPrefs !== undefined ? props.owner.preference.notificationPrefs : undefined,
-        },
-        create: {
-          theme: props.owner.preference.theme !== undefined ? props.owner.preference.theme : undefined,
-          density: props.owner.preference.density !== undefined ? props.owner.preference.density : undefined,
-          deskPrefs: props.owner.preference.deskPrefs !== undefined ? props.owner.preference.deskPrefs : undefined,
-          notificationPrefs: props.owner.preference.notificationPrefs !== undefined ? props.owner.preference.notificationPrefs : undefined,
+          lastUsedStep: props.owner.totp.lastUsedStep !== undefined ? props.owner.totp.lastUsedStep : undefined,
         },
       }
     } : undefined,
@@ -15273,25 +15223,7 @@ import { logger } from './utils/logger';
           recoveryCodesHash: props.owner.totp.recoveryCodesHash !== undefined ? {
               set: props.owner.totp.recoveryCodesHash 
              } : undefined,
-        },
-      }
-    } : undefined,
-    preference: props.owner.preference ? 
-      typeof props.owner.preference === 'object' && Object.keys(props.owner.preference).length === 1 && Object.keys(props.owner.preference)[0] === 'id'
-    ? { connect: {
-          id: props.owner.preference.id
-          }
-        }
-    : { connectOrCreate: {
-        where: {
-          id: props.owner.preference.id !== undefined ? props.owner.preference.id : undefined,
-          userId: props.owner.preference.userId !== undefined ? props.owner.preference.userId : undefined,
-        },
-        create: {
-          theme: props.owner.preference.theme !== undefined ? props.owner.preference.theme : undefined,
-          density: props.owner.preference.density !== undefined ? props.owner.preference.density : undefined,
-          deskPrefs: props.owner.preference.deskPrefs !== undefined ? props.owner.preference.deskPrefs : undefined,
-          notificationPrefs: props.owner.preference.notificationPrefs !== undefined ? props.owner.preference.notificationPrefs : undefined,
+          lastUsedStep: props.owner.totp.lastUsedStep !== undefined ? props.owner.totp.lastUsedStep : undefined,
         },
       }
     } : undefined,
@@ -20808,25 +20740,7 @@ import { logger } from './utils/logger';
           recoveryCodesHash: props.owner.totp.recoveryCodesHash !== undefined ? {
               set: props.owner.totp.recoveryCodesHash 
              } : undefined,
-        },
-      }
-    } : undefined,
-    preference: props.owner.preference ? 
-      typeof props.owner.preference === 'object' && Object.keys(props.owner.preference).length === 1 && Object.keys(props.owner.preference)[0] === 'id'
-    ? { connect: {
-          id: props.owner.preference.id
-          }
-        }
-    : { connectOrCreate: {
-        where: {
-          id: props.owner.preference.id !== undefined ? props.owner.preference.id : undefined,
-          userId: props.owner.preference.userId !== undefined ? props.owner.preference.userId : undefined,
-        },
-        create: {
-          theme: props.owner.preference.theme !== undefined ? props.owner.preference.theme : undefined,
-          density: props.owner.preference.density !== undefined ? props.owner.preference.density : undefined,
-          deskPrefs: props.owner.preference.deskPrefs !== undefined ? props.owner.preference.deskPrefs : undefined,
-          notificationPrefs: props.owner.preference.notificationPrefs !== undefined ? props.owner.preference.notificationPrefs : undefined,
+          lastUsedStep: props.owner.totp.lastUsedStep !== undefined ? props.owner.totp.lastUsedStep : undefined,
         },
       }
     } : undefined,
@@ -29826,6 +29740,9 @@ import { logger } from './utils/logger';
           recoveryCodesHash: props.owner.totp.recoveryCodesHash !== undefined ? {
               set: props.owner.totp.recoveryCodesHash
             } : undefined,
+          lastUsedStep: props.owner.totp.lastUsedStep !== undefined ? {
+              set: props.owner.totp.lastUsedStep
+            } : undefined,
         },
         create: {
           secretEnc: props.owner.totp.secretEnc !== undefined ? props.owner.totp.secretEnc : undefined,
@@ -29833,42 +29750,7 @@ import { logger } from './utils/logger';
           recoveryCodesHash: props.owner.totp.recoveryCodesHash !== undefined ? {
               set: props.owner.totp.recoveryCodesHash 
              } : undefined,
-        },
-      }
-    } : undefined,
-    preference: props.owner.preference ? 
-    typeof props.owner.preference === 'object' && Object.keys(props.owner.preference).length === 1 && (Object.keys(props.owner.preference)[0] === 'id' || Object.keys(props.owner.preference)[0] === 'symbol')
-? {
-    connect: {
-      id: props.owner.preference.id
-    }
-} : { upsert: {
-        where: {
-          id: props.owner.preference.id !== undefined ? {
-              equals: props.owner.preference.id
-            } : undefined,
-          userId: props.owner.preference.userId !== undefined ? {
-              equals: props.owner.preference.userId
-            } : undefined,
-        },
-        update: {
-          id: props.owner.preference.id !== undefined ? {
-              set: props.owner.preference.id
-            } : undefined,
-          theme: props.owner.preference.theme !== undefined ? {
-              set: props.owner.preference.theme
-            } : undefined,
-          density: props.owner.preference.density !== undefined ? {
-              set: props.owner.preference.density
-            } : undefined,
-          deskPrefs: props.owner.preference.deskPrefs !== undefined ? props.owner.preference.deskPrefs : undefined,
-          notificationPrefs: props.owner.preference.notificationPrefs !== undefined ? props.owner.preference.notificationPrefs : undefined,
-        },
-        create: {
-          theme: props.owner.preference.theme !== undefined ? props.owner.preference.theme : undefined,
-          density: props.owner.preference.density !== undefined ? props.owner.preference.density : undefined,
-          deskPrefs: props.owner.preference.deskPrefs !== undefined ? props.owner.preference.deskPrefs : undefined,
-          notificationPrefs: props.owner.preference.notificationPrefs !== undefined ? props.owner.preference.notificationPrefs : undefined,
+          lastUsedStep: props.owner.totp.lastUsedStep !== undefined ? props.owner.totp.lastUsedStep : undefined,
         },
       }
     } : undefined,
@@ -32768,25 +32650,7 @@ import { logger } from './utils/logger';
           recoveryCodesHash: props.owner.totp.recoveryCodesHash !== undefined ? {
               set: props.owner.totp.recoveryCodesHash 
              } : undefined,
-        },
-      }
-    } : undefined,
-    preference: props.owner.preference ? 
-      typeof props.owner.preference === 'object' && Object.keys(props.owner.preference).length === 1 && Object.keys(props.owner.preference)[0] === 'id'
-    ? { connect: {
-          id: props.owner.preference.id
-          }
-        }
-    : { connectOrCreate: {
-        where: {
-          id: props.owner.preference.id !== undefined ? props.owner.preference.id : undefined,
-          userId: props.owner.preference.userId !== undefined ? props.owner.preference.userId : undefined,
-        },
-        create: {
-          theme: props.owner.preference.theme !== undefined ? props.owner.preference.theme : undefined,
-          density: props.owner.preference.density !== undefined ? props.owner.preference.density : undefined,
-          deskPrefs: props.owner.preference.deskPrefs !== undefined ? props.owner.preference.deskPrefs : undefined,
-          notificationPrefs: props.owner.preference.notificationPrefs !== undefined ? props.owner.preference.notificationPrefs : undefined,
+          lastUsedStep: props.owner.totp.lastUsedStep !== undefined ? props.owner.totp.lastUsedStep : undefined,
         },
       }
     } : undefined,
@@ -43800,6 +43664,9 @@ import { logger } from './utils/logger';
           recoveryCodesHash: prop.owner.totp.recoveryCodesHash !== undefined ? {
               set: prop.owner.totp.recoveryCodesHash
             } : undefined,
+          lastUsedStep: prop.owner.totp.lastUsedStep !== undefined ? {
+              set: prop.owner.totp.lastUsedStep
+            } : undefined,
         },
         create: {
           secretEnc: prop.owner.totp.secretEnc !== undefined ? prop.owner.totp.secretEnc : undefined,
@@ -43807,42 +43674,7 @@ import { logger } from './utils/logger';
           recoveryCodesHash: prop.owner.totp.recoveryCodesHash !== undefined ? {
               set: prop.owner.totp.recoveryCodesHash 
              } : undefined,
-        },
-      }
-    } : undefined,
-    preference: prop.owner.preference ? 
-    typeof prop.owner.preference === 'object' && Object.keys(prop.owner.preference).length === 1 && (Object.keys(prop.owner.preference)[0] === 'id' || Object.keys(prop.owner.preference)[0] === 'symbol')
-? {
-    connect: {
-      id: prop.owner.preference.id
-    }
-} : { upsert: {
-        where: {
-          id: prop.owner.preference.id !== undefined ? {
-              equals: prop.owner.preference.id
-            } : undefined,
-          userId: prop.owner.preference.userId !== undefined ? {
-              equals: prop.owner.preference.userId
-            } : undefined,
-        },
-        update: {
-          id: prop.owner.preference.id !== undefined ? {
-              set: prop.owner.preference.id
-            } : undefined,
-          theme: prop.owner.preference.theme !== undefined ? {
-              set: prop.owner.preference.theme
-            } : undefined,
-          density: prop.owner.preference.density !== undefined ? {
-              set: prop.owner.preference.density
-            } : undefined,
-          deskPrefs: prop.owner.preference.deskPrefs !== undefined ? prop.owner.preference.deskPrefs : undefined,
-          notificationPrefs: prop.owner.preference.notificationPrefs !== undefined ? prop.owner.preference.notificationPrefs : undefined,
-        },
-        create: {
-          theme: prop.owner.preference.theme !== undefined ? prop.owner.preference.theme : undefined,
-          density: prop.owner.preference.density !== undefined ? prop.owner.preference.density : undefined,
-          deskPrefs: prop.owner.preference.deskPrefs !== undefined ? prop.owner.preference.deskPrefs : undefined,
-          notificationPrefs: prop.owner.preference.notificationPrefs !== undefined ? prop.owner.preference.notificationPrefs : undefined,
+          lastUsedStep: prop.owner.totp.lastUsedStep !== undefined ? prop.owner.totp.lastUsedStep : undefined,
         },
       }
     } : undefined,
@@ -46742,25 +46574,7 @@ import { logger } from './utils/logger';
           recoveryCodesHash: prop.owner.totp.recoveryCodesHash !== undefined ? {
               set: prop.owner.totp.recoveryCodesHash 
              } : undefined,
-        },
-      }
-    } : undefined,
-    preference: prop.owner.preference ? 
-      typeof prop.owner.preference === 'object' && Object.keys(prop.owner.preference).length === 1 && Object.keys(prop.owner.preference)[0] === 'id'
-    ? { connect: {
-          id: prop.owner.preference.id
-          }
-        }
-    : { connectOrCreate: {
-        where: {
-          id: prop.owner.preference.id !== undefined ? prop.owner.preference.id : undefined,
-          userId: prop.owner.preference.userId !== undefined ? prop.owner.preference.userId : undefined,
-        },
-        create: {
-          theme: prop.owner.preference.theme !== undefined ? prop.owner.preference.theme : undefined,
-          density: prop.owner.preference.density !== undefined ? prop.owner.preference.density : undefined,
-          deskPrefs: prop.owner.preference.deskPrefs !== undefined ? prop.owner.preference.deskPrefs : undefined,
-          notificationPrefs: prop.owner.preference.notificationPrefs !== undefined ? prop.owner.preference.notificationPrefs : undefined,
+          lastUsedStep: prop.owner.totp.lastUsedStep !== undefined ? prop.owner.totp.lastUsedStep : undefined,
         },
       }
     } : undefined,

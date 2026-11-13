@@ -3,6 +3,9 @@ import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
 import adaptic from '../index';
 import { UserTotpTypeString } from '../generated/typeStrings/UserTotp';
+import type { Follow as FollowType } from '../generated/typegraphql-prisma/models/Follow';
+import type { PushSubscription as PushSubscriptionType } from '../generated/typegraphql-prisma/models/PushSubscription';
+import type { ApolloClientType, NormalizedCacheObject } from '../client';
 
 /**
  * The trading-desk models and fields on the published `adaptic.*` surface.
@@ -51,7 +54,6 @@ const NEW_MODELS = {
   adaMessage: 'AdaMessage',
   userTotp: 'UserTotp',
   deskDecision: 'DeskDecision',
-  userPreference: 'UserPreference',
 } as const;
 
 describe('desk models are on the adaptic namespace with full CRUD', () => {
@@ -63,6 +65,85 @@ describe('desk models are on the adaptic namespace with full CRUD', () => {
       });
     }
   );
+});
+
+describe('desk preferences are Configuration rows, not a model', () => {
+  it('has no adaptic.userPreference', () => {
+    expect(adaptic).not.toHaveProperty('userPreference');
+  });
+});
+
+/** The variables one generated call sends, captured by a stub client. */
+async function capturedVariables(
+  call: (client: ApolloClientType<NormalizedCacheObject>) => Promise<unknown>,
+  resultKey: string
+): Promise<Record<string, unknown>> {
+  const seen: Record<string, unknown>[] = [];
+  const stub = {
+    mutate: (options: { variables: Record<string, unknown> }): Promise<unknown> => {
+      seen.push(options.variables);
+      return Promise.resolve({ data: { [resultKey]: { id: 'row' } } });
+    },
+    query: (options: { variables: Record<string, unknown> }): Promise<unknown> => {
+      seen.push(options.variables);
+      return Promise.resolve({ data: { [resultKey]: { id: 'row' } } });
+    },
+  } as unknown as ApolloClientType<NormalizedCacheObject>;
+  await call(stub);
+  expect(seen).toHaveLength(1);
+  return seen[0];
+}
+
+describe('generated writes key Follow and PushSubscription on their natural key', () => {
+  const USER_ID = '11111111-1111-4111-8111-111111111111';
+  const FUND_ID = '33333333-3333-4333-8333-333333333333';
+  const follow = {
+    user: { id: USER_ID },
+    fund: { id: FUND_ID },
+    targetKind: 'asset',
+    targetId: 'NVDA',
+    level: 1,
+  } as unknown as FollowType;
+  const naturalFollow = {
+    userId_fundId_targetKind_targetId: { userId: USER_ID, fundId: FUND_ID, targetKind: 'asset', targetId: 'NVDA' },
+  };
+
+  it.each([
+    ['upsert', 'upsertOneFollow'],
+    ['update', 'updateOneFollow'],
+    ['delete', 'deleteOneFollow'],
+    ['get', 'getFollow'],
+  ] as const)('adaptic.follow.%s without an id sends the compound key', async (method, key) => {
+    const variables = await capturedVariables((client) => adaptic.follow[method](follow, client), key);
+    expect(variables.where).toEqual(naturalFollow);
+  });
+
+  it('an id, when given, wins over the natural key', async () => {
+    const variables = await capturedVariables(
+      (client) => adaptic.follow.upsert({ ...follow, id: 'f-1' } as FollowType, client),
+      'upsertOneFollow'
+    );
+    expect(variables.where).toEqual({ id: 'f-1' });
+  });
+
+  it.each([
+    ['upsert', 'upsertOnePushSubscription'],
+    ['update', 'updateOnePushSubscription'],
+    ['delete', 'deleteOnePushSubscription'],
+    ['get', 'getPushSubscription'],
+  ] as const)('adaptic.pushSubscription.%s without an id sends the endpoint', async (method, key) => {
+    const subscription = {
+      user: { id: USER_ID },
+      endpoint: 'https://push.example.test/e',
+      p256dh: 'p',
+      auth: 'a',
+    } as unknown as PushSubscriptionType;
+    const variables = await capturedVariables(
+      (client) => adaptic.pushSubscription[method](subscription, client),
+      key
+    );
+    expect(variables.where).toEqual({ endpoint: 'https://push.example.test/e' });
+  });
 });
 
 describe('desk selection sets carry the contract fields', () => {
@@ -82,7 +163,6 @@ describe('desk selection sets carry the contract fields', () => {
         'reasonRequired', 'status', 'decidedBy', 'decidedAt', 'reason',
       ],
     ],
-    ['UserPreference', ['id', 'userId', 'theme', 'density', 'deskPrefs', 'notificationPrefs', 'createdAt', 'updatedAt']],
     ['User', ['availability', 'availabilityUntil']],
     ['MandateVersion', ['autonomy', 'triggers', 'instruments', 'exclusions']],
     ['Strategy', ['kind', 'spec', 'backtestJobId']],

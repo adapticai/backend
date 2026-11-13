@@ -123,6 +123,7 @@ CREATE TABLE "user_totps" (
     "secretEnc" TEXT NOT NULL,
     "enabledAt" TIMESTAMP(3),
     "recoveryCodesHash" TEXT[],
+    "lastUsedStep" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -156,28 +157,11 @@ CREATE TABLE "desk_decisions" (
     CONSTRAINT "desk_decisions_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "user_preferences" (
-    "id" UUID NOT NULL,
-    "userId" UUID NOT NULL,
-    "theme" TEXT,
-    "density" TEXT,
-    "deskPrefs" JSONB,
-    "notificationPrefs" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "user_preferences_pkey" PRIMARY KEY ("id")
-);
-
 -- CreateIndex
 CREATE INDEX "feature_flag_overrides_flag_idx" ON "feature_flag_overrides"("flag");
 
 -- CreateIndex
 CREATE INDEX "feature_flag_overrides_organizationId_idx" ON "feature_flag_overrides"("organizationId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "feature_flag_overrides_flag_userId_organizationId_key" ON "feature_flag_overrides"("flag", "userId", "organizationId");
 
 -- CreateIndex
 CREATE INDEX "follows_fundId_idx" ON "follows"("fundId");
@@ -215,9 +199,6 @@ CREATE INDEX "desk_decisions_fundId_status_dueAt_idx" ON "desk_decisions"("fundI
 -- CreateIndex
 CREATE INDEX "desk_decisions_accountId_idx" ON "desk_decisions"("accountId");
 
--- CreateIndex
-CREATE UNIQUE INDEX "user_preferences_userId_key" ON "user_preferences"("userId");
-
 -- AddForeignKey
 ALTER TABLE "feature_flag_overrides" ADD CONSTRAINT "feature_flag_overrides_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -246,7 +227,7 @@ ALTER TABLE "ada_conversations" ADD CONSTRAINT "ada_conversations_userId_fkey" F
 ALTER TABLE "ada_conversations" ADD CONSTRAINT "ada_conversations_fundId_fkey" FOREIGN KEY ("fundId") REFERENCES "funds"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ada_messages" ADD CONSTRAINT "ada_messages_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "ada_conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ada_messages" ADD CONSTRAINT "ada_messages_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "ada_conversations"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user_totps" ADD CONSTRAINT "user_totps_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -257,9 +238,6 @@ ALTER TABLE "desk_decisions" ADD CONSTRAINT "desk_decisions_fundId_fkey" FOREIGN
 -- AddForeignKey
 ALTER TABLE "desk_decisions" ADD CONSTRAINT "desk_decisions_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "alpaca_accounts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "user_preferences" ADD CONSTRAINT "user_preferences_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
 -- Invariants Prisma cannot express in the schema. Prisma's migrate diff does
 -- not model CHECK constraints or partial indexes, so these do not drift.
 
@@ -269,8 +247,9 @@ ALTER TABLE "follows" ADD CONSTRAINT "follows_level_range_check" CHECK ("level" 
 -- An override targets exactly one principal: a user or an organization.
 ALTER TABLE "feature_flag_overrides" ADD CONSTRAINT "feature_flag_overrides_one_target_check" CHECK (num_nonnulls("userId", "organizationId") = 1);
 
--- Postgres treats NULLs as distinct, so the composite unique key above never
--- rejects a duplicate: one of its two principal columns is always NULL. These
--- partial indexes make "one override per flag per principal" hold.
+-- One override per flag per principal. A composite unique key over
+-- (flag, userId, organizationId) would never reject a duplicate: Postgres
+-- treats NULLs as distinct and one principal column is always NULL. These
+-- partial indexes make the rule hold.
 CREATE UNIQUE INDEX "feature_flag_overrides_flag_user_key" ON "feature_flag_overrides"("flag", "userId") WHERE "organizationId" IS NULL;
 CREATE UNIQUE INDEX "feature_flag_overrides_flag_org_key" ON "feature_flag_overrides"("flag", "organizationId") WHERE "userId" IS NULL;

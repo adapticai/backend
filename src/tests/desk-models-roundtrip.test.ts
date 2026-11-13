@@ -6,8 +6,10 @@ import { runTsNodeHarness } from '../middleware/__tests__/ts-node-harness';
  * the generated GraphQL resolvers against a real Postgres built from the
  * migration history (`desk-models-roundtrip.harness.ts`).
  *
- * Runs only when DESK_IT_DATABASE_URL points at a disposable database the
- * migrations have been applied to; CI has no database, so it is skipped there:
+ * SKIPPED IN CI: it runs only when DESK_IT_DATABASE_URL points at a
+ * disposable database the migrations have been applied to, and CI has no
+ * database. A green CI run therefore says nothing about this suite; run it
+ * locally against a scratch Postgres:
  *
  *   DESK_IT_DATABASE_URL=postgresql://postgres@127.0.0.1:5499/desk_it \
  *     npx vitest run src/tests/desk-models-roundtrip.test.ts

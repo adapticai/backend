@@ -122,7 +122,6 @@ import { TradeExecutionHistory } from './TradeExecutionHistory';
 import { TradeOutcome } from './TradeOutcome';
 import { TradingPolicy } from './TradingPolicy';
 import { User } from './User';
-import { UserPreference } from './UserPreference';
 import { UserTotp } from './UserTotp';
 import { VerificationToken } from './VerificationToken';
 import { WaitlistEntry } from './WaitlistEntry';
@@ -219,7 +218,6 @@ const adaptic = {
   tradeOutcome: TradeOutcome,
   tradingPolicy: TradingPolicy,
   user: User,
-  userPreference: UserPreference,
   userTotp: UserTotp,
   verificationToken: VerificationToken,
   waitlistEntry: WaitlistEntry,
