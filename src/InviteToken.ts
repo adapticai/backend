@@ -119,6 +119,8 @@ import { logger } from './utils/logger';
           signupCategory: props.waitlistEntry.reviewedBy.signupCategory !== undefined ? props.waitlistEntry.reviewedBy.signupCategory : undefined,
           deletedAt: props.waitlistEntry.reviewedBy.deletedAt !== undefined ? props.waitlistEntry.reviewedBy.deletedAt : undefined,
           role: props.waitlistEntry.reviewedBy.role !== undefined ? props.waitlistEntry.reviewedBy.role : undefined,
+          availability: props.waitlistEntry.reviewedBy.availability !== undefined ? props.waitlistEntry.reviewedBy.availability : undefined,
+          availabilityUntil: props.waitlistEntry.reviewedBy.availabilityUntil !== undefined ? props.waitlistEntry.reviewedBy.availabilityUntil : undefined,
           bio: props.waitlistEntry.reviewedBy.bio !== undefined ? props.waitlistEntry.reviewedBy.bio : undefined,
           jobTitle: props.waitlistEntry.reviewedBy.jobTitle !== undefined ? props.waitlistEntry.reviewedBy.jobTitle : undefined,
           currentAccount: props.waitlistEntry.reviewedBy.currentAccount !== undefined ? props.waitlistEntry.reviewedBy.currentAccount : undefined,
@@ -554,6 +556,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -692,6 +700,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -700,9 +711,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.waitlistEntry.reviewedBy.featureFlagOverrides ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.featureFlagOverrides) && props.waitlistEntry.reviewedBy.featureFlagOverrides.length > 0 &&  props.waitlistEntry.reviewedBy.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.waitlistEntry.reviewedBy.follows ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.follows) && props.waitlistEntry.reviewedBy.follows.length > 0 &&  props.waitlistEntry.reviewedBy.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.waitlistEntry.reviewedBy.autoFollowRules ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.autoFollowRules) && props.waitlistEntry.reviewedBy.autoFollowRules.length > 0 &&  props.waitlistEntry.reviewedBy.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.waitlistEntry.reviewedBy.pushSubscriptions ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.pushSubscriptions) && props.waitlistEntry.reviewedBy.pushSubscriptions.length > 0 &&  props.waitlistEntry.reviewedBy.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.waitlistEntry.reviewedBy.adaConversations ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.adaConversations) && props.waitlistEntry.reviewedBy.adaConversations.length > 0 &&  props.waitlistEntry.reviewedBy.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.waitlistEntry.reviewedBy.totp ? 
+        typeof props.waitlistEntry.reviewedBy.totp === 'object' && Object.keys(props.waitlistEntry.reviewedBy.totp).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.totp)[0] === 'id'
+    ? { connect: {
+            id: props.waitlistEntry.reviewedBy.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.totp.id !== undefined ? props.waitlistEntry.reviewedBy.totp.id : undefined,
+            userId: props.waitlistEntry.reviewedBy.totp.userId !== undefined ? props.waitlistEntry.reviewedBy.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: props.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? props.waitlistEntry.reviewedBy.totp.secretEnc : undefined,
+            enabledAt: props.waitlistEntry.reviewedBy.totp.enabledAt !== undefined ? props.waitlistEntry.reviewedBy.totp.enabledAt : undefined,
+            recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.waitlistEntry.reviewedBy.preference ? 
+        typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id'
+    ? { connect: {
+            id: props.waitlistEntry.reviewedBy.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? props.waitlistEntry.reviewedBy.preference.id : undefined,
+            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? props.waitlistEntry.reviewedBy.preference.userId : undefined,
+          },
+          create: {
+            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
+            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
+            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
+            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -1145,6 +1320,12 @@ import { logger } from './utils/logger';
           role: props.waitlistEntry.reviewedBy.role !== undefined ? {
               set: props.waitlistEntry.reviewedBy.role
             } : undefined,
+          availability: props.waitlistEntry.reviewedBy.availability !== undefined ? {
+              set: props.waitlistEntry.reviewedBy.availability
+            } : undefined,
+          availabilityUntil: props.waitlistEntry.reviewedBy.availabilityUntil !== undefined ? {
+              set: props.waitlistEntry.reviewedBy.availabilityUntil
+            } : undefined,
           bio: props.waitlistEntry.reviewedBy.bio !== undefined ? {
               set: props.waitlistEntry.reviewedBy.bio
             } : undefined,
@@ -2034,6 +2215,12 @@ import { logger } from './utils/logger';
                 set: item.summary
               } : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions
+              } : undefined,
           },
           create: {
             versionLabel: item.versionLabel !== undefined ? item.versionLabel : undefined,
@@ -2041,6 +2228,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -2284,6 +2477,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId
+              } : undefined,
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
@@ -2310,6 +2506,13 @@ import { logger } from './utils/logger';
             manifestHash: item.manifestHash !== undefined ? {
                 set: item.manifestHash
               } : undefined,
+            kind: item.kind !== undefined ? {
+                set: item.kind
+              } : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                set: item.backtestJobId
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -2321,9 +2524,294 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.waitlistEntry.reviewedBy.featureFlagOverrides ? 
+      Array.isArray(props.waitlistEntry.reviewedBy.featureFlagOverrides) && props.waitlistEntry.reviewedBy.featureFlagOverrides.length > 0 && props.waitlistEntry.reviewedBy.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            flag: item.flag !== undefined ? {
+                set: item.flag
+              } : undefined,
+            enabled: item.enabled !== undefined ? {
+                set: item.enabled
+              } : undefined,
+            updatedBy: item.updatedBy !== undefined ? {
+                set: item.updatedBy
+              } : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.waitlistEntry.reviewedBy.follows ? 
+      Array.isArray(props.waitlistEntry.reviewedBy.follows) && props.waitlistEntry.reviewedBy.follows.length > 0 && props.waitlistEntry.reviewedBy.follows.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.waitlistEntry.reviewedBy.follows.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.waitlistEntry.reviewedBy.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            targetKind: item.targetKind !== undefined ? {
+                set: item.targetKind
+              } : undefined,
+            targetId: item.targetId !== undefined ? {
+                set: item.targetId
+              } : undefined,
+            level: item.level !== undefined ? {
+                set: item.level
+              } : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? {
+                set: item.riskBudgetPctNav
+              } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.waitlistEntry.reviewedBy.autoFollowRules ? 
+      Array.isArray(props.waitlistEntry.reviewedBy.autoFollowRules) && props.waitlistEntry.reviewedBy.autoFollowRules.length > 0 && props.waitlistEntry.reviewedBy.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId
+              } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            name: item.name !== undefined ? {
+                set: item.name
+              } : undefined,
+            condition: item.condition !== undefined ? {
+                set: item.condition
+              } : undefined,
+            action: item.action !== undefined ? {
+                set: item.action
+              } : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks
+              } : undefined,
+            enabled: item.enabled !== undefined ? {
+                set: item.enabled
+              } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.waitlistEntry.reviewedBy.pushSubscriptions ? 
+      Array.isArray(props.waitlistEntry.reviewedBy.pushSubscriptions) && props.waitlistEntry.reviewedBy.pushSubscriptions.length > 0 && props.waitlistEntry.reviewedBy.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            endpoint: item.endpoint !== undefined ? {
+                set: item.endpoint
+              } : undefined,
+            p256dh: item.p256dh !== undefined ? {
+                set: item.p256dh
+              } : undefined,
+            auth: item.auth !== undefined ? {
+                set: item.auth
+              } : undefined,
+            userAgent: item.userAgent !== undefined ? {
+                set: item.userAgent
+              } : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? {
+                set: item.lastSeenAt
+              } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.waitlistEntry.reviewedBy.adaConversations ? 
+      Array.isArray(props.waitlistEntry.reviewedBy.adaConversations) && props.waitlistEntry.reviewedBy.adaConversations.length > 0 && props.waitlistEntry.reviewedBy.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            title: item.title !== undefined ? {
+                set: item.title
+              } : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? {
+                set: item.sharedWithOrg
+              } : undefined,
+            deletedAt: item.deletedAt !== undefined ? {
+                set: item.deletedAt
+              } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.waitlistEntry.reviewedBy.totp ? 
+      typeof props.waitlistEntry.reviewedBy.totp === 'object' && Object.keys(props.waitlistEntry.reviewedBy.totp).length === 1 && (Object.keys(props.waitlistEntry.reviewedBy.totp)[0] === 'id' || Object.keys(props.waitlistEntry.reviewedBy.totp)[0] === 'symbol')
+? {
+      connect: {
+        id: props.waitlistEntry.reviewedBy.totp.id
+      }
+} : { upsert: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.totp.id !== undefined ? {
+                equals: props.waitlistEntry.reviewedBy.totp.id
+              } : undefined,
+            userId: props.waitlistEntry.reviewedBy.totp.userId !== undefined ? {
+                equals: props.waitlistEntry.reviewedBy.totp.userId
+              } : undefined,
+          },
+          update: {
+            id: props.waitlistEntry.reviewedBy.totp.id !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.id
+              } : undefined,
+            secretEnc: props.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.secretEnc
+              } : undefined,
+            enabledAt: props.waitlistEntry.reviewedBy.totp.enabledAt !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.enabledAt
+              } : undefined,
+            recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash
+              } : undefined,
+          },
+          create: {
+            secretEnc: props.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? props.waitlistEntry.reviewedBy.totp.secretEnc : undefined,
+            enabledAt: props.waitlistEntry.reviewedBy.totp.enabledAt !== undefined ? props.waitlistEntry.reviewedBy.totp.enabledAt : undefined,
+            recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.waitlistEntry.reviewedBy.preference ? 
+      typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && (Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id' || Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'symbol')
+? {
+      connect: {
+        id: props.waitlistEntry.reviewedBy.preference.id
+      }
+} : { upsert: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? {
+                equals: props.waitlistEntry.reviewedBy.preference.id
+              } : undefined,
+            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? {
+                equals: props.waitlistEntry.reviewedBy.preference.userId
+              } : undefined,
+          },
+          update: {
+            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.preference.id
+              } : undefined,
+            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.preference.theme
+              } : undefined,
+            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.preference.density
+              } : undefined,
+            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
+            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+          },
+          create: {
+            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
+            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
+            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
+            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
         create: {
@@ -2336,6 +2824,8 @@ import { logger } from './utils/logger';
           signupCategory: props.waitlistEntry.reviewedBy.signupCategory !== undefined ? props.waitlistEntry.reviewedBy.signupCategory : undefined,
           deletedAt: props.waitlistEntry.reviewedBy.deletedAt !== undefined ? props.waitlistEntry.reviewedBy.deletedAt : undefined,
           role: props.waitlistEntry.reviewedBy.role !== undefined ? props.waitlistEntry.reviewedBy.role : undefined,
+          availability: props.waitlistEntry.reviewedBy.availability !== undefined ? props.waitlistEntry.reviewedBy.availability : undefined,
+          availabilityUntil: props.waitlistEntry.reviewedBy.availabilityUntil !== undefined ? props.waitlistEntry.reviewedBy.availabilityUntil : undefined,
           bio: props.waitlistEntry.reviewedBy.bio !== undefined ? props.waitlistEntry.reviewedBy.bio : undefined,
           jobTitle: props.waitlistEntry.reviewedBy.jobTitle !== undefined ? props.waitlistEntry.reviewedBy.jobTitle : undefined,
           currentAccount: props.waitlistEntry.reviewedBy.currentAccount !== undefined ? props.waitlistEntry.reviewedBy.currentAccount : undefined,
@@ -2771,6 +3261,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -2909,6 +3405,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -2917,9 +3416,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.waitlistEntry.reviewedBy.featureFlagOverrides ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.featureFlagOverrides) && props.waitlistEntry.reviewedBy.featureFlagOverrides.length > 0 &&  props.waitlistEntry.reviewedBy.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.waitlistEntry.reviewedBy.follows ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.follows) && props.waitlistEntry.reviewedBy.follows.length > 0 &&  props.waitlistEntry.reviewedBy.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.waitlistEntry.reviewedBy.autoFollowRules ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.autoFollowRules) && props.waitlistEntry.reviewedBy.autoFollowRules.length > 0 &&  props.waitlistEntry.reviewedBy.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.waitlistEntry.reviewedBy.pushSubscriptions ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.pushSubscriptions) && props.waitlistEntry.reviewedBy.pushSubscriptions.length > 0 &&  props.waitlistEntry.reviewedBy.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.waitlistEntry.reviewedBy.adaConversations ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.adaConversations) && props.waitlistEntry.reviewedBy.adaConversations.length > 0 &&  props.waitlistEntry.reviewedBy.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.waitlistEntry.reviewedBy.totp ? 
+        typeof props.waitlistEntry.reviewedBy.totp === 'object' && Object.keys(props.waitlistEntry.reviewedBy.totp).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.totp)[0] === 'id'
+    ? { connect: {
+            id: props.waitlistEntry.reviewedBy.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.totp.id !== undefined ? props.waitlistEntry.reviewedBy.totp.id : undefined,
+            userId: props.waitlistEntry.reviewedBy.totp.userId !== undefined ? props.waitlistEntry.reviewedBy.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: props.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? props.waitlistEntry.reviewedBy.totp.secretEnc : undefined,
+            enabledAt: props.waitlistEntry.reviewedBy.totp.enabledAt !== undefined ? props.waitlistEntry.reviewedBy.totp.enabledAt : undefined,
+            recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.waitlistEntry.reviewedBy.preference ? 
+        typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id'
+    ? { connect: {
+            id: props.waitlistEntry.reviewedBy.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? props.waitlistEntry.reviewedBy.preference.id : undefined,
+            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? props.waitlistEntry.reviewedBy.preference.userId : undefined,
+          },
+          create: {
+            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
+            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
+            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
+            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -2959,6 +3622,8 @@ import { logger } from './utils/logger';
           signupCategory: props.waitlistEntry.reviewedBy.signupCategory !== undefined ? props.waitlistEntry.reviewedBy.signupCategory : undefined,
           deletedAt: props.waitlistEntry.reviewedBy.deletedAt !== undefined ? props.waitlistEntry.reviewedBy.deletedAt : undefined,
           role: props.waitlistEntry.reviewedBy.role !== undefined ? props.waitlistEntry.reviewedBy.role : undefined,
+          availability: props.waitlistEntry.reviewedBy.availability !== undefined ? props.waitlistEntry.reviewedBy.availability : undefined,
+          availabilityUntil: props.waitlistEntry.reviewedBy.availabilityUntil !== undefined ? props.waitlistEntry.reviewedBy.availabilityUntil : undefined,
           bio: props.waitlistEntry.reviewedBy.bio !== undefined ? props.waitlistEntry.reviewedBy.bio : undefined,
           jobTitle: props.waitlistEntry.reviewedBy.jobTitle !== undefined ? props.waitlistEntry.reviewedBy.jobTitle : undefined,
           currentAccount: props.waitlistEntry.reviewedBy.currentAccount !== undefined ? props.waitlistEntry.reviewedBy.currentAccount : undefined,
@@ -3394,6 +4059,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -3532,6 +4203,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -3540,9 +4214,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.waitlistEntry.reviewedBy.featureFlagOverrides ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.featureFlagOverrides) && props.waitlistEntry.reviewedBy.featureFlagOverrides.length > 0 &&  props.waitlistEntry.reviewedBy.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.waitlistEntry.reviewedBy.follows ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.follows) && props.waitlistEntry.reviewedBy.follows.length > 0 &&  props.waitlistEntry.reviewedBy.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.waitlistEntry.reviewedBy.autoFollowRules ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.autoFollowRules) && props.waitlistEntry.reviewedBy.autoFollowRules.length > 0 &&  props.waitlistEntry.reviewedBy.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.waitlistEntry.reviewedBy.pushSubscriptions ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.pushSubscriptions) && props.waitlistEntry.reviewedBy.pushSubscriptions.length > 0 &&  props.waitlistEntry.reviewedBy.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.waitlistEntry.reviewedBy.adaConversations ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.adaConversations) && props.waitlistEntry.reviewedBy.adaConversations.length > 0 &&  props.waitlistEntry.reviewedBy.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.waitlistEntry.reviewedBy.totp ? 
+        typeof props.waitlistEntry.reviewedBy.totp === 'object' && Object.keys(props.waitlistEntry.reviewedBy.totp).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.totp)[0] === 'id'
+    ? { connect: {
+            id: props.waitlistEntry.reviewedBy.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.totp.id !== undefined ? props.waitlistEntry.reviewedBy.totp.id : undefined,
+            userId: props.waitlistEntry.reviewedBy.totp.userId !== undefined ? props.waitlistEntry.reviewedBy.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: props.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? props.waitlistEntry.reviewedBy.totp.secretEnc : undefined,
+            enabledAt: props.waitlistEntry.reviewedBy.totp.enabledAt !== undefined ? props.waitlistEntry.reviewedBy.totp.enabledAt : undefined,
+            recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.waitlistEntry.reviewedBy.preference ? 
+        typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id'
+    ? { connect: {
+            id: props.waitlistEntry.reviewedBy.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? props.waitlistEntry.reviewedBy.preference.id : undefined,
+            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? props.waitlistEntry.reviewedBy.preference.userId : undefined,
+          },
+          create: {
+            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
+            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
+            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
+            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -3762,6 +4600,8 @@ import { logger } from './utils/logger';
           signupCategory: props.waitlistEntry.reviewedBy.signupCategory !== undefined ? props.waitlistEntry.reviewedBy.signupCategory : undefined,
           deletedAt: props.waitlistEntry.reviewedBy.deletedAt !== undefined ? props.waitlistEntry.reviewedBy.deletedAt : undefined,
           role: props.waitlistEntry.reviewedBy.role !== undefined ? props.waitlistEntry.reviewedBy.role : undefined,
+          availability: props.waitlistEntry.reviewedBy.availability !== undefined ? props.waitlistEntry.reviewedBy.availability : undefined,
+          availabilityUntil: props.waitlistEntry.reviewedBy.availabilityUntil !== undefined ? props.waitlistEntry.reviewedBy.availabilityUntil : undefined,
           bio: props.waitlistEntry.reviewedBy.bio !== undefined ? props.waitlistEntry.reviewedBy.bio : undefined,
           jobTitle: props.waitlistEntry.reviewedBy.jobTitle !== undefined ? props.waitlistEntry.reviewedBy.jobTitle : undefined,
           currentAccount: props.waitlistEntry.reviewedBy.currentAccount !== undefined ? props.waitlistEntry.reviewedBy.currentAccount : undefined,
@@ -4197,6 +5037,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -4335,6 +5181,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -4343,9 +5192,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.waitlistEntry.reviewedBy.featureFlagOverrides ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.featureFlagOverrides) && props.waitlistEntry.reviewedBy.featureFlagOverrides.length > 0 &&  props.waitlistEntry.reviewedBy.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.waitlistEntry.reviewedBy.follows ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.follows) && props.waitlistEntry.reviewedBy.follows.length > 0 &&  props.waitlistEntry.reviewedBy.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.waitlistEntry.reviewedBy.autoFollowRules ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.autoFollowRules) && props.waitlistEntry.reviewedBy.autoFollowRules.length > 0 &&  props.waitlistEntry.reviewedBy.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.waitlistEntry.reviewedBy.pushSubscriptions ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.pushSubscriptions) && props.waitlistEntry.reviewedBy.pushSubscriptions.length > 0 &&  props.waitlistEntry.reviewedBy.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.waitlistEntry.reviewedBy.adaConversations ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.adaConversations) && props.waitlistEntry.reviewedBy.adaConversations.length > 0 &&  props.waitlistEntry.reviewedBy.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.waitlistEntry.reviewedBy.totp ? 
+        typeof props.waitlistEntry.reviewedBy.totp === 'object' && Object.keys(props.waitlistEntry.reviewedBy.totp).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.totp)[0] === 'id'
+    ? { connect: {
+            id: props.waitlistEntry.reviewedBy.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.totp.id !== undefined ? props.waitlistEntry.reviewedBy.totp.id : undefined,
+            userId: props.waitlistEntry.reviewedBy.totp.userId !== undefined ? props.waitlistEntry.reviewedBy.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: props.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? props.waitlistEntry.reviewedBy.totp.secretEnc : undefined,
+            enabledAt: props.waitlistEntry.reviewedBy.totp.enabledAt !== undefined ? props.waitlistEntry.reviewedBy.totp.enabledAt : undefined,
+            recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.waitlistEntry.reviewedBy.preference ? 
+        typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id'
+    ? { connect: {
+            id: props.waitlistEntry.reviewedBy.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? props.waitlistEntry.reviewedBy.preference.id : undefined,
+            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? props.waitlistEntry.reviewedBy.preference.userId : undefined,
+          },
+          create: {
+            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
+            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
+            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
+            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -4473,6 +5486,12 @@ import { logger } from './utils/logger';
             } : undefined,
           role: props.waitlistEntry.reviewedBy.role !== undefined ? {
               set: props.waitlistEntry.reviewedBy.role
+            } : undefined,
+          availability: props.waitlistEntry.reviewedBy.availability !== undefined ? {
+              set: props.waitlistEntry.reviewedBy.availability
+            } : undefined,
+          availabilityUntil: props.waitlistEntry.reviewedBy.availabilityUntil !== undefined ? {
+              set: props.waitlistEntry.reviewedBy.availabilityUntil
             } : undefined,
           bio: props.waitlistEntry.reviewedBy.bio !== undefined ? {
               set: props.waitlistEntry.reviewedBy.bio
@@ -5363,6 +6382,12 @@ import { logger } from './utils/logger';
                 set: item.summary
               } : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions
+              } : undefined,
           },
           create: {
             versionLabel: item.versionLabel !== undefined ? item.versionLabel : undefined,
@@ -5370,6 +6395,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -5613,6 +6644,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId
+              } : undefined,
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
@@ -5639,6 +6673,13 @@ import { logger } from './utils/logger';
             manifestHash: item.manifestHash !== undefined ? {
                 set: item.manifestHash
               } : undefined,
+            kind: item.kind !== undefined ? {
+                set: item.kind
+              } : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                set: item.backtestJobId
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -5650,9 +6691,294 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.waitlistEntry.reviewedBy.featureFlagOverrides ? 
+      Array.isArray(props.waitlistEntry.reviewedBy.featureFlagOverrides) && props.waitlistEntry.reviewedBy.featureFlagOverrides.length > 0 && props.waitlistEntry.reviewedBy.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            flag: item.flag !== undefined ? {
+                set: item.flag
+              } : undefined,
+            enabled: item.enabled !== undefined ? {
+                set: item.enabled
+              } : undefined,
+            updatedBy: item.updatedBy !== undefined ? {
+                set: item.updatedBy
+              } : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.waitlistEntry.reviewedBy.follows ? 
+      Array.isArray(props.waitlistEntry.reviewedBy.follows) && props.waitlistEntry.reviewedBy.follows.length > 0 && props.waitlistEntry.reviewedBy.follows.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.waitlistEntry.reviewedBy.follows.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.waitlistEntry.reviewedBy.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            targetKind: item.targetKind !== undefined ? {
+                set: item.targetKind
+              } : undefined,
+            targetId: item.targetId !== undefined ? {
+                set: item.targetId
+              } : undefined,
+            level: item.level !== undefined ? {
+                set: item.level
+              } : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? {
+                set: item.riskBudgetPctNav
+              } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.waitlistEntry.reviewedBy.autoFollowRules ? 
+      Array.isArray(props.waitlistEntry.reviewedBy.autoFollowRules) && props.waitlistEntry.reviewedBy.autoFollowRules.length > 0 && props.waitlistEntry.reviewedBy.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId
+              } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            name: item.name !== undefined ? {
+                set: item.name
+              } : undefined,
+            condition: item.condition !== undefined ? {
+                set: item.condition
+              } : undefined,
+            action: item.action !== undefined ? {
+                set: item.action
+              } : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks
+              } : undefined,
+            enabled: item.enabled !== undefined ? {
+                set: item.enabled
+              } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.waitlistEntry.reviewedBy.pushSubscriptions ? 
+      Array.isArray(props.waitlistEntry.reviewedBy.pushSubscriptions) && props.waitlistEntry.reviewedBy.pushSubscriptions.length > 0 && props.waitlistEntry.reviewedBy.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            endpoint: item.endpoint !== undefined ? {
+                set: item.endpoint
+              } : undefined,
+            p256dh: item.p256dh !== undefined ? {
+                set: item.p256dh
+              } : undefined,
+            auth: item.auth !== undefined ? {
+                set: item.auth
+              } : undefined,
+            userAgent: item.userAgent !== undefined ? {
+                set: item.userAgent
+              } : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? {
+                set: item.lastSeenAt
+              } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.waitlistEntry.reviewedBy.adaConversations ? 
+      Array.isArray(props.waitlistEntry.reviewedBy.adaConversations) && props.waitlistEntry.reviewedBy.adaConversations.length > 0 && props.waitlistEntry.reviewedBy.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            title: item.title !== undefined ? {
+                set: item.title
+              } : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? {
+                set: item.sharedWithOrg
+              } : undefined,
+            deletedAt: item.deletedAt !== undefined ? {
+                set: item.deletedAt
+              } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.waitlistEntry.reviewedBy.totp ? 
+      typeof props.waitlistEntry.reviewedBy.totp === 'object' && Object.keys(props.waitlistEntry.reviewedBy.totp).length === 1 && (Object.keys(props.waitlistEntry.reviewedBy.totp)[0] === 'id' || Object.keys(props.waitlistEntry.reviewedBy.totp)[0] === 'symbol')
+? {
+      connect: {
+        id: props.waitlistEntry.reviewedBy.totp.id
+      }
+} : { upsert: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.totp.id !== undefined ? {
+                equals: props.waitlistEntry.reviewedBy.totp.id
+              } : undefined,
+            userId: props.waitlistEntry.reviewedBy.totp.userId !== undefined ? {
+                equals: props.waitlistEntry.reviewedBy.totp.userId
+              } : undefined,
+          },
+          update: {
+            id: props.waitlistEntry.reviewedBy.totp.id !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.id
+              } : undefined,
+            secretEnc: props.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.secretEnc
+              } : undefined,
+            enabledAt: props.waitlistEntry.reviewedBy.totp.enabledAt !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.enabledAt
+              } : undefined,
+            recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash
+              } : undefined,
+          },
+          create: {
+            secretEnc: props.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? props.waitlistEntry.reviewedBy.totp.secretEnc : undefined,
+            enabledAt: props.waitlistEntry.reviewedBy.totp.enabledAt !== undefined ? props.waitlistEntry.reviewedBy.totp.enabledAt : undefined,
+            recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.waitlistEntry.reviewedBy.preference ? 
+      typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && (Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id' || Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'symbol')
+? {
+      connect: {
+        id: props.waitlistEntry.reviewedBy.preference.id
+      }
+} : { upsert: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? {
+                equals: props.waitlistEntry.reviewedBy.preference.id
+              } : undefined,
+            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? {
+                equals: props.waitlistEntry.reviewedBy.preference.userId
+              } : undefined,
+          },
+          update: {
+            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.preference.id
+              } : undefined,
+            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.preference.theme
+              } : undefined,
+            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.preference.density
+              } : undefined,
+            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
+            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+          },
+          create: {
+            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
+            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
+            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
+            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
         create: {
@@ -5665,6 +6991,8 @@ import { logger } from './utils/logger';
           signupCategory: props.waitlistEntry.reviewedBy.signupCategory !== undefined ? props.waitlistEntry.reviewedBy.signupCategory : undefined,
           deletedAt: props.waitlistEntry.reviewedBy.deletedAt !== undefined ? props.waitlistEntry.reviewedBy.deletedAt : undefined,
           role: props.waitlistEntry.reviewedBy.role !== undefined ? props.waitlistEntry.reviewedBy.role : undefined,
+          availability: props.waitlistEntry.reviewedBy.availability !== undefined ? props.waitlistEntry.reviewedBy.availability : undefined,
+          availabilityUntil: props.waitlistEntry.reviewedBy.availabilityUntil !== undefined ? props.waitlistEntry.reviewedBy.availabilityUntil : undefined,
           bio: props.waitlistEntry.reviewedBy.bio !== undefined ? props.waitlistEntry.reviewedBy.bio : undefined,
           jobTitle: props.waitlistEntry.reviewedBy.jobTitle !== undefined ? props.waitlistEntry.reviewedBy.jobTitle : undefined,
           currentAccount: props.waitlistEntry.reviewedBy.currentAccount !== undefined ? props.waitlistEntry.reviewedBy.currentAccount : undefined,
@@ -6100,6 +7428,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -6238,6 +7572,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -6246,9 +7583,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.waitlistEntry.reviewedBy.featureFlagOverrides ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.featureFlagOverrides) && props.waitlistEntry.reviewedBy.featureFlagOverrides.length > 0 &&  props.waitlistEntry.reviewedBy.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.waitlistEntry.reviewedBy.follows ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.follows) && props.waitlistEntry.reviewedBy.follows.length > 0 &&  props.waitlistEntry.reviewedBy.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.waitlistEntry.reviewedBy.autoFollowRules ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.autoFollowRules) && props.waitlistEntry.reviewedBy.autoFollowRules.length > 0 &&  props.waitlistEntry.reviewedBy.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.waitlistEntry.reviewedBy.pushSubscriptions ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.pushSubscriptions) && props.waitlistEntry.reviewedBy.pushSubscriptions.length > 0 &&  props.waitlistEntry.reviewedBy.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.waitlistEntry.reviewedBy.adaConversations ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.adaConversations) && props.waitlistEntry.reviewedBy.adaConversations.length > 0 &&  props.waitlistEntry.reviewedBy.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.waitlistEntry.reviewedBy.totp ? 
+        typeof props.waitlistEntry.reviewedBy.totp === 'object' && Object.keys(props.waitlistEntry.reviewedBy.totp).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.totp)[0] === 'id'
+    ? { connect: {
+            id: props.waitlistEntry.reviewedBy.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.totp.id !== undefined ? props.waitlistEntry.reviewedBy.totp.id : undefined,
+            userId: props.waitlistEntry.reviewedBy.totp.userId !== undefined ? props.waitlistEntry.reviewedBy.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: props.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? props.waitlistEntry.reviewedBy.totp.secretEnc : undefined,
+            enabledAt: props.waitlistEntry.reviewedBy.totp.enabledAt !== undefined ? props.waitlistEntry.reviewedBy.totp.enabledAt : undefined,
+            recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.waitlistEntry.reviewedBy.preference ? 
+        typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id'
+    ? { connect: {
+            id: props.waitlistEntry.reviewedBy.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? props.waitlistEntry.reviewedBy.preference.id : undefined,
+            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? props.waitlistEntry.reviewedBy.preference.userId : undefined,
+          },
+          create: {
+            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
+            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
+            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
+            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -6288,6 +7789,8 @@ import { logger } from './utils/logger';
           signupCategory: props.waitlistEntry.reviewedBy.signupCategory !== undefined ? props.waitlistEntry.reviewedBy.signupCategory : undefined,
           deletedAt: props.waitlistEntry.reviewedBy.deletedAt !== undefined ? props.waitlistEntry.reviewedBy.deletedAt : undefined,
           role: props.waitlistEntry.reviewedBy.role !== undefined ? props.waitlistEntry.reviewedBy.role : undefined,
+          availability: props.waitlistEntry.reviewedBy.availability !== undefined ? props.waitlistEntry.reviewedBy.availability : undefined,
+          availabilityUntil: props.waitlistEntry.reviewedBy.availabilityUntil !== undefined ? props.waitlistEntry.reviewedBy.availabilityUntil : undefined,
           bio: props.waitlistEntry.reviewedBy.bio !== undefined ? props.waitlistEntry.reviewedBy.bio : undefined,
           jobTitle: props.waitlistEntry.reviewedBy.jobTitle !== undefined ? props.waitlistEntry.reviewedBy.jobTitle : undefined,
           currentAccount: props.waitlistEntry.reviewedBy.currentAccount !== undefined ? props.waitlistEntry.reviewedBy.currentAccount : undefined,
@@ -6723,6 +8226,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -6861,6 +8370,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -6869,9 +8381,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.waitlistEntry.reviewedBy.featureFlagOverrides ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.featureFlagOverrides) && props.waitlistEntry.reviewedBy.featureFlagOverrides.length > 0 &&  props.waitlistEntry.reviewedBy.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.waitlistEntry.reviewedBy.follows ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.follows) && props.waitlistEntry.reviewedBy.follows.length > 0 &&  props.waitlistEntry.reviewedBy.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.waitlistEntry.reviewedBy.autoFollowRules ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.autoFollowRules) && props.waitlistEntry.reviewedBy.autoFollowRules.length > 0 &&  props.waitlistEntry.reviewedBy.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.waitlistEntry.reviewedBy.pushSubscriptions ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.pushSubscriptions) && props.waitlistEntry.reviewedBy.pushSubscriptions.length > 0 &&  props.waitlistEntry.reviewedBy.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.waitlistEntry.reviewedBy.adaConversations ? 
+        Array.isArray(props.waitlistEntry.reviewedBy.adaConversations) && props.waitlistEntry.reviewedBy.adaConversations.length > 0 &&  props.waitlistEntry.reviewedBy.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.waitlistEntry.reviewedBy.totp ? 
+        typeof props.waitlistEntry.reviewedBy.totp === 'object' && Object.keys(props.waitlistEntry.reviewedBy.totp).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.totp)[0] === 'id'
+    ? { connect: {
+            id: props.waitlistEntry.reviewedBy.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.totp.id !== undefined ? props.waitlistEntry.reviewedBy.totp.id : undefined,
+            userId: props.waitlistEntry.reviewedBy.totp.userId !== undefined ? props.waitlistEntry.reviewedBy.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: props.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? props.waitlistEntry.reviewedBy.totp.secretEnc : undefined,
+            enabledAt: props.waitlistEntry.reviewedBy.totp.enabledAt !== undefined ? props.waitlistEntry.reviewedBy.totp.enabledAt : undefined,
+            recoveryCodesHash: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
+                set: props.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.waitlistEntry.reviewedBy.preference ? 
+        typeof props.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(props.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(props.waitlistEntry.reviewedBy.preference)[0] === 'id'
+    ? { connect: {
+            id: props.waitlistEntry.reviewedBy.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.waitlistEntry.reviewedBy.preference.id !== undefined ? props.waitlistEntry.reviewedBy.preference.id : undefined,
+            userId: props.waitlistEntry.reviewedBy.preference.userId !== undefined ? props.waitlistEntry.reviewedBy.preference.userId : undefined,
+          },
+          create: {
+            theme: props.waitlistEntry.reviewedBy.preference.theme !== undefined ? props.waitlistEntry.reviewedBy.preference.theme : undefined,
+            density: props.waitlistEntry.reviewedBy.preference.density !== undefined ? props.waitlistEntry.reviewedBy.preference.density : undefined,
+            deskPrefs: props.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
+            notificationPrefs: props.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? props.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -7159,6 +8835,12 @@ import { logger } from './utils/logger';
             } : undefined,
           role: prop.waitlistEntry.reviewedBy.role !== undefined ? {
               set: prop.waitlistEntry.reviewedBy.role
+            } : undefined,
+          availability: prop.waitlistEntry.reviewedBy.availability !== undefined ? {
+              set: prop.waitlistEntry.reviewedBy.availability
+            } : undefined,
+          availabilityUntil: prop.waitlistEntry.reviewedBy.availabilityUntil !== undefined ? {
+              set: prop.waitlistEntry.reviewedBy.availabilityUntil
             } : undefined,
           bio: prop.waitlistEntry.reviewedBy.bio !== undefined ? {
               set: prop.waitlistEntry.reviewedBy.bio
@@ -8049,6 +9731,12 @@ import { logger } from './utils/logger';
                 set: item.summary
               } : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions
+              } : undefined,
           },
           create: {
             versionLabel: item.versionLabel !== undefined ? item.versionLabel : undefined,
@@ -8056,6 +9744,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -8299,6 +9993,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId
+              } : undefined,
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
@@ -8325,6 +10022,13 @@ import { logger } from './utils/logger';
             manifestHash: item.manifestHash !== undefined ? {
                 set: item.manifestHash
               } : undefined,
+            kind: item.kind !== undefined ? {
+                set: item.kind
+              } : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                set: item.backtestJobId
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -8336,9 +10040,294 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: prop.waitlistEntry.reviewedBy.featureFlagOverrides ? 
+      Array.isArray(prop.waitlistEntry.reviewedBy.featureFlagOverrides) && prop.waitlistEntry.reviewedBy.featureFlagOverrides.length > 0 && prop.waitlistEntry.reviewedBy.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: prop.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: prop.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            flag: item.flag !== undefined ? {
+                set: item.flag
+              } : undefined,
+            enabled: item.enabled !== undefined ? {
+                set: item.enabled
+              } : undefined,
+            updatedBy: item.updatedBy !== undefined ? {
+                set: item.updatedBy
+              } : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: prop.waitlistEntry.reviewedBy.follows ? 
+      Array.isArray(prop.waitlistEntry.reviewedBy.follows) && prop.waitlistEntry.reviewedBy.follows.length > 0 && prop.waitlistEntry.reviewedBy.follows.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: prop.waitlistEntry.reviewedBy.follows.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: prop.waitlistEntry.reviewedBy.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            targetKind: item.targetKind !== undefined ? {
+                set: item.targetKind
+              } : undefined,
+            targetId: item.targetId !== undefined ? {
+                set: item.targetId
+              } : undefined,
+            level: item.level !== undefined ? {
+                set: item.level
+              } : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? {
+                set: item.riskBudgetPctNav
+              } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: prop.waitlistEntry.reviewedBy.autoFollowRules ? 
+      Array.isArray(prop.waitlistEntry.reviewedBy.autoFollowRules) && prop.waitlistEntry.reviewedBy.autoFollowRules.length > 0 && prop.waitlistEntry.reviewedBy.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: prop.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: prop.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId
+              } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            name: item.name !== undefined ? {
+                set: item.name
+              } : undefined,
+            condition: item.condition !== undefined ? {
+                set: item.condition
+              } : undefined,
+            action: item.action !== undefined ? {
+                set: item.action
+              } : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks
+              } : undefined,
+            enabled: item.enabled !== undefined ? {
+                set: item.enabled
+              } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: prop.waitlistEntry.reviewedBy.pushSubscriptions ? 
+      Array.isArray(prop.waitlistEntry.reviewedBy.pushSubscriptions) && prop.waitlistEntry.reviewedBy.pushSubscriptions.length > 0 && prop.waitlistEntry.reviewedBy.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: prop.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: prop.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            endpoint: item.endpoint !== undefined ? {
+                set: item.endpoint
+              } : undefined,
+            p256dh: item.p256dh !== undefined ? {
+                set: item.p256dh
+              } : undefined,
+            auth: item.auth !== undefined ? {
+                set: item.auth
+              } : undefined,
+            userAgent: item.userAgent !== undefined ? {
+                set: item.userAgent
+              } : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? {
+                set: item.lastSeenAt
+              } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: prop.waitlistEntry.reviewedBy.adaConversations ? 
+      Array.isArray(prop.waitlistEntry.reviewedBy.adaConversations) && prop.waitlistEntry.reviewedBy.adaConversations.length > 0 && prop.waitlistEntry.reviewedBy.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: prop.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: prop.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            title: item.title !== undefined ? {
+                set: item.title
+              } : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? {
+                set: item.sharedWithOrg
+              } : undefined,
+            deletedAt: item.deletedAt !== undefined ? {
+                set: item.deletedAt
+              } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: prop.waitlistEntry.reviewedBy.totp ? 
+      typeof prop.waitlistEntry.reviewedBy.totp === 'object' && Object.keys(prop.waitlistEntry.reviewedBy.totp).length === 1 && (Object.keys(prop.waitlistEntry.reviewedBy.totp)[0] === 'id' || Object.keys(prop.waitlistEntry.reviewedBy.totp)[0] === 'symbol')
+? {
+      connect: {
+        id: prop.waitlistEntry.reviewedBy.totp.id
+      }
+} : { upsert: {
+          where: {
+            id: prop.waitlistEntry.reviewedBy.totp.id !== undefined ? {
+                equals: prop.waitlistEntry.reviewedBy.totp.id
+              } : undefined,
+            userId: prop.waitlistEntry.reviewedBy.totp.userId !== undefined ? {
+                equals: prop.waitlistEntry.reviewedBy.totp.userId
+              } : undefined,
+          },
+          update: {
+            id: prop.waitlistEntry.reviewedBy.totp.id !== undefined ? {
+                set: prop.waitlistEntry.reviewedBy.totp.id
+              } : undefined,
+            secretEnc: prop.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? {
+                set: prop.waitlistEntry.reviewedBy.totp.secretEnc
+              } : undefined,
+            enabledAt: prop.waitlistEntry.reviewedBy.totp.enabledAt !== undefined ? {
+                set: prop.waitlistEntry.reviewedBy.totp.enabledAt
+              } : undefined,
+            recoveryCodesHash: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
+                set: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash
+              } : undefined,
+          },
+          create: {
+            secretEnc: prop.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? prop.waitlistEntry.reviewedBy.totp.secretEnc : undefined,
+            enabledAt: prop.waitlistEntry.reviewedBy.totp.enabledAt !== undefined ? prop.waitlistEntry.reviewedBy.totp.enabledAt : undefined,
+            recoveryCodesHash: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
+                set: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: prop.waitlistEntry.reviewedBy.preference ? 
+      typeof prop.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(prop.waitlistEntry.reviewedBy.preference).length === 1 && (Object.keys(prop.waitlistEntry.reviewedBy.preference)[0] === 'id' || Object.keys(prop.waitlistEntry.reviewedBy.preference)[0] === 'symbol')
+? {
+      connect: {
+        id: prop.waitlistEntry.reviewedBy.preference.id
+      }
+} : { upsert: {
+          where: {
+            id: prop.waitlistEntry.reviewedBy.preference.id !== undefined ? {
+                equals: prop.waitlistEntry.reviewedBy.preference.id
+              } : undefined,
+            userId: prop.waitlistEntry.reviewedBy.preference.userId !== undefined ? {
+                equals: prop.waitlistEntry.reviewedBy.preference.userId
+              } : undefined,
+          },
+          update: {
+            id: prop.waitlistEntry.reviewedBy.preference.id !== undefined ? {
+                set: prop.waitlistEntry.reviewedBy.preference.id
+              } : undefined,
+            theme: prop.waitlistEntry.reviewedBy.preference.theme !== undefined ? {
+                set: prop.waitlistEntry.reviewedBy.preference.theme
+              } : undefined,
+            density: prop.waitlistEntry.reviewedBy.preference.density !== undefined ? {
+                set: prop.waitlistEntry.reviewedBy.preference.density
+              } : undefined,
+            deskPrefs: prop.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
+            notificationPrefs: prop.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+          },
+          create: {
+            theme: prop.waitlistEntry.reviewedBy.preference.theme !== undefined ? prop.waitlistEntry.reviewedBy.preference.theme : undefined,
+            density: prop.waitlistEntry.reviewedBy.preference.density !== undefined ? prop.waitlistEntry.reviewedBy.preference.density : undefined,
+            deskPrefs: prop.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
+            notificationPrefs: prop.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
         create: {
@@ -8351,6 +10340,8 @@ import { logger } from './utils/logger';
           signupCategory: prop.waitlistEntry.reviewedBy.signupCategory !== undefined ? prop.waitlistEntry.reviewedBy.signupCategory : undefined,
           deletedAt: prop.waitlistEntry.reviewedBy.deletedAt !== undefined ? prop.waitlistEntry.reviewedBy.deletedAt : undefined,
           role: prop.waitlistEntry.reviewedBy.role !== undefined ? prop.waitlistEntry.reviewedBy.role : undefined,
+          availability: prop.waitlistEntry.reviewedBy.availability !== undefined ? prop.waitlistEntry.reviewedBy.availability : undefined,
+          availabilityUntil: prop.waitlistEntry.reviewedBy.availabilityUntil !== undefined ? prop.waitlistEntry.reviewedBy.availabilityUntil : undefined,
           bio: prop.waitlistEntry.reviewedBy.bio !== undefined ? prop.waitlistEntry.reviewedBy.bio : undefined,
           jobTitle: prop.waitlistEntry.reviewedBy.jobTitle !== undefined ? prop.waitlistEntry.reviewedBy.jobTitle : undefined,
           currentAccount: prop.waitlistEntry.reviewedBy.currentAccount !== undefined ? prop.waitlistEntry.reviewedBy.currentAccount : undefined,
@@ -8786,6 +10777,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -8924,6 +10921,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -8932,9 +10932,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: prop.waitlistEntry.reviewedBy.featureFlagOverrides ? 
+        Array.isArray(prop.waitlistEntry.reviewedBy.featureFlagOverrides) && prop.waitlistEntry.reviewedBy.featureFlagOverrides.length > 0 &&  prop.waitlistEntry.reviewedBy.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: prop.waitlistEntry.reviewedBy.follows ? 
+        Array.isArray(prop.waitlistEntry.reviewedBy.follows) && prop.waitlistEntry.reviewedBy.follows.length > 0 &&  prop.waitlistEntry.reviewedBy.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.waitlistEntry.reviewedBy.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.waitlistEntry.reviewedBy.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: prop.waitlistEntry.reviewedBy.autoFollowRules ? 
+        Array.isArray(prop.waitlistEntry.reviewedBy.autoFollowRules) && prop.waitlistEntry.reviewedBy.autoFollowRules.length > 0 &&  prop.waitlistEntry.reviewedBy.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: prop.waitlistEntry.reviewedBy.pushSubscriptions ? 
+        Array.isArray(prop.waitlistEntry.reviewedBy.pushSubscriptions) && prop.waitlistEntry.reviewedBy.pushSubscriptions.length > 0 &&  prop.waitlistEntry.reviewedBy.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: prop.waitlistEntry.reviewedBy.adaConversations ? 
+        Array.isArray(prop.waitlistEntry.reviewedBy.adaConversations) && prop.waitlistEntry.reviewedBy.adaConversations.length > 0 &&  prop.waitlistEntry.reviewedBy.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: prop.waitlistEntry.reviewedBy.totp ? 
+        typeof prop.waitlistEntry.reviewedBy.totp === 'object' && Object.keys(prop.waitlistEntry.reviewedBy.totp).length === 1 && Object.keys(prop.waitlistEntry.reviewedBy.totp)[0] === 'id'
+    ? { connect: {
+            id: prop.waitlistEntry.reviewedBy.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: prop.waitlistEntry.reviewedBy.totp.id !== undefined ? prop.waitlistEntry.reviewedBy.totp.id : undefined,
+            userId: prop.waitlistEntry.reviewedBy.totp.userId !== undefined ? prop.waitlistEntry.reviewedBy.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: prop.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? prop.waitlistEntry.reviewedBy.totp.secretEnc : undefined,
+            enabledAt: prop.waitlistEntry.reviewedBy.totp.enabledAt !== undefined ? prop.waitlistEntry.reviewedBy.totp.enabledAt : undefined,
+            recoveryCodesHash: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
+                set: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: prop.waitlistEntry.reviewedBy.preference ? 
+        typeof prop.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(prop.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(prop.waitlistEntry.reviewedBy.preference)[0] === 'id'
+    ? { connect: {
+            id: prop.waitlistEntry.reviewedBy.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: prop.waitlistEntry.reviewedBy.preference.id !== undefined ? prop.waitlistEntry.reviewedBy.preference.id : undefined,
+            userId: prop.waitlistEntry.reviewedBy.preference.userId !== undefined ? prop.waitlistEntry.reviewedBy.preference.userId : undefined,
+          },
+          create: {
+            theme: prop.waitlistEntry.reviewedBy.preference.theme !== undefined ? prop.waitlistEntry.reviewedBy.preference.theme : undefined,
+            density: prop.waitlistEntry.reviewedBy.preference.density !== undefined ? prop.waitlistEntry.reviewedBy.preference.density : undefined,
+            deskPrefs: prop.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
+            notificationPrefs: prop.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -8974,6 +11138,8 @@ import { logger } from './utils/logger';
           signupCategory: prop.waitlistEntry.reviewedBy.signupCategory !== undefined ? prop.waitlistEntry.reviewedBy.signupCategory : undefined,
           deletedAt: prop.waitlistEntry.reviewedBy.deletedAt !== undefined ? prop.waitlistEntry.reviewedBy.deletedAt : undefined,
           role: prop.waitlistEntry.reviewedBy.role !== undefined ? prop.waitlistEntry.reviewedBy.role : undefined,
+          availability: prop.waitlistEntry.reviewedBy.availability !== undefined ? prop.waitlistEntry.reviewedBy.availability : undefined,
+          availabilityUntil: prop.waitlistEntry.reviewedBy.availabilityUntil !== undefined ? prop.waitlistEntry.reviewedBy.availabilityUntil : undefined,
           bio: prop.waitlistEntry.reviewedBy.bio !== undefined ? prop.waitlistEntry.reviewedBy.bio : undefined,
           jobTitle: prop.waitlistEntry.reviewedBy.jobTitle !== undefined ? prop.waitlistEntry.reviewedBy.jobTitle : undefined,
           currentAccount: prop.waitlistEntry.reviewedBy.currentAccount !== undefined ? prop.waitlistEntry.reviewedBy.currentAccount : undefined,
@@ -9409,6 +11575,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -9547,6 +11719,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -9555,9 +11730,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: prop.waitlistEntry.reviewedBy.featureFlagOverrides ? 
+        Array.isArray(prop.waitlistEntry.reviewedBy.featureFlagOverrides) && prop.waitlistEntry.reviewedBy.featureFlagOverrides.length > 0 &&  prop.waitlistEntry.reviewedBy.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.waitlistEntry.reviewedBy.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: prop.waitlistEntry.reviewedBy.follows ? 
+        Array.isArray(prop.waitlistEntry.reviewedBy.follows) && prop.waitlistEntry.reviewedBy.follows.length > 0 &&  prop.waitlistEntry.reviewedBy.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.waitlistEntry.reviewedBy.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.waitlistEntry.reviewedBy.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: prop.waitlistEntry.reviewedBy.autoFollowRules ? 
+        Array.isArray(prop.waitlistEntry.reviewedBy.autoFollowRules) && prop.waitlistEntry.reviewedBy.autoFollowRules.length > 0 &&  prop.waitlistEntry.reviewedBy.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.waitlistEntry.reviewedBy.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: prop.waitlistEntry.reviewedBy.pushSubscriptions ? 
+        Array.isArray(prop.waitlistEntry.reviewedBy.pushSubscriptions) && prop.waitlistEntry.reviewedBy.pushSubscriptions.length > 0 &&  prop.waitlistEntry.reviewedBy.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.waitlistEntry.reviewedBy.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: prop.waitlistEntry.reviewedBy.adaConversations ? 
+        Array.isArray(prop.waitlistEntry.reviewedBy.adaConversations) && prop.waitlistEntry.reviewedBy.adaConversations.length > 0 &&  prop.waitlistEntry.reviewedBy.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.waitlistEntry.reviewedBy.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: prop.waitlistEntry.reviewedBy.totp ? 
+        typeof prop.waitlistEntry.reviewedBy.totp === 'object' && Object.keys(prop.waitlistEntry.reviewedBy.totp).length === 1 && Object.keys(prop.waitlistEntry.reviewedBy.totp)[0] === 'id'
+    ? { connect: {
+            id: prop.waitlistEntry.reviewedBy.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: prop.waitlistEntry.reviewedBy.totp.id !== undefined ? prop.waitlistEntry.reviewedBy.totp.id : undefined,
+            userId: prop.waitlistEntry.reviewedBy.totp.userId !== undefined ? prop.waitlistEntry.reviewedBy.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: prop.waitlistEntry.reviewedBy.totp.secretEnc !== undefined ? prop.waitlistEntry.reviewedBy.totp.secretEnc : undefined,
+            enabledAt: prop.waitlistEntry.reviewedBy.totp.enabledAt !== undefined ? prop.waitlistEntry.reviewedBy.totp.enabledAt : undefined,
+            recoveryCodesHash: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash !== undefined ? {
+                set: prop.waitlistEntry.reviewedBy.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: prop.waitlistEntry.reviewedBy.preference ? 
+        typeof prop.waitlistEntry.reviewedBy.preference === 'object' && Object.keys(prop.waitlistEntry.reviewedBy.preference).length === 1 && Object.keys(prop.waitlistEntry.reviewedBy.preference)[0] === 'id'
+    ? { connect: {
+            id: prop.waitlistEntry.reviewedBy.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: prop.waitlistEntry.reviewedBy.preference.id !== undefined ? prop.waitlistEntry.reviewedBy.preference.id : undefined,
+            userId: prop.waitlistEntry.reviewedBy.preference.userId !== undefined ? prop.waitlistEntry.reviewedBy.preference.userId : undefined,
+          },
+          create: {
+            theme: prop.waitlistEntry.reviewedBy.preference.theme !== undefined ? prop.waitlistEntry.reviewedBy.preference.theme : undefined,
+            density: prop.waitlistEntry.reviewedBy.preference.density !== undefined ? prop.waitlistEntry.reviewedBy.preference.density : undefined,
+            deskPrefs: prop.waitlistEntry.reviewedBy.preference.deskPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.deskPrefs : undefined,
+            notificationPrefs: prop.waitlistEntry.reviewedBy.preference.notificationPrefs !== undefined ? prop.waitlistEntry.reviewedBy.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }

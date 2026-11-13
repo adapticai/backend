@@ -16,6 +16,7 @@ describe('Soft Delete Utilities', () => {
       expect(SOFT_DELETE_MODELS.has('AlpacaAccount')).toBe(true);
       expect(SOFT_DELETE_MODELS.has('Trade')).toBe(true);
       expect(SOFT_DELETE_MODELS.has('Action')).toBe(true);
+      expect(SOFT_DELETE_MODELS.has('AdaConversation')).toBe(true);
     });
 
     it('should not include non-soft-delete models', () => {
@@ -25,8 +26,8 @@ describe('Soft Delete Utilities', () => {
       expect(SOFT_DELETE_MODELS.has('Asset')).toBe(false);
     });
 
-    it('should contain exactly 4 models', () => {
-      expect(SOFT_DELETE_MODELS.size).toBe(4);
+    it('should contain exactly 5 models', () => {
+      expect(SOFT_DELETE_MODELS.size).toBe(5);
     });
   });
 

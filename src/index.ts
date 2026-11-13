@@ -37,6 +37,8 @@ import { AccountDecisionRecord } from './AccountDecisionRecord';
 import { AccountLinkingRequest } from './AccountLinkingRequest';
 import { AccountRiskMetrics } from './AccountRiskMetrics';
 import { Action } from './Action';
+import { AdaConversation } from './AdaConversation';
+import { AdaMessage } from './AdaMessage';
 import { Alert } from './Alert';
 import { Allocation } from './Allocation';
 import { AlpacaAccount } from './AlpacaAccount';
@@ -45,6 +47,7 @@ import { AnalyticsSnapshot } from './AnalyticsSnapshot';
 import { Asset } from './Asset';
 import { AuditLog } from './AuditLog';
 import { Authenticator } from './Authenticator';
+import { AutoFollowRule } from './AutoFollowRule';
 import { BrokerageAccount } from './BrokerageAccount';
 import { Configuration } from './Configuration';
 import { ConflictEvent } from './ConflictEvent';
@@ -52,11 +55,14 @@ import { ConnectionHealthSnapshot } from './ConnectionHealthSnapshot';
 import { Customer } from './Customer';
 import { DeadLetterMessage } from './DeadLetterMessage';
 import { DecisionMemorySummary } from './DecisionMemorySummary';
+import { DeskDecision } from './DeskDecision';
 import { EconomicEvent } from './EconomicEvent';
 import { EquityBar } from './EquityBar';
 import { Event } from './Event';
 import { EventSnapshot } from './EventSnapshot';
+import { FeatureFlagOverride } from './FeatureFlagOverride';
 import { FeatureImportanceAnalysis } from './FeatureImportanceAnalysis';
+import { Follow } from './Follow';
 import { Fund } from './Fund';
 import { FundAssignment } from './FundAssignment';
 import { Holding } from './Holding';
@@ -96,6 +102,7 @@ import { OrgMembership } from './OrgMembership';
 import { Organization } from './Organization';
 import { PolicyOverlay } from './PolicyOverlay';
 import { PortfolioGreeksHistory } from './PortfolioGreeksHistory';
+import { PushSubscription } from './PushSubscription';
 import { RiskEscalationEvent } from './RiskEscalationEvent';
 import { ScheduledOptionOrder } from './ScheduledOptionOrder';
 import { Session } from './Session';
@@ -115,6 +122,8 @@ import { TradeExecutionHistory } from './TradeExecutionHistory';
 import { TradeOutcome } from './TradeOutcome';
 import { TradingPolicy } from './TradingPolicy';
 import { User } from './User';
+import { UserPreference } from './UserPreference';
+import { UserTotp } from './UserTotp';
 import { VerificationToken } from './VerificationToken';
 import { WaitlistEntry } from './WaitlistEntry';
 
@@ -125,6 +134,8 @@ const adaptic = {
   accountLinkingRequest: AccountLinkingRequest,
   accountRiskMetrics: AccountRiskMetrics,
   action: Action,
+  adaConversation: AdaConversation,
+  adaMessage: AdaMessage,
   alert: Alert,
   allocation: Allocation,
   alpacaAccount: AlpacaAccount,
@@ -133,6 +144,7 @@ const adaptic = {
   asset: Asset,
   auditLog: AuditLog,
   authenticator: Authenticator,
+  autoFollowRule: AutoFollowRule,
   brokerageAccount: BrokerageAccount,
   configuration: Configuration,
   conflictEvent: ConflictEvent,
@@ -140,11 +152,14 @@ const adaptic = {
   customer: Customer,
   deadLetterMessage: DeadLetterMessage,
   decisionMemorySummary: DecisionMemorySummary,
+  deskDecision: DeskDecision,
   economicEvent: EconomicEvent,
   equityBar: EquityBar,
   event: Event,
   eventSnapshot: EventSnapshot,
+  featureFlagOverride: FeatureFlagOverride,
   featureImportanceAnalysis: FeatureImportanceAnalysis,
+  follow: Follow,
   fund: Fund,
   fundAssignment: FundAssignment,
   holding: Holding,
@@ -184,6 +199,7 @@ const adaptic = {
   organization: Organization,
   policyOverlay: PolicyOverlay,
   portfolioGreeksHistory: PortfolioGreeksHistory,
+  pushSubscription: PushSubscription,
   riskEscalationEvent: RiskEscalationEvent,
   scheduledOptionOrder: ScheduledOptionOrder,
   session: Session,
@@ -203,6 +219,8 @@ const adaptic = {
   tradeOutcome: TradeOutcome,
   tradingPolicy: TradingPolicy,
   user: User,
+  userPreference: UserPreference,
+  userTotp: UserTotp,
   verificationToken: VerificationToken,
   waitlistEntry: WaitlistEntry,
 };

@@ -28,6 +28,7 @@ const SOFT_DELETE_MODELS = new Set([
   'AlpacaAccount',
   'Trade',
   'Action',
+  'AdaConversation',
 ]);
 
 /**

@@ -1320,6 +1320,12 @@ model User {
   /// The role assigned to the user, determining permissions.
   role UserRole @default(USER)
 
+  /// Desk availability: whether the user is at the desk, away or not to be disturbed. Deputy routing reads it to decide who receives a decision.
+  availability UserAvailability @default(desk)
+
+  /// When the current availability lapses back to `desk`. Null means it holds until changed.
+  availabilityUntil DateTime?
+
   /// A short biography or description of the user.
   bio String?
 
@@ -1400,6 +1406,27 @@ model User {
 
   /// Strategies authored/owned by this user. TYPESTRING.SKIP=true GQL.SKIP=true
   ownedStrategies Strategy[] @relation("StrategyOwner")
+
+  /// Per-user feature-flag overrides. TYPESTRING.SKIP=true GQL.SKIP=true
+  featureFlagOverrides FeatureFlagOverride[]
+
+  /// Desk follows held by this user. TYPESTRING.SKIP=true GQL.SKIP=true
+  follows Follow[]
+
+  /// Auto-follow rules this user owns. TYPESTRING.SKIP=true GQL.SKIP=true
+  autoFollowRules AutoFollowRule[] @relation("AutoFollowRuleOwner")
+
+  /// Web-push subscriptions registered by this user's browsers and devices. TYPESTRING.SKIP=true GQL.SKIP=true
+  pushSubscriptions PushSubscription[]
+
+  /// Conversations this user has held with Ada. TYPESTRING.SKIP=true GQL.SKIP=true
+  adaConversations AdaConversation[]
+
+  /// TOTP second-factor enrolment. TYPESTRING.SKIP=true GQL.SKIP=true
+  totp UserTotp?
+
+  /// Desk and UI preferences. TYPESTRING.SKIP=true GQL.SKIP=true
+  preference UserPreference?
 
   @@index([customerId])
   @@map(name: "users")
@@ -1675,6 +1702,9 @@ model AlpacaAccount {
 
   /// Strategy opt-ins held by this account (Stage-2 multi-strategy). TYPESTRING.SKIP=true GQL.SKIP=true
   strategySubscriptions StrategySubscription[]
+
+  /// Desk decisions scoped to this account. TYPESTRING.SKIP=true GQL.SKIP=true
+  deskDecisions DeskDecision[]
 
   @@index([userId])
   @@map(name: "alpaca_accounts")
@@ -6048,6 +6078,9 @@ model Organization {
   /// Governance mandates owned by this organization (org-scoped mandates plus the roll-up of its fund-scoped mandates); read via adaptic.mandate.* rather than through the org to avoid pulling the version/rules tree on every org read. TYPESTRING.SKIP=true GQL.SKIP=true
   mandates Mandate[]
 
+  /// Per-organization feature-flag overrides. TYPESTRING.SKIP=true GQL.SKIP=true
+  featureFlagOverrides FeatureFlagOverride[]
+
   /// Timestamp when the organization was created. TYPESTRING.SKIP=true
   createdAt DateTime @default(now())
 
@@ -6186,6 +6219,18 @@ model Fund {
 
   /// Governance mandates scoped to this fund; read via adaptic.mandate.* rather than through the fund to avoid pulling the version/rules tree on every fund read. TYPESTRING.SKIP=true GQL.SKIP=true
   mandates Mandate[]
+
+  /// Desk follows held against this fund. TYPESTRING.SKIP=true GQL.SKIP=true
+  follows Follow[]
+
+  /// Auto-follow rules scoped to this fund. TYPESTRING.SKIP=true GQL.SKIP=true
+  autoFollowRules AutoFollowRule[]
+
+  /// Ada conversations held in this fund's context. TYPESTRING.SKIP=true GQL.SKIP=true
+  adaConversations AdaConversation[]
+
+  /// Desk decisions raised for this fund. TYPESTRING.SKIP=true GQL.SKIP=true
+  deskDecisions DeskDecision[]
 
   /// Timestamp when the fund was created. TYPESTRING.SKIP=true
   createdAt DateTime @default(now())
@@ -7255,6 +7300,18 @@ model MandateVersion {
   /// Full authored charter body — the structured rule pack / document payload (JSON). TYPESTRING.SKIP=true
   charterBody Json?
 
+  /// Autonomy matrix: desk → action → size bucket (four buckets) → 'auto' | 'notify' | 'approve' | 'forbidden' (JSON). Null means the version sets none.
+  autonomy Json?
+
+  /// Escalation triggers: `{ id, label, condition, route, deadlineMinutes | null, defaultAction, enabled }[]` (JSON). Null means none are set.
+  triggers Json?
+
+  /// Instrument permissions: `{ id, label, enabled }[]` (JSON). Null means none are set.
+  instruments Json?
+
+  /// Excluded symbols, sectors or issuers named by this version. Empty means no exclusions.
+  exclusions String[] @default([])
+
   /// Foreign key referencing the User who authored this version. TYPESTRING.SKIP=true
   authoredById String? @db.Uuid
 
@@ -7469,6 +7526,20 @@ model Strategy {
   /// manifest is bound yet — it is genuinely unknown, never a placeholder.
   manifestHash String? @db.VarChar(64)
 
+  /// Authoring kind: a thematic basket or a signal strategy. NULL for strategies
+  /// that predate desk authoring.
+  kind StrategyKind?
+
+  /// Authored specification (JSON). Thematic: `{ thesis, horizon, constituents[],
+  /// weighting, allocationPct, maxNamePct, rebalance, exitRule, benchmark }`;
+  /// signal: `{ hypothesis, inputs[], formula, universe, neutralise { sector, beta,
+  /// size }, allocationPct, paperSessions, promotionGate }`. NULL means no draft
+  /// has been authored.
+  spec Json?
+
+  /// Identifier of the backtest job run against `spec`. NULL means none has run.
+  backtestJobId String?
+
   /// Foreign key referencing the owning User. NULL for SYSTEM strategies,
   /// which the platform owns rather than any individual. TYPESTRING.SKIP=true
   ownerUserId String? @db.Uuid
@@ -7577,4 +7648,446 @@ model StrategySubscription {
   @@index([strategyId])
   @@index([status])
   @@map(name: "strategy_subscriptions")
+}
+
+// ============================================================================
+// Trading desk
+// Feature-flag overrides, follows and auto-follow rules, web-push
+// subscriptions, Ada conversations, user availability, TOTP enrolment, the desk
+// decision queue and desk preferences. The platform desk reads and writes these;
+// the contracts live in platform `apps/web/docs/desk/engine-gaps.md`.
+// Enum values are lowercase because they are the wire values the desk contract
+// names, as EquityBarTimespan's are.
+// ============================================================================
+
+/// Whether a user is at the desk; deputy routing reads it.
+enum UserAvailability {
+  /// At the desk and receiving decisions.
+  desk
+
+  /// Away: decisions route to the deputy.
+  away
+
+  /// Do not disturb: no interruptions; decisions route to the deputy.
+  dnd
+}
+
+/// What a Follow points at.
+enum FollowTargetKind {
+  /// A tradable asset, keyed by symbol.
+  asset
+
+  /// A desk event cluster, keyed by event id.
+  event
+}
+
+/// What an AutoFollowRule does when its condition matches.
+enum AutoFollowAction {
+  /// Propose a follow for the destination desks to act on.
+  follow_propose
+
+  /// Add the target to the watch list without proposing a position.
+  follow_watch
+
+  /// Never follow a matching target.
+  never
+}
+
+/// Author of an AdaMessage.
+enum AdaMessageRole {
+  /// The human user.
+  user
+
+  /// Ada, the AI colleague.
+  ada
+}
+
+/// Lifecycle of a DeskDecision.
+enum DeskDecisionStatus {
+  /// Awaiting a human verdict before `dueAt`.
+  open
+
+  /// Approved as proposed.
+  approved
+
+  /// Approved with an amended value.
+  amended
+
+  /// Declined.
+  declined
+
+  /// Not decided by `dueAt`; the server applied `defaultAction`.
+  defaulted
+}
+
+/// Authoring kind of a Strategy drafted on the desk.
+enum StrategyKind {
+  /// A thematic basket with explicit constituents and weighting.
+  thematic
+
+  /// A signal strategy defined by inputs and a formula over a universe.
+  signal
+}
+
+/// A per-user or per-organization override of a platform feature flag (e.g. `desk_ia`).
+model FeatureFlagOverride {
+  /// Unique identifier for the override. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Flag key, e.g. 'desk_ia'.
+  flag String
+
+  /// User the override applies to. Null when it applies to an organization. TYPESTRING.SKIP=true
+  userId String? @db.Uuid
+
+  /// Relation to the User. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','email']
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Organization the override applies to. Null when it applies to a user. TYPESTRING.SKIP=true
+  organizationId String? @db.Uuid
+
+  /// Relation to the Organization. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','slug']
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  /// Whether the flag is on for this user or organization.
+  enabled Boolean
+
+  /// Principal that last set the override (user id or service name).
+  updatedBy String
+
+  /// Timestamp when the override was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the override was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  @@unique([flag, userId, organizationId])
+  @@index([flag])
+  @@index([organizationId])
+  @@map(name: "feature_flag_overrides")
+}
+
+/// A user's follow of an asset or event within a fund.
+model Follow {
+  /// Unique identifier for the follow. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the following User. TYPESTRING.SKIP=true
+  userId String @db.Uuid
+
+  /// Relation to the User. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','email']
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the Fund the follow is held in. TYPESTRING.SKIP=true
+  fundId String @db.Uuid
+
+  /// Relation to the Fund. TYPESTRING.INCLUDE=['id','name','slug'] GQL.INCLUDE=['id','name','slug','organizationId']
+  fund Fund @relation(fields: [fundId], references: [id], onDelete: Restrict)
+
+  /// What the follow points at.
+  targetKind FollowTargetKind
+
+  /// Symbol (asset) or event id (event).
+  targetId String
+
+  /// Follow level 0..2 (0 watch, 1 propose, 2 act within the risk budget). Enforced by a CHECK constraint.
+  level Int
+
+  /// Risk budget as a percentage of fund NAV. Null means no budget is set, never zero.
+  riskBudgetPctNav Decimal? @db.Decimal(9, 6)
+
+  /// Timestamp when the follow was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the follow was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, fundId, targetKind, targetId])
+  @@index([fundId])
+  @@map(name: "follows")
+}
+
+/// A fund rule that follows, watches or ignores targets matching a condition.
+model AutoFollowRule {
+  /// Unique identifier for the rule. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the Fund the rule applies to. TYPESTRING.SKIP=true
+  fundId String @db.Uuid
+
+  /// Relation to the Fund. TYPESTRING.INCLUDE=['id','name','slug'] GQL.INCLUDE=['id','name','slug','organizationId']
+  fund Fund @relation(fields: [fundId], references: [id], onDelete: Restrict)
+
+  /// Foreign key referencing the owning User. TYPESTRING.SKIP=true
+  ownerId String @db.Uuid
+
+  /// Relation to the owning User. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','email']
+  owner User @relation("AutoFollowRuleOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  /// Rule name shown on the desk.
+  name String
+
+  /// Match condition, in the desk rule expression syntax.
+  condition String
+
+  /// What the rule does on a match.
+  action AutoFollowAction
+
+  /// Desks that receive a match (e.g. 'event', 'thematic', 'systematic').
+  destinationDesks String[] @default([])
+
+  /// Whether the rule is evaluated.
+  enabled Boolean @default(true)
+
+  /// Timestamp when the rule was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the rule was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  @@index([fundId])
+  @@index([ownerId])
+  @@map(name: "auto_follow_rules")
+}
+
+/// A browser or device web-push subscription (W3C Push API).
+model PushSubscription {
+  /// Unique identifier for the subscription. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the subscribing User. TYPESTRING.SKIP=true
+  userId String @db.Uuid
+
+  /// Relation to the User. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','email']
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Push service endpoint URL; unique per browser subscription. TYPESTRING.SKIP=true
+  endpoint String @unique
+
+  /// Client public key (P-256 ECDH, base64url) used to encrypt payloads. TYPESTRING.SKIP=true
+  p256dh String
+
+  /// Client authentication secret (base64url) used to encrypt payloads. TYPESTRING.SKIP=true
+  auth String
+
+  /// User agent of the subscribing browser, for the device list.
+  userAgent String?
+
+  /// Timestamp when the subscription was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// When the subscription was last confirmed by the client.
+  lastSeenAt DateTime @default(now())
+
+  @@index([userId])
+  @@map(name: "push_subscriptions")
+}
+
+/// A conversation between a user and Ada in a fund's context. Soft-deleted via `deletedAt`.
+model AdaConversation {
+  /// Unique identifier for the conversation. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the User. TYPESTRING.SKIP=true
+  userId String @db.Uuid
+
+  /// Relation to the User. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','email']
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the Fund. TYPESTRING.SKIP=true
+  fundId String @db.Uuid
+
+  /// Relation to the Fund. TYPESTRING.INCLUDE=['id','name','slug'] GQL.INCLUDE=['id','name','slug','organizationId']
+  fund Fund @relation(fields: [fundId], references: [id], onDelete: Restrict)
+
+  /// Conversation title.
+  title String
+
+  /// Whether members of the fund's organization may read the conversation.
+  sharedWithOrg Boolean @default(false)
+
+  /// Messages in the conversation, oldest first by `createdAt`. TYPESTRING.SKIP=true GQL.EXCLUDE=['conversation']
+  messages AdaMessage[]
+
+  /// Timestamp when the conversation was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the conversation was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  /// Timestamp when the conversation was soft-deleted. Null means active. TYPESTRING.SKIP=true
+  deletedAt DateTime?
+
+  @@index([userId, fundId])
+  @@index([fundId])
+  @@map(name: "ada_conversations")
+}
+
+/// One message in an AdaConversation.
+model AdaMessage {
+  /// Unique identifier for the message. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the AdaConversation. TYPESTRING.SKIP=true
+  conversationId String @db.Uuid
+
+  /// Relation to the AdaConversation. TYPESTRING.SKIP=true GQL.EXCLUDE=['messages']
+  conversation AdaConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  /// Author of the message.
+  role AdaMessageRole
+
+  /// Plain-text body.
+  text String
+
+  /// Structured blocks rendered with the message (JSON array).
+  blocks Json
+
+  /// Timestamp when the message was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+  @@map(name: "ada_messages")
+}
+
+/// TOTP second-factor enrolment for a user. The secret and the recovery-code
+/// hashes are write-only: they are omitted from every GraphQL output type and
+/// from every filter and sort input, from the generated selection sets and
+/// from typeStrings, and read only server-side through Prisma.
+model UserTotp {
+  /// Unique identifier for the enrolment. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// The enrolled User; one enrolment per user. TYPESTRING.SKIP=true
+  userId String @unique @db.Uuid
+
+  /// Relation to the User. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','email']
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// TOTP shared secret, encrypted at rest. Never returned. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// @TypeGraphQL.omit(output: true, input: ["where", "orderBy"])
+  secretEnc String
+
+  /// When enrolment was confirmed with a valid code. Null means enrolment is pending.
+  enabledAt DateTime?
+
+  /// Hashes of the unused recovery codes. Never returned. TYPESTRING.SKIP=true GQL.SKIP=true
+  /// @TypeGraphQL.omit(output: true, input: ["where", "orderBy"])
+  recoveryCodesHash String[]
+
+  /// Timestamp when the enrolment was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the enrolment was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  @@map(name: "user_totps")
+}
+
+/// A decision the desk needs from a human before `dueAt`, after which the server applies `defaultAction`.
+model DeskDecision {
+  /// Unique identifier for the decision. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the Fund the decision belongs to. TYPESTRING.SKIP=true
+  fundId String @db.Uuid
+
+  /// Relation to the Fund. TYPESTRING.INCLUDE=['id','name','slug'] GQL.INCLUDE=['id','name','slug','organizationId']
+  fund Fund @relation(fields: [fundId], references: [id], onDelete: Restrict)
+
+  /// Engine account the decision is scoped to. Null for fund-wide decisions. TYPESTRING.SKIP=true
+  accountId String? @db.Uuid
+
+  /// Relation to the engine AlpacaAccount. TYPESTRING.SKIP=true GQL.INCLUDE=['id','type']
+  account AlpacaAccount? @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  /// Decision kind (e.g. an order approval or a limit escalation).
+  kind String
+
+  /// Mandate rule that raised the decision (e.g. 'R-01').
+  ruleId String
+
+  /// Desk that raised the decision (e.g. 'event', 'thematic', 'systematic').
+  desk String
+
+  /// The question put to the human.
+  question String
+
+  /// The figures shown with the question (JSON array).
+  nums Json
+
+  /// The case against the proposed action.
+  counterCase String
+
+  /// What happens if nobody decides before `dueAt`.
+  ifIdle String
+
+  /// Supporting facets (JSON).
+  facets Json
+
+  /// Deadline after which the server applies `defaultAction` and sets status `defaulted`.
+  dueAt DateTime
+
+  /// Action applied at `dueAt` when the decision is still open.
+  defaultAction String
+
+  /// Label of the amend option. Null means the decision cannot be amended.
+  amendLabel String?
+
+  /// Whether a verdict must carry a reason.
+  reasonRequired Boolean
+
+  /// Lifecycle state.
+  status DeskDecisionStatus @default(open)
+
+  /// Principal that resolved the decision (a user id, or the service that applied the default). Null while open.
+  decidedBy String?
+
+  /// When the decision was resolved. Null while open.
+  decidedAt DateTime?
+
+  /// Reason given with the verdict.
+  reason String?
+
+  /// Timestamp when the decision was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the decision was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  @@index([fundId, status, dueAt])
+  @@index([accountId])
+  @@map(name: "desk_decisions")
+}
+
+/// A user's desk and UI preferences. One row per user.
+model UserPreference {
+  /// Unique identifier for the preference row. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// The User these preferences belong to; one row per user. TYPESTRING.SKIP=true
+  userId String @unique @db.Uuid
+
+  /// Relation to the User. TYPESTRING.SKIP=true GQL.INCLUDE=['id','name','email']
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Colour theme (e.g. 'light', 'dark', 'system'). Null means the platform default.
+  theme String?
+
+  /// Layout density (e.g. 'comfortable', 'compact'). Null means the platform default.
+  density String?
+
+  /// Desk preferences (JSON). Null means none are set.
+  deskPrefs Json?
+
+  /// Notification preferences beyond the per-event NotificationPreference rows (JSON). Null means none are set.
+  notificationPrefs Json?
+
+  /// Timestamp when the preferences were created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the preferences were last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  @@map(name: "user_preferences")
 }

@@ -152,6 +152,9 @@ import { logger } from './utils/logger';
         where: {
           id: props.trade.strategyRef.id !== undefined ? props.trade.strategyRef.id : undefined,
           key: props.trade.strategyRef.key !== undefined ? props.trade.strategyRef.key : undefined,
+          backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? {
+              equals: props.trade.strategyRef.backtestJobId 
+             } : undefined,
         },
         create: {
           key: props.trade.strategyRef.key !== undefined ? props.trade.strategyRef.key : undefined,
@@ -160,6 +163,9 @@ import { logger } from './utils/logger';
           origin: props.trade.strategyRef.origin !== undefined ? props.trade.strategyRef.origin : undefined,
           lifecycleState: props.trade.strategyRef.lifecycleState !== undefined ? props.trade.strategyRef.lifecycleState : undefined,
           manifestHash: props.trade.strategyRef.manifestHash !== undefined ? props.trade.strategyRef.manifestHash : undefined,
+          kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
+          spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
+          backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
         typeof props.trade.strategyRef.owner === 'object' && Object.keys(props.trade.strategyRef.owner).length === 1 && Object.keys(props.trade.strategyRef.owner)[0] === 'id'
@@ -185,6 +191,8 @@ import { logger } from './utils/logger';
             signupCategory: props.trade.strategyRef.owner.signupCategory !== undefined ? props.trade.strategyRef.owner.signupCategory : undefined,
             deletedAt: props.trade.strategyRef.owner.deletedAt !== undefined ? props.trade.strategyRef.owner.deletedAt : undefined,
             role: props.trade.strategyRef.owner.role !== undefined ? props.trade.strategyRef.owner.role : undefined,
+            availability: props.trade.strategyRef.owner.availability !== undefined ? props.trade.strategyRef.owner.availability : undefined,
+            availabilityUntil: props.trade.strategyRef.owner.availabilityUntil !== undefined ? props.trade.strategyRef.owner.availabilityUntil : undefined,
             bio: props.trade.strategyRef.owner.bio !== undefined ? props.trade.strategyRef.owner.bio : undefined,
             jobTitle: props.trade.strategyRef.owner.jobTitle !== undefined ? props.trade.strategyRef.owner.jobTitle : undefined,
             currentAccount: props.trade.strategyRef.owner.currentAccount !== undefined ? props.trade.strategyRef.owner.currentAccount : undefined,
@@ -743,6 +751,9 @@ import { logger } from './utils/logger';
           key: props.trade.strategyRef.key !== undefined ? {
               equals: props.trade.strategyRef.key
             } : undefined,
+          backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? {
+              equals: props.trade.strategyRef.backtestJobId
+            } : undefined,
           ownerUserId: props.trade.strategyRef.ownerUserId !== undefined ? {
               equals: props.trade.strategyRef.ownerUserId
             } : undefined,
@@ -768,6 +779,13 @@ import { logger } from './utils/logger';
             } : undefined,
           manifestHash: props.trade.strategyRef.manifestHash !== undefined ? {
               set: props.trade.strategyRef.manifestHash
+            } : undefined,
+          kind: props.trade.strategyRef.kind !== undefined ? {
+              set: props.trade.strategyRef.kind
+            } : undefined,
+          spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
+          backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? {
+              set: props.trade.strategyRef.backtestJobId
             } : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? {
               set: props.trade.strategyRef.deletedAt
@@ -824,6 +842,12 @@ import { logger } from './utils/logger';
             role: props.trade.strategyRef.owner.role !== undefined ? {
                 set: props.trade.strategyRef.owner.role
               } : undefined,
+            availability: props.trade.strategyRef.owner.availability !== undefined ? {
+                set: props.trade.strategyRef.owner.availability
+              } : undefined,
+            availabilityUntil: props.trade.strategyRef.owner.availabilityUntil !== undefined ? {
+                set: props.trade.strategyRef.owner.availabilityUntil
+              } : undefined,
             bio: props.trade.strategyRef.owner.bio !== undefined ? {
                 set: props.trade.strategyRef.owner.bio
               } : undefined,
@@ -853,6 +877,8 @@ import { logger } from './utils/logger';
             signupCategory: props.trade.strategyRef.owner.signupCategory !== undefined ? props.trade.strategyRef.owner.signupCategory : undefined,
             deletedAt: props.trade.strategyRef.owner.deletedAt !== undefined ? props.trade.strategyRef.owner.deletedAt : undefined,
             role: props.trade.strategyRef.owner.role !== undefined ? props.trade.strategyRef.owner.role : undefined,
+            availability: props.trade.strategyRef.owner.availability !== undefined ? props.trade.strategyRef.owner.availability : undefined,
+            availabilityUntil: props.trade.strategyRef.owner.availabilityUntil !== undefined ? props.trade.strategyRef.owner.availabilityUntil : undefined,
             bio: props.trade.strategyRef.owner.bio !== undefined ? props.trade.strategyRef.owner.bio : undefined,
             jobTitle: props.trade.strategyRef.owner.jobTitle !== undefined ? props.trade.strategyRef.owner.jobTitle : undefined,
             currentAccount: props.trade.strategyRef.owner.currentAccount !== undefined ? props.trade.strategyRef.owner.currentAccount : undefined,
@@ -933,6 +959,9 @@ import { logger } from './utils/logger';
           origin: props.trade.strategyRef.origin !== undefined ? props.trade.strategyRef.origin : undefined,
           lifecycleState: props.trade.strategyRef.lifecycleState !== undefined ? props.trade.strategyRef.lifecycleState : undefined,
           manifestHash: props.trade.strategyRef.manifestHash !== undefined ? props.trade.strategyRef.manifestHash : undefined,
+          kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
+          spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
+          backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
         typeof props.trade.strategyRef.owner === 'object' && Object.keys(props.trade.strategyRef.owner).length === 1 && Object.keys(props.trade.strategyRef.owner)[0] === 'id'
@@ -958,6 +987,8 @@ import { logger } from './utils/logger';
             signupCategory: props.trade.strategyRef.owner.signupCategory !== undefined ? props.trade.strategyRef.owner.signupCategory : undefined,
             deletedAt: props.trade.strategyRef.owner.deletedAt !== undefined ? props.trade.strategyRef.owner.deletedAt : undefined,
             role: props.trade.strategyRef.owner.role !== undefined ? props.trade.strategyRef.owner.role : undefined,
+            availability: props.trade.strategyRef.owner.availability !== undefined ? props.trade.strategyRef.owner.availability : undefined,
+            availabilityUntil: props.trade.strategyRef.owner.availabilityUntil !== undefined ? props.trade.strategyRef.owner.availabilityUntil : undefined,
             bio: props.trade.strategyRef.owner.bio !== undefined ? props.trade.strategyRef.owner.bio : undefined,
             jobTitle: props.trade.strategyRef.owner.jobTitle !== undefined ? props.trade.strategyRef.owner.jobTitle : undefined,
             currentAccount: props.trade.strategyRef.owner.currentAccount !== undefined ? props.trade.strategyRef.owner.currentAccount : undefined,
@@ -1051,6 +1082,9 @@ import { logger } from './utils/logger';
         where: {
           id: props.trade.strategyRef.id !== undefined ? props.trade.strategyRef.id : undefined,
           key: props.trade.strategyRef.key !== undefined ? props.trade.strategyRef.key : undefined,
+          backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? {
+              equals: props.trade.strategyRef.backtestJobId 
+             } : undefined,
         },
         create: {
           key: props.trade.strategyRef.key !== undefined ? props.trade.strategyRef.key : undefined,
@@ -1059,6 +1093,9 @@ import { logger } from './utils/logger';
           origin: props.trade.strategyRef.origin !== undefined ? props.trade.strategyRef.origin : undefined,
           lifecycleState: props.trade.strategyRef.lifecycleState !== undefined ? props.trade.strategyRef.lifecycleState : undefined,
           manifestHash: props.trade.strategyRef.manifestHash !== undefined ? props.trade.strategyRef.manifestHash : undefined,
+          kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
+          spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
+          backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
         typeof props.trade.strategyRef.owner === 'object' && Object.keys(props.trade.strategyRef.owner).length === 1 && Object.keys(props.trade.strategyRef.owner)[0] === 'id'
@@ -1084,6 +1121,8 @@ import { logger } from './utils/logger';
             signupCategory: props.trade.strategyRef.owner.signupCategory !== undefined ? props.trade.strategyRef.owner.signupCategory : undefined,
             deletedAt: props.trade.strategyRef.owner.deletedAt !== undefined ? props.trade.strategyRef.owner.deletedAt : undefined,
             role: props.trade.strategyRef.owner.role !== undefined ? props.trade.strategyRef.owner.role : undefined,
+            availability: props.trade.strategyRef.owner.availability !== undefined ? props.trade.strategyRef.owner.availability : undefined,
+            availabilityUntil: props.trade.strategyRef.owner.availabilityUntil !== undefined ? props.trade.strategyRef.owner.availabilityUntil : undefined,
             bio: props.trade.strategyRef.owner.bio !== undefined ? props.trade.strategyRef.owner.bio : undefined,
             jobTitle: props.trade.strategyRef.owner.jobTitle !== undefined ? props.trade.strategyRef.owner.jobTitle : undefined,
             currentAccount: props.trade.strategyRef.owner.currentAccount !== undefined ? props.trade.strategyRef.owner.currentAccount : undefined,
@@ -1376,6 +1415,9 @@ import { logger } from './utils/logger';
         where: {
           id: props.trade.strategyRef.id !== undefined ? props.trade.strategyRef.id : undefined,
           key: props.trade.strategyRef.key !== undefined ? props.trade.strategyRef.key : undefined,
+          backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? {
+              equals: props.trade.strategyRef.backtestJobId 
+             } : undefined,
         },
         create: {
           key: props.trade.strategyRef.key !== undefined ? props.trade.strategyRef.key : undefined,
@@ -1384,6 +1426,9 @@ import { logger } from './utils/logger';
           origin: props.trade.strategyRef.origin !== undefined ? props.trade.strategyRef.origin : undefined,
           lifecycleState: props.trade.strategyRef.lifecycleState !== undefined ? props.trade.strategyRef.lifecycleState : undefined,
           manifestHash: props.trade.strategyRef.manifestHash !== undefined ? props.trade.strategyRef.manifestHash : undefined,
+          kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
+          spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
+          backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
         typeof props.trade.strategyRef.owner === 'object' && Object.keys(props.trade.strategyRef.owner).length === 1 && Object.keys(props.trade.strategyRef.owner)[0] === 'id'
@@ -1409,6 +1454,8 @@ import { logger } from './utils/logger';
             signupCategory: props.trade.strategyRef.owner.signupCategory !== undefined ? props.trade.strategyRef.owner.signupCategory : undefined,
             deletedAt: props.trade.strategyRef.owner.deletedAt !== undefined ? props.trade.strategyRef.owner.deletedAt : undefined,
             role: props.trade.strategyRef.owner.role !== undefined ? props.trade.strategyRef.owner.role : undefined,
+            availability: props.trade.strategyRef.owner.availability !== undefined ? props.trade.strategyRef.owner.availability : undefined,
+            availabilityUntil: props.trade.strategyRef.owner.availabilityUntil !== undefined ? props.trade.strategyRef.owner.availabilityUntil : undefined,
             bio: props.trade.strategyRef.owner.bio !== undefined ? props.trade.strategyRef.owner.bio : undefined,
             jobTitle: props.trade.strategyRef.owner.jobTitle !== undefined ? props.trade.strategyRef.owner.jobTitle : undefined,
             currentAccount: props.trade.strategyRef.owner.currentAccount !== undefined ? props.trade.strategyRef.owner.currentAccount : undefined,
@@ -1645,6 +1692,9 @@ import { logger } from './utils/logger';
           key: props.trade.strategyRef.key !== undefined ? {
               equals: props.trade.strategyRef.key
             } : undefined,
+          backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? {
+              equals: props.trade.strategyRef.backtestJobId
+            } : undefined,
           ownerUserId: props.trade.strategyRef.ownerUserId !== undefined ? {
               equals: props.trade.strategyRef.ownerUserId
             } : undefined,
@@ -1670,6 +1720,13 @@ import { logger } from './utils/logger';
             } : undefined,
           manifestHash: props.trade.strategyRef.manifestHash !== undefined ? {
               set: props.trade.strategyRef.manifestHash
+            } : undefined,
+          kind: props.trade.strategyRef.kind !== undefined ? {
+              set: props.trade.strategyRef.kind
+            } : undefined,
+          spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
+          backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? {
+              set: props.trade.strategyRef.backtestJobId
             } : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? {
               set: props.trade.strategyRef.deletedAt
@@ -1726,6 +1783,12 @@ import { logger } from './utils/logger';
             role: props.trade.strategyRef.owner.role !== undefined ? {
                 set: props.trade.strategyRef.owner.role
               } : undefined,
+            availability: props.trade.strategyRef.owner.availability !== undefined ? {
+                set: props.trade.strategyRef.owner.availability
+              } : undefined,
+            availabilityUntil: props.trade.strategyRef.owner.availabilityUntil !== undefined ? {
+                set: props.trade.strategyRef.owner.availabilityUntil
+              } : undefined,
             bio: props.trade.strategyRef.owner.bio !== undefined ? {
                 set: props.trade.strategyRef.owner.bio
               } : undefined,
@@ -1755,6 +1818,8 @@ import { logger } from './utils/logger';
             signupCategory: props.trade.strategyRef.owner.signupCategory !== undefined ? props.trade.strategyRef.owner.signupCategory : undefined,
             deletedAt: props.trade.strategyRef.owner.deletedAt !== undefined ? props.trade.strategyRef.owner.deletedAt : undefined,
             role: props.trade.strategyRef.owner.role !== undefined ? props.trade.strategyRef.owner.role : undefined,
+            availability: props.trade.strategyRef.owner.availability !== undefined ? props.trade.strategyRef.owner.availability : undefined,
+            availabilityUntil: props.trade.strategyRef.owner.availabilityUntil !== undefined ? props.trade.strategyRef.owner.availabilityUntil : undefined,
             bio: props.trade.strategyRef.owner.bio !== undefined ? props.trade.strategyRef.owner.bio : undefined,
             jobTitle: props.trade.strategyRef.owner.jobTitle !== undefined ? props.trade.strategyRef.owner.jobTitle : undefined,
             currentAccount: props.trade.strategyRef.owner.currentAccount !== undefined ? props.trade.strategyRef.owner.currentAccount : undefined,
@@ -1835,6 +1900,9 @@ import { logger } from './utils/logger';
           origin: props.trade.strategyRef.origin !== undefined ? props.trade.strategyRef.origin : undefined,
           lifecycleState: props.trade.strategyRef.lifecycleState !== undefined ? props.trade.strategyRef.lifecycleState : undefined,
           manifestHash: props.trade.strategyRef.manifestHash !== undefined ? props.trade.strategyRef.manifestHash : undefined,
+          kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
+          spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
+          backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
         typeof props.trade.strategyRef.owner === 'object' && Object.keys(props.trade.strategyRef.owner).length === 1 && Object.keys(props.trade.strategyRef.owner)[0] === 'id'
@@ -1860,6 +1928,8 @@ import { logger } from './utils/logger';
             signupCategory: props.trade.strategyRef.owner.signupCategory !== undefined ? props.trade.strategyRef.owner.signupCategory : undefined,
             deletedAt: props.trade.strategyRef.owner.deletedAt !== undefined ? props.trade.strategyRef.owner.deletedAt : undefined,
             role: props.trade.strategyRef.owner.role !== undefined ? props.trade.strategyRef.owner.role : undefined,
+            availability: props.trade.strategyRef.owner.availability !== undefined ? props.trade.strategyRef.owner.availability : undefined,
+            availabilityUntil: props.trade.strategyRef.owner.availabilityUntil !== undefined ? props.trade.strategyRef.owner.availabilityUntil : undefined,
             bio: props.trade.strategyRef.owner.bio !== undefined ? props.trade.strategyRef.owner.bio : undefined,
             jobTitle: props.trade.strategyRef.owner.jobTitle !== undefined ? props.trade.strategyRef.owner.jobTitle : undefined,
             currentAccount: props.trade.strategyRef.owner.currentAccount !== undefined ? props.trade.strategyRef.owner.currentAccount : undefined,
@@ -1953,6 +2023,9 @@ import { logger } from './utils/logger';
         where: {
           id: props.trade.strategyRef.id !== undefined ? props.trade.strategyRef.id : undefined,
           key: props.trade.strategyRef.key !== undefined ? props.trade.strategyRef.key : undefined,
+          backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? {
+              equals: props.trade.strategyRef.backtestJobId 
+             } : undefined,
         },
         create: {
           key: props.trade.strategyRef.key !== undefined ? props.trade.strategyRef.key : undefined,
@@ -1961,6 +2034,9 @@ import { logger } from './utils/logger';
           origin: props.trade.strategyRef.origin !== undefined ? props.trade.strategyRef.origin : undefined,
           lifecycleState: props.trade.strategyRef.lifecycleState !== undefined ? props.trade.strategyRef.lifecycleState : undefined,
           manifestHash: props.trade.strategyRef.manifestHash !== undefined ? props.trade.strategyRef.manifestHash : undefined,
+          kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
+          spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
+          backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
         typeof props.trade.strategyRef.owner === 'object' && Object.keys(props.trade.strategyRef.owner).length === 1 && Object.keys(props.trade.strategyRef.owner)[0] === 'id'
@@ -1986,6 +2062,8 @@ import { logger } from './utils/logger';
             signupCategory: props.trade.strategyRef.owner.signupCategory !== undefined ? props.trade.strategyRef.owner.signupCategory : undefined,
             deletedAt: props.trade.strategyRef.owner.deletedAt !== undefined ? props.trade.strategyRef.owner.deletedAt : undefined,
             role: props.trade.strategyRef.owner.role !== undefined ? props.trade.strategyRef.owner.role : undefined,
+            availability: props.trade.strategyRef.owner.availability !== undefined ? props.trade.strategyRef.owner.availability : undefined,
+            availabilityUntil: props.trade.strategyRef.owner.availabilityUntil !== undefined ? props.trade.strategyRef.owner.availabilityUntil : undefined,
             bio: props.trade.strategyRef.owner.bio !== undefined ? props.trade.strategyRef.owner.bio : undefined,
             jobTitle: props.trade.strategyRef.owner.jobTitle !== undefined ? props.trade.strategyRef.owner.jobTitle : undefined,
             currentAccount: props.trade.strategyRef.owner.currentAccount !== undefined ? props.trade.strategyRef.owner.currentAccount : undefined,
@@ -2385,6 +2463,9 @@ import { logger } from './utils/logger';
           key: prop.trade.strategyRef.key !== undefined ? {
               equals: prop.trade.strategyRef.key
             } : undefined,
+          backtestJobId: prop.trade.strategyRef.backtestJobId !== undefined ? {
+              equals: prop.trade.strategyRef.backtestJobId
+            } : undefined,
           ownerUserId: prop.trade.strategyRef.ownerUserId !== undefined ? {
               equals: prop.trade.strategyRef.ownerUserId
             } : undefined,
@@ -2410,6 +2491,13 @@ import { logger } from './utils/logger';
             } : undefined,
           manifestHash: prop.trade.strategyRef.manifestHash !== undefined ? {
               set: prop.trade.strategyRef.manifestHash
+            } : undefined,
+          kind: prop.trade.strategyRef.kind !== undefined ? {
+              set: prop.trade.strategyRef.kind
+            } : undefined,
+          spec: prop.trade.strategyRef.spec !== undefined ? prop.trade.strategyRef.spec : undefined,
+          backtestJobId: prop.trade.strategyRef.backtestJobId !== undefined ? {
+              set: prop.trade.strategyRef.backtestJobId
             } : undefined,
           deletedAt: prop.trade.strategyRef.deletedAt !== undefined ? {
               set: prop.trade.strategyRef.deletedAt
@@ -2466,6 +2554,12 @@ import { logger } from './utils/logger';
             role: prop.trade.strategyRef.owner.role !== undefined ? {
                 set: prop.trade.strategyRef.owner.role
               } : undefined,
+            availability: prop.trade.strategyRef.owner.availability !== undefined ? {
+                set: prop.trade.strategyRef.owner.availability
+              } : undefined,
+            availabilityUntil: prop.trade.strategyRef.owner.availabilityUntil !== undefined ? {
+                set: prop.trade.strategyRef.owner.availabilityUntil
+              } : undefined,
             bio: prop.trade.strategyRef.owner.bio !== undefined ? {
                 set: prop.trade.strategyRef.owner.bio
               } : undefined,
@@ -2495,6 +2589,8 @@ import { logger } from './utils/logger';
             signupCategory: prop.trade.strategyRef.owner.signupCategory !== undefined ? prop.trade.strategyRef.owner.signupCategory : undefined,
             deletedAt: prop.trade.strategyRef.owner.deletedAt !== undefined ? prop.trade.strategyRef.owner.deletedAt : undefined,
             role: prop.trade.strategyRef.owner.role !== undefined ? prop.trade.strategyRef.owner.role : undefined,
+            availability: prop.trade.strategyRef.owner.availability !== undefined ? prop.trade.strategyRef.owner.availability : undefined,
+            availabilityUntil: prop.trade.strategyRef.owner.availabilityUntil !== undefined ? prop.trade.strategyRef.owner.availabilityUntil : undefined,
             bio: prop.trade.strategyRef.owner.bio !== undefined ? prop.trade.strategyRef.owner.bio : undefined,
             jobTitle: prop.trade.strategyRef.owner.jobTitle !== undefined ? prop.trade.strategyRef.owner.jobTitle : undefined,
             currentAccount: prop.trade.strategyRef.owner.currentAccount !== undefined ? prop.trade.strategyRef.owner.currentAccount : undefined,
@@ -2575,6 +2671,9 @@ import { logger } from './utils/logger';
           origin: prop.trade.strategyRef.origin !== undefined ? prop.trade.strategyRef.origin : undefined,
           lifecycleState: prop.trade.strategyRef.lifecycleState !== undefined ? prop.trade.strategyRef.lifecycleState : undefined,
           manifestHash: prop.trade.strategyRef.manifestHash !== undefined ? prop.trade.strategyRef.manifestHash : undefined,
+          kind: prop.trade.strategyRef.kind !== undefined ? prop.trade.strategyRef.kind : undefined,
+          spec: prop.trade.strategyRef.spec !== undefined ? prop.trade.strategyRef.spec : undefined,
+          backtestJobId: prop.trade.strategyRef.backtestJobId !== undefined ? prop.trade.strategyRef.backtestJobId : undefined,
           deletedAt: prop.trade.strategyRef.deletedAt !== undefined ? prop.trade.strategyRef.deletedAt : undefined,
       owner: prop.trade.strategyRef.owner ? 
         typeof prop.trade.strategyRef.owner === 'object' && Object.keys(prop.trade.strategyRef.owner).length === 1 && Object.keys(prop.trade.strategyRef.owner)[0] === 'id'
@@ -2600,6 +2699,8 @@ import { logger } from './utils/logger';
             signupCategory: prop.trade.strategyRef.owner.signupCategory !== undefined ? prop.trade.strategyRef.owner.signupCategory : undefined,
             deletedAt: prop.trade.strategyRef.owner.deletedAt !== undefined ? prop.trade.strategyRef.owner.deletedAt : undefined,
             role: prop.trade.strategyRef.owner.role !== undefined ? prop.trade.strategyRef.owner.role : undefined,
+            availability: prop.trade.strategyRef.owner.availability !== undefined ? prop.trade.strategyRef.owner.availability : undefined,
+            availabilityUntil: prop.trade.strategyRef.owner.availabilityUntil !== undefined ? prop.trade.strategyRef.owner.availabilityUntil : undefined,
             bio: prop.trade.strategyRef.owner.bio !== undefined ? prop.trade.strategyRef.owner.bio : undefined,
             jobTitle: prop.trade.strategyRef.owner.jobTitle !== undefined ? prop.trade.strategyRef.owner.jobTitle : undefined,
             currentAccount: prop.trade.strategyRef.owner.currentAccount !== undefined ? prop.trade.strategyRef.owner.currentAccount : undefined,
@@ -2693,6 +2794,9 @@ import { logger } from './utils/logger';
         where: {
           id: prop.trade.strategyRef.id !== undefined ? prop.trade.strategyRef.id : undefined,
           key: prop.trade.strategyRef.key !== undefined ? prop.trade.strategyRef.key : undefined,
+          backtestJobId: prop.trade.strategyRef.backtestJobId !== undefined ? {
+              equals: prop.trade.strategyRef.backtestJobId 
+             } : undefined,
         },
         create: {
           key: prop.trade.strategyRef.key !== undefined ? prop.trade.strategyRef.key : undefined,
@@ -2701,6 +2805,9 @@ import { logger } from './utils/logger';
           origin: prop.trade.strategyRef.origin !== undefined ? prop.trade.strategyRef.origin : undefined,
           lifecycleState: prop.trade.strategyRef.lifecycleState !== undefined ? prop.trade.strategyRef.lifecycleState : undefined,
           manifestHash: prop.trade.strategyRef.manifestHash !== undefined ? prop.trade.strategyRef.manifestHash : undefined,
+          kind: prop.trade.strategyRef.kind !== undefined ? prop.trade.strategyRef.kind : undefined,
+          spec: prop.trade.strategyRef.spec !== undefined ? prop.trade.strategyRef.spec : undefined,
+          backtestJobId: prop.trade.strategyRef.backtestJobId !== undefined ? prop.trade.strategyRef.backtestJobId : undefined,
           deletedAt: prop.trade.strategyRef.deletedAt !== undefined ? prop.trade.strategyRef.deletedAt : undefined,
       owner: prop.trade.strategyRef.owner ? 
         typeof prop.trade.strategyRef.owner === 'object' && Object.keys(prop.trade.strategyRef.owner).length === 1 && Object.keys(prop.trade.strategyRef.owner)[0] === 'id'
@@ -2726,6 +2833,8 @@ import { logger } from './utils/logger';
             signupCategory: prop.trade.strategyRef.owner.signupCategory !== undefined ? prop.trade.strategyRef.owner.signupCategory : undefined,
             deletedAt: prop.trade.strategyRef.owner.deletedAt !== undefined ? prop.trade.strategyRef.owner.deletedAt : undefined,
             role: prop.trade.strategyRef.owner.role !== undefined ? prop.trade.strategyRef.owner.role : undefined,
+            availability: prop.trade.strategyRef.owner.availability !== undefined ? prop.trade.strategyRef.owner.availability : undefined,
+            availabilityUntil: prop.trade.strategyRef.owner.availabilityUntil !== undefined ? prop.trade.strategyRef.owner.availabilityUntil : undefined,
             bio: prop.trade.strategyRef.owner.bio !== undefined ? prop.trade.strategyRef.owner.bio : undefined,
             jobTitle: prop.trade.strategyRef.owner.jobTitle !== undefined ? prop.trade.strategyRef.owner.jobTitle : undefined,
             currentAccount: prop.trade.strategyRef.owner.currentAccount !== undefined ? prop.trade.strategyRef.owner.currentAccount : undefined,

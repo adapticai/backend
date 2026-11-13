@@ -324,6 +324,8 @@ import { logger } from './utils/logger';
           signupCategory: props.alpacaAccount.user.signupCategory !== undefined ? props.alpacaAccount.user.signupCategory : undefined,
           deletedAt: props.alpacaAccount.user.deletedAt !== undefined ? props.alpacaAccount.user.deletedAt : undefined,
           role: props.alpacaAccount.user.role !== undefined ? props.alpacaAccount.user.role : undefined,
+          availability: props.alpacaAccount.user.availability !== undefined ? props.alpacaAccount.user.availability : undefined,
+          availabilityUntil: props.alpacaAccount.user.availabilityUntil !== undefined ? props.alpacaAccount.user.availabilityUntil : undefined,
           bio: props.alpacaAccount.user.bio !== undefined ? props.alpacaAccount.user.bio : undefined,
           jobTitle: props.alpacaAccount.user.jobTitle !== undefined ? props.alpacaAccount.user.jobTitle : undefined,
           currentAccount: props.alpacaAccount.user.currentAccount !== undefined ? props.alpacaAccount.user.currentAccount : undefined,
@@ -740,6 +742,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -878,6 +886,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -886,9 +897,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.alpacaAccount.user.featureFlagOverrides ? 
+        Array.isArray(props.alpacaAccount.user.featureFlagOverrides) && props.alpacaAccount.user.featureFlagOverrides.length > 0 &&  props.alpacaAccount.user.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.alpacaAccount.user.follows ? 
+        Array.isArray(props.alpacaAccount.user.follows) && props.alpacaAccount.user.follows.length > 0 &&  props.alpacaAccount.user.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.alpacaAccount.user.autoFollowRules ? 
+        Array.isArray(props.alpacaAccount.user.autoFollowRules) && props.alpacaAccount.user.autoFollowRules.length > 0 &&  props.alpacaAccount.user.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.alpacaAccount.user.pushSubscriptions ? 
+        Array.isArray(props.alpacaAccount.user.pushSubscriptions) && props.alpacaAccount.user.pushSubscriptions.length > 0 &&  props.alpacaAccount.user.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.alpacaAccount.user.adaConversations ? 
+        Array.isArray(props.alpacaAccount.user.adaConversations) && props.alpacaAccount.user.adaConversations.length > 0 &&  props.alpacaAccount.user.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.alpacaAccount.user.totp ? 
+        typeof props.alpacaAccount.user.totp === 'object' && Object.keys(props.alpacaAccount.user.totp).length === 1 && Object.keys(props.alpacaAccount.user.totp)[0] === 'id'
+    ? { connect: {
+            id: props.alpacaAccount.user.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.alpacaAccount.user.totp.id !== undefined ? props.alpacaAccount.user.totp.id : undefined,
+            userId: props.alpacaAccount.user.totp.userId !== undefined ? props.alpacaAccount.user.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: props.alpacaAccount.user.totp.secretEnc !== undefined ? props.alpacaAccount.user.totp.secretEnc : undefined,
+            enabledAt: props.alpacaAccount.user.totp.enabledAt !== undefined ? props.alpacaAccount.user.totp.enabledAt : undefined,
+            recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
+                set: props.alpacaAccount.user.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.alpacaAccount.user.preference ? 
+        typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && Object.keys(props.alpacaAccount.user.preference)[0] === 'id'
+    ? { connect: {
+            id: props.alpacaAccount.user.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.alpacaAccount.user.preference.id !== undefined ? props.alpacaAccount.user.preference.id : undefined,
+            userId: props.alpacaAccount.user.preference.userId !== undefined ? props.alpacaAccount.user.preference.userId : undefined,
+          },
+          create: {
+            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
+            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
+            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
+            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -1250,6 +1425,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.strategy.id !== undefined ? item.strategy.id : undefined,
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? {
+                equals: item.strategy.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
@@ -1258,7 +1436,94 @@ import { logger } from './utils/logger';
             origin: item.strategy.origin !== undefined ? item.strategy.origin : undefined,
             lifecycleState: item.strategy.lifecycleState !== undefined ? item.strategy.lifecycleState : undefined,
             manifestHash: item.strategy.manifestHash !== undefined ? item.strategy.manifestHash : undefined,
+            kind: item.strategy.kind !== undefined ? item.strategy.kind : undefined,
+            spec: item.strategy.spec !== undefined ? item.strategy.spec : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? item.strategy.backtestJobId : undefined,
             deletedAt: item.strategy.deletedAt !== undefined ? item.strategy.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+        },
+      }))
+    } : undefined,
+    deskDecisions: props.alpacaAccount.deskDecisions ? 
+      Array.isArray(props.alpacaAccount.deskDecisions) && props.alpacaAccount.deskDecisions.length > 0 &&  props.alpacaAccount.deskDecisions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+        connect:      props.alpacaAccount.deskDecisions.map((item) => ({
+           id: item.id
+        }))
+ }
+ : { connectOrCreate: props.alpacaAccount.deskDecisions.map((item) => ({
+        where: {
+          id: item.id !== undefined ? item.id : undefined,
+          fundId: item.fundId !== undefined ? {
+              equals: item.fundId 
+             } : undefined,
+          ruleId: item.ruleId !== undefined ? {
+              equals: item.ruleId 
+             } : undefined,
+          ifIdle: item.ifIdle !== undefined ? {
+              equals: item.ifIdle 
+             } : undefined,
+          status: item.status !== undefined ? {
+              equals: item.status 
+             } : undefined,
+        },
+        create: {
+          kind: item.kind !== undefined ? item.kind : undefined,
+          ruleId: item.ruleId !== undefined ? item.ruleId : undefined,
+          desk: item.desk !== undefined ? item.desk : undefined,
+          question: item.question !== undefined ? item.question : undefined,
+          nums: item.nums !== undefined ? item.nums : undefined,
+          counterCase: item.counterCase !== undefined ? item.counterCase : undefined,
+          ifIdle: item.ifIdle !== undefined ? item.ifIdle : undefined,
+          facets: item.facets !== undefined ? item.facets : undefined,
+          dueAt: item.dueAt !== undefined ? item.dueAt : undefined,
+          defaultAction: item.defaultAction !== undefined ? item.defaultAction : undefined,
+          amendLabel: item.amendLabel !== undefined ? item.amendLabel : undefined,
+          reasonRequired: item.reasonRequired !== undefined ? item.reasonRequired : undefined,
+          status: item.status !== undefined ? item.status : undefined,
+          decidedBy: item.decidedBy !== undefined ? item.decidedBy : undefined,
+          decidedAt: item.decidedAt !== undefined ? item.decidedAt : undefined,
+          reason: item.reason !== undefined ? item.reason : undefined,
+      fund: item.fund ? 
+        typeof item.fund === 'object' && Object.keys(item.fund).length === 1 && Object.keys(item.fund)[0] === 'id'
+    ? { connect: {
+            id: item.fund.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.fund.id !== undefined ? item.fund.id : undefined,
+            name: item.fund.name !== undefined ? {
+                equals: item.fund.name 
+               } : undefined,
+            slug: item.fund.slug !== undefined ? {
+                equals: item.fund.slug 
+               } : undefined,
+            status: item.fund.status !== undefined ? {
+                equals: item.fund.status 
+               } : undefined,
+            organizationId: item.fund.organizationId !== undefined ? {
+                equals: item.fund.organizationId 
+               } : undefined,
+          },
+          create: {
+            name: item.fund.name !== undefined ? item.fund.name : undefined,
+            slug: item.fund.slug !== undefined ? item.fund.slug : undefined,
+            description: item.fund.description !== undefined ? item.fund.description : undefined,
+            status: item.fund.status !== undefined ? item.fund.status : undefined,
+            currency: item.fund.currency !== undefined ? item.fund.currency : undefined,
+            inceptionDate: item.fund.inceptionDate !== undefined ? item.fund.inceptionDate : undefined,
+            aum: item.fund.aum !== undefined ? item.fund.aum : undefined,
+            navPerShare: item.fund.navPerShare !== undefined ? item.fund.navPerShare : undefined,
+            sharesOutstanding: item.fund.sharesOutstanding !== undefined ? item.fund.sharesOutstanding : undefined,
+            highWaterMarkNav: item.fund.highWaterMarkNav !== undefined ? item.fund.highWaterMarkNav : undefined,
+            fees: item.fund.fees !== undefined ? item.fund.fees : undefined,
+            terms: item.fund.terms !== undefined ? item.fund.terms : undefined,
+            regulatory: item.fund.regulatory !== undefined ? item.fund.regulatory : undefined,
+            serviceProviders: item.fund.serviceProviders !== undefined ? item.fund.serviceProviders : undefined,
+            tradingOverrides: item.fund.tradingOverrides !== undefined ? item.fund.tradingOverrides : undefined,
+            deletedAt: item.fund.deletedAt !== undefined ? item.fund.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -2386,6 +2651,12 @@ import { logger } from './utils/logger';
           role: props.alpacaAccount.user.role !== undefined ? {
               set: props.alpacaAccount.user.role
             } : undefined,
+          availability: props.alpacaAccount.user.availability !== undefined ? {
+              set: props.alpacaAccount.user.availability
+            } : undefined,
+          availabilityUntil: props.alpacaAccount.user.availabilityUntil !== undefined ? {
+              set: props.alpacaAccount.user.availabilityUntil
+            } : undefined,
           bio: props.alpacaAccount.user.bio !== undefined ? {
               set: props.alpacaAccount.user.bio
             } : undefined,
@@ -3216,6 +3487,12 @@ import { logger } from './utils/logger';
                 set: item.summary
               } : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions
+              } : undefined,
           },
           create: {
             versionLabel: item.versionLabel !== undefined ? item.versionLabel : undefined,
@@ -3223,6 +3500,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -3466,6 +3749,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId
+              } : undefined,
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
@@ -3492,6 +3778,13 @@ import { logger } from './utils/logger';
             manifestHash: item.manifestHash !== undefined ? {
                 set: item.manifestHash
               } : undefined,
+            kind: item.kind !== undefined ? {
+                set: item.kind
+              } : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                set: item.backtestJobId
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -3503,9 +3796,294 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.alpacaAccount.user.featureFlagOverrides ? 
+      Array.isArray(props.alpacaAccount.user.featureFlagOverrides) && props.alpacaAccount.user.featureFlagOverrides.length > 0 && props.alpacaAccount.user.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            flag: item.flag !== undefined ? {
+                set: item.flag
+              } : undefined,
+            enabled: item.enabled !== undefined ? {
+                set: item.enabled
+              } : undefined,
+            updatedBy: item.updatedBy !== undefined ? {
+                set: item.updatedBy
+              } : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.alpacaAccount.user.follows ? 
+      Array.isArray(props.alpacaAccount.user.follows) && props.alpacaAccount.user.follows.length > 0 && props.alpacaAccount.user.follows.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.alpacaAccount.user.follows.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.alpacaAccount.user.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            targetKind: item.targetKind !== undefined ? {
+                set: item.targetKind
+              } : undefined,
+            targetId: item.targetId !== undefined ? {
+                set: item.targetId
+              } : undefined,
+            level: item.level !== undefined ? {
+                set: item.level
+              } : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? {
+                set: item.riskBudgetPctNav
+              } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.alpacaAccount.user.autoFollowRules ? 
+      Array.isArray(props.alpacaAccount.user.autoFollowRules) && props.alpacaAccount.user.autoFollowRules.length > 0 && props.alpacaAccount.user.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.alpacaAccount.user.autoFollowRules.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.alpacaAccount.user.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId
+              } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            name: item.name !== undefined ? {
+                set: item.name
+              } : undefined,
+            condition: item.condition !== undefined ? {
+                set: item.condition
+              } : undefined,
+            action: item.action !== undefined ? {
+                set: item.action
+              } : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks
+              } : undefined,
+            enabled: item.enabled !== undefined ? {
+                set: item.enabled
+              } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.alpacaAccount.user.pushSubscriptions ? 
+      Array.isArray(props.alpacaAccount.user.pushSubscriptions) && props.alpacaAccount.user.pushSubscriptions.length > 0 && props.alpacaAccount.user.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            endpoint: item.endpoint !== undefined ? {
+                set: item.endpoint
+              } : undefined,
+            p256dh: item.p256dh !== undefined ? {
+                set: item.p256dh
+              } : undefined,
+            auth: item.auth !== undefined ? {
+                set: item.auth
+              } : undefined,
+            userAgent: item.userAgent !== undefined ? {
+                set: item.userAgent
+              } : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? {
+                set: item.lastSeenAt
+              } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.alpacaAccount.user.adaConversations ? 
+      Array.isArray(props.alpacaAccount.user.adaConversations) && props.alpacaAccount.user.adaConversations.length > 0 && props.alpacaAccount.user.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.alpacaAccount.user.adaConversations.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.alpacaAccount.user.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            title: item.title !== undefined ? {
+                set: item.title
+              } : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? {
+                set: item.sharedWithOrg
+              } : undefined,
+            deletedAt: item.deletedAt !== undefined ? {
+                set: item.deletedAt
+              } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.alpacaAccount.user.totp ? 
+      typeof props.alpacaAccount.user.totp === 'object' && Object.keys(props.alpacaAccount.user.totp).length === 1 && (Object.keys(props.alpacaAccount.user.totp)[0] === 'id' || Object.keys(props.alpacaAccount.user.totp)[0] === 'symbol')
+? {
+      connect: {
+        id: props.alpacaAccount.user.totp.id
+      }
+} : { upsert: {
+          where: {
+            id: props.alpacaAccount.user.totp.id !== undefined ? {
+                equals: props.alpacaAccount.user.totp.id
+              } : undefined,
+            userId: props.alpacaAccount.user.totp.userId !== undefined ? {
+                equals: props.alpacaAccount.user.totp.userId
+              } : undefined,
+          },
+          update: {
+            id: props.alpacaAccount.user.totp.id !== undefined ? {
+                set: props.alpacaAccount.user.totp.id
+              } : undefined,
+            secretEnc: props.alpacaAccount.user.totp.secretEnc !== undefined ? {
+                set: props.alpacaAccount.user.totp.secretEnc
+              } : undefined,
+            enabledAt: props.alpacaAccount.user.totp.enabledAt !== undefined ? {
+                set: props.alpacaAccount.user.totp.enabledAt
+              } : undefined,
+            recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
+                set: props.alpacaAccount.user.totp.recoveryCodesHash
+              } : undefined,
+          },
+          create: {
+            secretEnc: props.alpacaAccount.user.totp.secretEnc !== undefined ? props.alpacaAccount.user.totp.secretEnc : undefined,
+            enabledAt: props.alpacaAccount.user.totp.enabledAt !== undefined ? props.alpacaAccount.user.totp.enabledAt : undefined,
+            recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
+                set: props.alpacaAccount.user.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.alpacaAccount.user.preference ? 
+      typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && (Object.keys(props.alpacaAccount.user.preference)[0] === 'id' || Object.keys(props.alpacaAccount.user.preference)[0] === 'symbol')
+? {
+      connect: {
+        id: props.alpacaAccount.user.preference.id
+      }
+} : { upsert: {
+          where: {
+            id: props.alpacaAccount.user.preference.id !== undefined ? {
+                equals: props.alpacaAccount.user.preference.id
+              } : undefined,
+            userId: props.alpacaAccount.user.preference.userId !== undefined ? {
+                equals: props.alpacaAccount.user.preference.userId
+              } : undefined,
+          },
+          update: {
+            id: props.alpacaAccount.user.preference.id !== undefined ? {
+                set: props.alpacaAccount.user.preference.id
+              } : undefined,
+            theme: props.alpacaAccount.user.preference.theme !== undefined ? {
+                set: props.alpacaAccount.user.preference.theme
+              } : undefined,
+            density: props.alpacaAccount.user.preference.density !== undefined ? {
+                set: props.alpacaAccount.user.preference.density
+              } : undefined,
+            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
+            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+          },
+          create: {
+            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
+            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
+            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
+            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
         create: {
@@ -3518,6 +4096,8 @@ import { logger } from './utils/logger';
           signupCategory: props.alpacaAccount.user.signupCategory !== undefined ? props.alpacaAccount.user.signupCategory : undefined,
           deletedAt: props.alpacaAccount.user.deletedAt !== undefined ? props.alpacaAccount.user.deletedAt : undefined,
           role: props.alpacaAccount.user.role !== undefined ? props.alpacaAccount.user.role : undefined,
+          availability: props.alpacaAccount.user.availability !== undefined ? props.alpacaAccount.user.availability : undefined,
+          availabilityUntil: props.alpacaAccount.user.availabilityUntil !== undefined ? props.alpacaAccount.user.availabilityUntil : undefined,
           bio: props.alpacaAccount.user.bio !== undefined ? props.alpacaAccount.user.bio : undefined,
           jobTitle: props.alpacaAccount.user.jobTitle !== undefined ? props.alpacaAccount.user.jobTitle : undefined,
           currentAccount: props.alpacaAccount.user.currentAccount !== undefined ? props.alpacaAccount.user.currentAccount : undefined,
@@ -3934,6 +4514,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -4072,6 +4658,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -4080,9 +4669,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.alpacaAccount.user.featureFlagOverrides ? 
+        Array.isArray(props.alpacaAccount.user.featureFlagOverrides) && props.alpacaAccount.user.featureFlagOverrides.length > 0 &&  props.alpacaAccount.user.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.alpacaAccount.user.follows ? 
+        Array.isArray(props.alpacaAccount.user.follows) && props.alpacaAccount.user.follows.length > 0 &&  props.alpacaAccount.user.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.alpacaAccount.user.autoFollowRules ? 
+        Array.isArray(props.alpacaAccount.user.autoFollowRules) && props.alpacaAccount.user.autoFollowRules.length > 0 &&  props.alpacaAccount.user.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.alpacaAccount.user.pushSubscriptions ? 
+        Array.isArray(props.alpacaAccount.user.pushSubscriptions) && props.alpacaAccount.user.pushSubscriptions.length > 0 &&  props.alpacaAccount.user.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.alpacaAccount.user.adaConversations ? 
+        Array.isArray(props.alpacaAccount.user.adaConversations) && props.alpacaAccount.user.adaConversations.length > 0 &&  props.alpacaAccount.user.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.alpacaAccount.user.totp ? 
+        typeof props.alpacaAccount.user.totp === 'object' && Object.keys(props.alpacaAccount.user.totp).length === 1 && Object.keys(props.alpacaAccount.user.totp)[0] === 'id'
+    ? { connect: {
+            id: props.alpacaAccount.user.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.alpacaAccount.user.totp.id !== undefined ? props.alpacaAccount.user.totp.id : undefined,
+            userId: props.alpacaAccount.user.totp.userId !== undefined ? props.alpacaAccount.user.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: props.alpacaAccount.user.totp.secretEnc !== undefined ? props.alpacaAccount.user.totp.secretEnc : undefined,
+            enabledAt: props.alpacaAccount.user.totp.enabledAt !== undefined ? props.alpacaAccount.user.totp.enabledAt : undefined,
+            recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
+                set: props.alpacaAccount.user.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.alpacaAccount.user.preference ? 
+        typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && Object.keys(props.alpacaAccount.user.preference)[0] === 'id'
+    ? { connect: {
+            id: props.alpacaAccount.user.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.alpacaAccount.user.preference.id !== undefined ? props.alpacaAccount.user.preference.id : undefined,
+            userId: props.alpacaAccount.user.preference.userId !== undefined ? props.alpacaAccount.user.preference.userId : undefined,
+          },
+          create: {
+            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
+            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
+            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
+            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -5039,6 +5792,9 @@ import { logger } from './utils/logger';
             key: item.strategy.key !== undefined ? {
                 equals: item.strategy.key
               } : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? {
+                equals: item.strategy.backtestJobId
+              } : undefined,
             ownerUserId: item.strategy.ownerUserId !== undefined ? {
                 equals: item.strategy.ownerUserId
               } : undefined,
@@ -5065,6 +5821,13 @@ import { logger } from './utils/logger';
             manifestHash: item.strategy.manifestHash !== undefined ? {
                 set: item.strategy.manifestHash
               } : undefined,
+            kind: item.strategy.kind !== undefined ? {
+                set: item.strategy.kind
+              } : undefined,
+            spec: item.strategy.spec !== undefined ? item.strategy.spec : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? {
+                set: item.strategy.backtestJobId
+              } : undefined,
             deletedAt: item.strategy.deletedAt !== undefined ? {
                 set: item.strategy.deletedAt
               } : undefined,
@@ -5076,6 +5839,9 @@ import { logger } from './utils/logger';
             origin: item.strategy.origin !== undefined ? item.strategy.origin : undefined,
             lifecycleState: item.strategy.lifecycleState !== undefined ? item.strategy.lifecycleState : undefined,
             manifestHash: item.strategy.manifestHash !== undefined ? item.strategy.manifestHash : undefined,
+            kind: item.strategy.kind !== undefined ? item.strategy.kind : undefined,
+            spec: item.strategy.spec !== undefined ? item.strategy.spec : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? item.strategy.backtestJobId : undefined,
             deletedAt: item.strategy.deletedAt !== undefined ? item.strategy.deletedAt : undefined,
           },
         }
@@ -5101,6 +5867,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.strategy.id !== undefined ? item.strategy.id : undefined,
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? {
+                equals: item.strategy.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
@@ -5109,7 +5878,238 @@ import { logger } from './utils/logger';
             origin: item.strategy.origin !== undefined ? item.strategy.origin : undefined,
             lifecycleState: item.strategy.lifecycleState !== undefined ? item.strategy.lifecycleState : undefined,
             manifestHash: item.strategy.manifestHash !== undefined ? item.strategy.manifestHash : undefined,
+            kind: item.strategy.kind !== undefined ? item.strategy.kind : undefined,
+            spec: item.strategy.spec !== undefined ? item.strategy.spec : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? item.strategy.backtestJobId : undefined,
             deletedAt: item.strategy.deletedAt !== undefined ? item.strategy.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+        },
+      }))
+    } : undefined,
+    deskDecisions: props.alpacaAccount.deskDecisions ? 
+    Array.isArray(props.alpacaAccount.deskDecisions) && props.alpacaAccount.deskDecisions.length > 0 && props.alpacaAccount.deskDecisions.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+    connect: props.alpacaAccount.deskDecisions.map((item) => ({
+      id: item.id
+    }))
+} : { upsert: props.alpacaAccount.deskDecisions.map((item) => ({
+        where: {
+          id: item.id !== undefined ? item.id : undefined,
+          fundId: item.fundId !== undefined ? {
+              equals: item.fundId
+            } : undefined,
+          accountId: item.accountId !== undefined ? {
+              equals: item.accountId
+            } : undefined,
+          ruleId: item.ruleId !== undefined ? {
+              equals: item.ruleId
+            } : undefined,
+          ifIdle: item.ifIdle !== undefined ? {
+              equals: item.ifIdle
+            } : undefined,
+          status: item.status !== undefined ? {
+              equals: item.status
+            } : undefined,
+        },
+        update: {
+          id: item.id !== undefined ? {
+              set: item.id
+            } : undefined,
+          kind: item.kind !== undefined ? {
+              set: item.kind
+            } : undefined,
+          ruleId: item.ruleId !== undefined ? {
+              set: item.ruleId
+            } : undefined,
+          desk: item.desk !== undefined ? {
+              set: item.desk
+            } : undefined,
+          question: item.question !== undefined ? {
+              set: item.question
+            } : undefined,
+          nums: item.nums !== undefined ? item.nums : undefined,
+          counterCase: item.counterCase !== undefined ? {
+              set: item.counterCase
+            } : undefined,
+          ifIdle: item.ifIdle !== undefined ? {
+              set: item.ifIdle
+            } : undefined,
+          facets: item.facets !== undefined ? item.facets : undefined,
+          dueAt: item.dueAt !== undefined ? {
+              set: item.dueAt
+            } : undefined,
+          defaultAction: item.defaultAction !== undefined ? {
+              set: item.defaultAction
+            } : undefined,
+          amendLabel: item.amendLabel !== undefined ? {
+              set: item.amendLabel
+            } : undefined,
+          reasonRequired: item.reasonRequired !== undefined ? {
+              set: item.reasonRequired
+            } : undefined,
+          status: item.status !== undefined ? {
+              set: item.status
+            } : undefined,
+          decidedBy: item.decidedBy !== undefined ? {
+              set: item.decidedBy
+            } : undefined,
+          decidedAt: item.decidedAt !== undefined ? {
+              set: item.decidedAt
+            } : undefined,
+          reason: item.reason !== undefined ? {
+              set: item.reason
+            } : undefined,
+      fund: item.fund ? 
+      typeof item.fund === 'object' && Object.keys(item.fund).length === 1 && (Object.keys(item.fund)[0] === 'id' || Object.keys(item.fund)[0] === 'symbol')
+? {
+      connect: {
+        id: item.fund.id
+      }
+} : { upsert: {
+          where: {
+            id: item.fund.id !== undefined ? {
+                equals: item.fund.id
+              } : undefined,
+            name: item.fund.name !== undefined ? {
+                equals: item.fund.name
+              } : undefined,
+            slug: item.fund.slug !== undefined ? {
+                equals: item.fund.slug
+              } : undefined,
+            status: item.fund.status !== undefined ? {
+                equals: item.fund.status
+              } : undefined,
+            organizationId: item.fund.organizationId !== undefined ? {
+                equals: item.fund.organizationId
+              } : undefined,
+            managerId: item.fund.managerId !== undefined ? {
+                equals: item.fund.managerId
+              } : undefined,
+            operatorId: item.fund.operatorId !== undefined ? {
+                equals: item.fund.operatorId
+              } : undefined,
+          },
+          update: {
+            id: item.fund.id !== undefined ? {
+                set: item.fund.id
+              } : undefined,
+            name: item.fund.name !== undefined ? {
+                set: item.fund.name
+              } : undefined,
+            slug: item.fund.slug !== undefined ? {
+                set: item.fund.slug
+              } : undefined,
+            description: item.fund.description !== undefined ? {
+                set: item.fund.description
+              } : undefined,
+            status: item.fund.status !== undefined ? {
+                set: item.fund.status
+              } : undefined,
+            currency: item.fund.currency !== undefined ? {
+                set: item.fund.currency
+              } : undefined,
+            inceptionDate: item.fund.inceptionDate !== undefined ? {
+                set: item.fund.inceptionDate
+              } : undefined,
+            aum: item.fund.aum !== undefined ? {
+                set: item.fund.aum
+              } : undefined,
+            navPerShare: item.fund.navPerShare !== undefined ? {
+                set: item.fund.navPerShare
+              } : undefined,
+            sharesOutstanding: item.fund.sharesOutstanding !== undefined ? {
+                set: item.fund.sharesOutstanding
+              } : undefined,
+            highWaterMarkNav: item.fund.highWaterMarkNav !== undefined ? {
+                set: item.fund.highWaterMarkNav
+              } : undefined,
+            fees: item.fund.fees !== undefined ? item.fund.fees : undefined,
+            terms: item.fund.terms !== undefined ? item.fund.terms : undefined,
+            regulatory: item.fund.regulatory !== undefined ? item.fund.regulatory : undefined,
+            serviceProviders: item.fund.serviceProviders !== undefined ? item.fund.serviceProviders : undefined,
+            tradingOverrides: item.fund.tradingOverrides !== undefined ? item.fund.tradingOverrides : undefined,
+            deletedAt: item.fund.deletedAt !== undefined ? {
+                set: item.fund.deletedAt
+              } : undefined,
+          },
+          create: {
+            name: item.fund.name !== undefined ? item.fund.name : undefined,
+            slug: item.fund.slug !== undefined ? item.fund.slug : undefined,
+            description: item.fund.description !== undefined ? item.fund.description : undefined,
+            status: item.fund.status !== undefined ? item.fund.status : undefined,
+            currency: item.fund.currency !== undefined ? item.fund.currency : undefined,
+            inceptionDate: item.fund.inceptionDate !== undefined ? item.fund.inceptionDate : undefined,
+            aum: item.fund.aum !== undefined ? item.fund.aum : undefined,
+            navPerShare: item.fund.navPerShare !== undefined ? item.fund.navPerShare : undefined,
+            sharesOutstanding: item.fund.sharesOutstanding !== undefined ? item.fund.sharesOutstanding : undefined,
+            highWaterMarkNav: item.fund.highWaterMarkNav !== undefined ? item.fund.highWaterMarkNav : undefined,
+            fees: item.fund.fees !== undefined ? item.fund.fees : undefined,
+            terms: item.fund.terms !== undefined ? item.fund.terms : undefined,
+            regulatory: item.fund.regulatory !== undefined ? item.fund.regulatory : undefined,
+            serviceProviders: item.fund.serviceProviders !== undefined ? item.fund.serviceProviders : undefined,
+            tradingOverrides: item.fund.tradingOverrides !== undefined ? item.fund.tradingOverrides : undefined,
+            deletedAt: item.fund.deletedAt !== undefined ? item.fund.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+        },
+        create: {
+          kind: item.kind !== undefined ? item.kind : undefined,
+          ruleId: item.ruleId !== undefined ? item.ruleId : undefined,
+          desk: item.desk !== undefined ? item.desk : undefined,
+          question: item.question !== undefined ? item.question : undefined,
+          nums: item.nums !== undefined ? item.nums : undefined,
+          counterCase: item.counterCase !== undefined ? item.counterCase : undefined,
+          ifIdle: item.ifIdle !== undefined ? item.ifIdle : undefined,
+          facets: item.facets !== undefined ? item.facets : undefined,
+          dueAt: item.dueAt !== undefined ? item.dueAt : undefined,
+          defaultAction: item.defaultAction !== undefined ? item.defaultAction : undefined,
+          amendLabel: item.amendLabel !== undefined ? item.amendLabel : undefined,
+          reasonRequired: item.reasonRequired !== undefined ? item.reasonRequired : undefined,
+          status: item.status !== undefined ? item.status : undefined,
+          decidedBy: item.decidedBy !== undefined ? item.decidedBy : undefined,
+          decidedAt: item.decidedAt !== undefined ? item.decidedAt : undefined,
+          reason: item.reason !== undefined ? item.reason : undefined,
+      fund: item.fund ? 
+        typeof item.fund === 'object' && Object.keys(item.fund).length === 1 && Object.keys(item.fund)[0] === 'id'
+    ? { connect: {
+            id: item.fund.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.fund.id !== undefined ? item.fund.id : undefined,
+            name: item.fund.name !== undefined ? {
+                equals: item.fund.name 
+               } : undefined,
+            slug: item.fund.slug !== undefined ? {
+                equals: item.fund.slug 
+               } : undefined,
+            status: item.fund.status !== undefined ? {
+                equals: item.fund.status 
+               } : undefined,
+            organizationId: item.fund.organizationId !== undefined ? {
+                equals: item.fund.organizationId 
+               } : undefined,
+          },
+          create: {
+            name: item.fund.name !== undefined ? item.fund.name : undefined,
+            slug: item.fund.slug !== undefined ? item.fund.slug : undefined,
+            description: item.fund.description !== undefined ? item.fund.description : undefined,
+            status: item.fund.status !== undefined ? item.fund.status : undefined,
+            currency: item.fund.currency !== undefined ? item.fund.currency : undefined,
+            inceptionDate: item.fund.inceptionDate !== undefined ? item.fund.inceptionDate : undefined,
+            aum: item.fund.aum !== undefined ? item.fund.aum : undefined,
+            navPerShare: item.fund.navPerShare !== undefined ? item.fund.navPerShare : undefined,
+            sharesOutstanding: item.fund.sharesOutstanding !== undefined ? item.fund.sharesOutstanding : undefined,
+            highWaterMarkNav: item.fund.highWaterMarkNav !== undefined ? item.fund.highWaterMarkNav : undefined,
+            fees: item.fund.fees !== undefined ? item.fund.fees : undefined,
+            terms: item.fund.terms !== undefined ? item.fund.terms : undefined,
+            regulatory: item.fund.regulatory !== undefined ? item.fund.regulatory : undefined,
+            serviceProviders: item.fund.serviceProviders !== undefined ? item.fund.serviceProviders : undefined,
+            tradingOverrides: item.fund.tradingOverrides !== undefined ? item.fund.tradingOverrides : undefined,
+            deletedAt: item.fund.deletedAt !== undefined ? item.fund.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -5191,6 +6191,8 @@ import { logger } from './utils/logger';
           signupCategory: props.alpacaAccount.user.signupCategory !== undefined ? props.alpacaAccount.user.signupCategory : undefined,
           deletedAt: props.alpacaAccount.user.deletedAt !== undefined ? props.alpacaAccount.user.deletedAt : undefined,
           role: props.alpacaAccount.user.role !== undefined ? props.alpacaAccount.user.role : undefined,
+          availability: props.alpacaAccount.user.availability !== undefined ? props.alpacaAccount.user.availability : undefined,
+          availabilityUntil: props.alpacaAccount.user.availabilityUntil !== undefined ? props.alpacaAccount.user.availabilityUntil : undefined,
           bio: props.alpacaAccount.user.bio !== undefined ? props.alpacaAccount.user.bio : undefined,
           jobTitle: props.alpacaAccount.user.jobTitle !== undefined ? props.alpacaAccount.user.jobTitle : undefined,
           currentAccount: props.alpacaAccount.user.currentAccount !== undefined ? props.alpacaAccount.user.currentAccount : undefined,
@@ -5607,6 +6609,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -5745,6 +6753,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -5753,9 +6764,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.alpacaAccount.user.featureFlagOverrides ? 
+        Array.isArray(props.alpacaAccount.user.featureFlagOverrides) && props.alpacaAccount.user.featureFlagOverrides.length > 0 &&  props.alpacaAccount.user.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.alpacaAccount.user.follows ? 
+        Array.isArray(props.alpacaAccount.user.follows) && props.alpacaAccount.user.follows.length > 0 &&  props.alpacaAccount.user.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.alpacaAccount.user.autoFollowRules ? 
+        Array.isArray(props.alpacaAccount.user.autoFollowRules) && props.alpacaAccount.user.autoFollowRules.length > 0 &&  props.alpacaAccount.user.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.alpacaAccount.user.pushSubscriptions ? 
+        Array.isArray(props.alpacaAccount.user.pushSubscriptions) && props.alpacaAccount.user.pushSubscriptions.length > 0 &&  props.alpacaAccount.user.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.alpacaAccount.user.adaConversations ? 
+        Array.isArray(props.alpacaAccount.user.adaConversations) && props.alpacaAccount.user.adaConversations.length > 0 &&  props.alpacaAccount.user.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.alpacaAccount.user.totp ? 
+        typeof props.alpacaAccount.user.totp === 'object' && Object.keys(props.alpacaAccount.user.totp).length === 1 && Object.keys(props.alpacaAccount.user.totp)[0] === 'id'
+    ? { connect: {
+            id: props.alpacaAccount.user.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.alpacaAccount.user.totp.id !== undefined ? props.alpacaAccount.user.totp.id : undefined,
+            userId: props.alpacaAccount.user.totp.userId !== undefined ? props.alpacaAccount.user.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: props.alpacaAccount.user.totp.secretEnc !== undefined ? props.alpacaAccount.user.totp.secretEnc : undefined,
+            enabledAt: props.alpacaAccount.user.totp.enabledAt !== undefined ? props.alpacaAccount.user.totp.enabledAt : undefined,
+            recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
+                set: props.alpacaAccount.user.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.alpacaAccount.user.preference ? 
+        typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && Object.keys(props.alpacaAccount.user.preference)[0] === 'id'
+    ? { connect: {
+            id: props.alpacaAccount.user.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.alpacaAccount.user.preference.id !== undefined ? props.alpacaAccount.user.preference.id : undefined,
+            userId: props.alpacaAccount.user.preference.userId !== undefined ? props.alpacaAccount.user.preference.userId : undefined,
+          },
+          create: {
+            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
+            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
+            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
+            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -6117,6 +7292,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.strategy.id !== undefined ? item.strategy.id : undefined,
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? {
+                equals: item.strategy.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
@@ -6125,7 +7303,94 @@ import { logger } from './utils/logger';
             origin: item.strategy.origin !== undefined ? item.strategy.origin : undefined,
             lifecycleState: item.strategy.lifecycleState !== undefined ? item.strategy.lifecycleState : undefined,
             manifestHash: item.strategy.manifestHash !== undefined ? item.strategy.manifestHash : undefined,
+            kind: item.strategy.kind !== undefined ? item.strategy.kind : undefined,
+            spec: item.strategy.spec !== undefined ? item.strategy.spec : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? item.strategy.backtestJobId : undefined,
             deletedAt: item.strategy.deletedAt !== undefined ? item.strategy.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+        },
+      }))
+    } : undefined,
+    deskDecisions: props.alpacaAccount.deskDecisions ? 
+      Array.isArray(props.alpacaAccount.deskDecisions) && props.alpacaAccount.deskDecisions.length > 0 &&  props.alpacaAccount.deskDecisions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+        connect:      props.alpacaAccount.deskDecisions.map((item) => ({
+           id: item.id
+        }))
+ }
+ : { connectOrCreate: props.alpacaAccount.deskDecisions.map((item) => ({
+        where: {
+          id: item.id !== undefined ? item.id : undefined,
+          fundId: item.fundId !== undefined ? {
+              equals: item.fundId 
+             } : undefined,
+          ruleId: item.ruleId !== undefined ? {
+              equals: item.ruleId 
+             } : undefined,
+          ifIdle: item.ifIdle !== undefined ? {
+              equals: item.ifIdle 
+             } : undefined,
+          status: item.status !== undefined ? {
+              equals: item.status 
+             } : undefined,
+        },
+        create: {
+          kind: item.kind !== undefined ? item.kind : undefined,
+          ruleId: item.ruleId !== undefined ? item.ruleId : undefined,
+          desk: item.desk !== undefined ? item.desk : undefined,
+          question: item.question !== undefined ? item.question : undefined,
+          nums: item.nums !== undefined ? item.nums : undefined,
+          counterCase: item.counterCase !== undefined ? item.counterCase : undefined,
+          ifIdle: item.ifIdle !== undefined ? item.ifIdle : undefined,
+          facets: item.facets !== undefined ? item.facets : undefined,
+          dueAt: item.dueAt !== undefined ? item.dueAt : undefined,
+          defaultAction: item.defaultAction !== undefined ? item.defaultAction : undefined,
+          amendLabel: item.amendLabel !== undefined ? item.amendLabel : undefined,
+          reasonRequired: item.reasonRequired !== undefined ? item.reasonRequired : undefined,
+          status: item.status !== undefined ? item.status : undefined,
+          decidedBy: item.decidedBy !== undefined ? item.decidedBy : undefined,
+          decidedAt: item.decidedAt !== undefined ? item.decidedAt : undefined,
+          reason: item.reason !== undefined ? item.reason : undefined,
+      fund: item.fund ? 
+        typeof item.fund === 'object' && Object.keys(item.fund).length === 1 && Object.keys(item.fund)[0] === 'id'
+    ? { connect: {
+            id: item.fund.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.fund.id !== undefined ? item.fund.id : undefined,
+            name: item.fund.name !== undefined ? {
+                equals: item.fund.name 
+               } : undefined,
+            slug: item.fund.slug !== undefined ? {
+                equals: item.fund.slug 
+               } : undefined,
+            status: item.fund.status !== undefined ? {
+                equals: item.fund.status 
+               } : undefined,
+            organizationId: item.fund.organizationId !== undefined ? {
+                equals: item.fund.organizationId 
+               } : undefined,
+          },
+          create: {
+            name: item.fund.name !== undefined ? item.fund.name : undefined,
+            slug: item.fund.slug !== undefined ? item.fund.slug : undefined,
+            description: item.fund.description !== undefined ? item.fund.description : undefined,
+            status: item.fund.status !== undefined ? item.fund.status : undefined,
+            currency: item.fund.currency !== undefined ? item.fund.currency : undefined,
+            inceptionDate: item.fund.inceptionDate !== undefined ? item.fund.inceptionDate : undefined,
+            aum: item.fund.aum !== undefined ? item.fund.aum : undefined,
+            navPerShare: item.fund.navPerShare !== undefined ? item.fund.navPerShare : undefined,
+            sharesOutstanding: item.fund.sharesOutstanding !== undefined ? item.fund.sharesOutstanding : undefined,
+            highWaterMarkNav: item.fund.highWaterMarkNav !== undefined ? item.fund.highWaterMarkNav : undefined,
+            fees: item.fund.fees !== undefined ? item.fund.fees : undefined,
+            terms: item.fund.terms !== undefined ? item.fund.terms : undefined,
+            regulatory: item.fund.regulatory !== undefined ? item.fund.regulatory : undefined,
+            serviceProviders: item.fund.serviceProviders !== undefined ? item.fund.serviceProviders : undefined,
+            tradingOverrides: item.fund.tradingOverrides !== undefined ? item.fund.tradingOverrides : undefined,
+            deletedAt: item.fund.deletedAt !== undefined ? item.fund.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -7584,6 +8849,8 @@ import { logger } from './utils/logger';
           signupCategory: props.alpacaAccount.user.signupCategory !== undefined ? props.alpacaAccount.user.signupCategory : undefined,
           deletedAt: props.alpacaAccount.user.deletedAt !== undefined ? props.alpacaAccount.user.deletedAt : undefined,
           role: props.alpacaAccount.user.role !== undefined ? props.alpacaAccount.user.role : undefined,
+          availability: props.alpacaAccount.user.availability !== undefined ? props.alpacaAccount.user.availability : undefined,
+          availabilityUntil: props.alpacaAccount.user.availabilityUntil !== undefined ? props.alpacaAccount.user.availabilityUntil : undefined,
           bio: props.alpacaAccount.user.bio !== undefined ? props.alpacaAccount.user.bio : undefined,
           jobTitle: props.alpacaAccount.user.jobTitle !== undefined ? props.alpacaAccount.user.jobTitle : undefined,
           currentAccount: props.alpacaAccount.user.currentAccount !== undefined ? props.alpacaAccount.user.currentAccount : undefined,
@@ -8000,6 +9267,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -8138,6 +9411,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -8146,9 +9422,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.alpacaAccount.user.featureFlagOverrides ? 
+        Array.isArray(props.alpacaAccount.user.featureFlagOverrides) && props.alpacaAccount.user.featureFlagOverrides.length > 0 &&  props.alpacaAccount.user.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.alpacaAccount.user.follows ? 
+        Array.isArray(props.alpacaAccount.user.follows) && props.alpacaAccount.user.follows.length > 0 &&  props.alpacaAccount.user.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.alpacaAccount.user.autoFollowRules ? 
+        Array.isArray(props.alpacaAccount.user.autoFollowRules) && props.alpacaAccount.user.autoFollowRules.length > 0 &&  props.alpacaAccount.user.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.alpacaAccount.user.pushSubscriptions ? 
+        Array.isArray(props.alpacaAccount.user.pushSubscriptions) && props.alpacaAccount.user.pushSubscriptions.length > 0 &&  props.alpacaAccount.user.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.alpacaAccount.user.adaConversations ? 
+        Array.isArray(props.alpacaAccount.user.adaConversations) && props.alpacaAccount.user.adaConversations.length > 0 &&  props.alpacaAccount.user.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.alpacaAccount.user.totp ? 
+        typeof props.alpacaAccount.user.totp === 'object' && Object.keys(props.alpacaAccount.user.totp).length === 1 && Object.keys(props.alpacaAccount.user.totp)[0] === 'id'
+    ? { connect: {
+            id: props.alpacaAccount.user.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.alpacaAccount.user.totp.id !== undefined ? props.alpacaAccount.user.totp.id : undefined,
+            userId: props.alpacaAccount.user.totp.userId !== undefined ? props.alpacaAccount.user.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: props.alpacaAccount.user.totp.secretEnc !== undefined ? props.alpacaAccount.user.totp.secretEnc : undefined,
+            enabledAt: props.alpacaAccount.user.totp.enabledAt !== undefined ? props.alpacaAccount.user.totp.enabledAt : undefined,
+            recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
+                set: props.alpacaAccount.user.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.alpacaAccount.user.preference ? 
+        typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && Object.keys(props.alpacaAccount.user.preference)[0] === 'id'
+    ? { connect: {
+            id: props.alpacaAccount.user.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.alpacaAccount.user.preference.id !== undefined ? props.alpacaAccount.user.preference.id : undefined,
+            userId: props.alpacaAccount.user.preference.userId !== undefined ? props.alpacaAccount.user.preference.userId : undefined,
+          },
+          create: {
+            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
+            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
+            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
+            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -8510,6 +9950,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.strategy.id !== undefined ? item.strategy.id : undefined,
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? {
+                equals: item.strategy.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
@@ -8518,7 +9961,94 @@ import { logger } from './utils/logger';
             origin: item.strategy.origin !== undefined ? item.strategy.origin : undefined,
             lifecycleState: item.strategy.lifecycleState !== undefined ? item.strategy.lifecycleState : undefined,
             manifestHash: item.strategy.manifestHash !== undefined ? item.strategy.manifestHash : undefined,
+            kind: item.strategy.kind !== undefined ? item.strategy.kind : undefined,
+            spec: item.strategy.spec !== undefined ? item.strategy.spec : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? item.strategy.backtestJobId : undefined,
             deletedAt: item.strategy.deletedAt !== undefined ? item.strategy.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+        },
+      }))
+    } : undefined,
+    deskDecisions: props.alpacaAccount.deskDecisions ? 
+      Array.isArray(props.alpacaAccount.deskDecisions) && props.alpacaAccount.deskDecisions.length > 0 &&  props.alpacaAccount.deskDecisions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+        connect:      props.alpacaAccount.deskDecisions.map((item) => ({
+           id: item.id
+        }))
+ }
+ : { connectOrCreate: props.alpacaAccount.deskDecisions.map((item) => ({
+        where: {
+          id: item.id !== undefined ? item.id : undefined,
+          fundId: item.fundId !== undefined ? {
+              equals: item.fundId 
+             } : undefined,
+          ruleId: item.ruleId !== undefined ? {
+              equals: item.ruleId 
+             } : undefined,
+          ifIdle: item.ifIdle !== undefined ? {
+              equals: item.ifIdle 
+             } : undefined,
+          status: item.status !== undefined ? {
+              equals: item.status 
+             } : undefined,
+        },
+        create: {
+          kind: item.kind !== undefined ? item.kind : undefined,
+          ruleId: item.ruleId !== undefined ? item.ruleId : undefined,
+          desk: item.desk !== undefined ? item.desk : undefined,
+          question: item.question !== undefined ? item.question : undefined,
+          nums: item.nums !== undefined ? item.nums : undefined,
+          counterCase: item.counterCase !== undefined ? item.counterCase : undefined,
+          ifIdle: item.ifIdle !== undefined ? item.ifIdle : undefined,
+          facets: item.facets !== undefined ? item.facets : undefined,
+          dueAt: item.dueAt !== undefined ? item.dueAt : undefined,
+          defaultAction: item.defaultAction !== undefined ? item.defaultAction : undefined,
+          amendLabel: item.amendLabel !== undefined ? item.amendLabel : undefined,
+          reasonRequired: item.reasonRequired !== undefined ? item.reasonRequired : undefined,
+          status: item.status !== undefined ? item.status : undefined,
+          decidedBy: item.decidedBy !== undefined ? item.decidedBy : undefined,
+          decidedAt: item.decidedAt !== undefined ? item.decidedAt : undefined,
+          reason: item.reason !== undefined ? item.reason : undefined,
+      fund: item.fund ? 
+        typeof item.fund === 'object' && Object.keys(item.fund).length === 1 && Object.keys(item.fund)[0] === 'id'
+    ? { connect: {
+            id: item.fund.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.fund.id !== undefined ? item.fund.id : undefined,
+            name: item.fund.name !== undefined ? {
+                equals: item.fund.name 
+               } : undefined,
+            slug: item.fund.slug !== undefined ? {
+                equals: item.fund.slug 
+               } : undefined,
+            status: item.fund.status !== undefined ? {
+                equals: item.fund.status 
+               } : undefined,
+            organizationId: item.fund.organizationId !== undefined ? {
+                equals: item.fund.organizationId 
+               } : undefined,
+          },
+          create: {
+            name: item.fund.name !== undefined ? item.fund.name : undefined,
+            slug: item.fund.slug !== undefined ? item.fund.slug : undefined,
+            description: item.fund.description !== undefined ? item.fund.description : undefined,
+            status: item.fund.status !== undefined ? item.fund.status : undefined,
+            currency: item.fund.currency !== undefined ? item.fund.currency : undefined,
+            inceptionDate: item.fund.inceptionDate !== undefined ? item.fund.inceptionDate : undefined,
+            aum: item.fund.aum !== undefined ? item.fund.aum : undefined,
+            navPerShare: item.fund.navPerShare !== undefined ? item.fund.navPerShare : undefined,
+            sharesOutstanding: item.fund.sharesOutstanding !== undefined ? item.fund.sharesOutstanding : undefined,
+            highWaterMarkNav: item.fund.highWaterMarkNav !== undefined ? item.fund.highWaterMarkNav : undefined,
+            fees: item.fund.fees !== undefined ? item.fund.fees : undefined,
+            terms: item.fund.terms !== undefined ? item.fund.terms : undefined,
+            regulatory: item.fund.regulatory !== undefined ? item.fund.regulatory : undefined,
+            serviceProviders: item.fund.serviceProviders !== undefined ? item.fund.serviceProviders : undefined,
+            tradingOverrides: item.fund.tradingOverrides !== undefined ? item.fund.tradingOverrides : undefined,
+            deletedAt: item.fund.deletedAt !== undefined ? item.fund.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -9247,6 +10777,12 @@ import { logger } from './utils/logger';
             } : undefined,
           role: props.alpacaAccount.user.role !== undefined ? {
               set: props.alpacaAccount.user.role
+            } : undefined,
+          availability: props.alpacaAccount.user.availability !== undefined ? {
+              set: props.alpacaAccount.user.availability
+            } : undefined,
+          availabilityUntil: props.alpacaAccount.user.availabilityUntil !== undefined ? {
+              set: props.alpacaAccount.user.availabilityUntil
             } : undefined,
           bio: props.alpacaAccount.user.bio !== undefined ? {
               set: props.alpacaAccount.user.bio
@@ -10078,6 +11614,12 @@ import { logger } from './utils/logger';
                 set: item.summary
               } : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions
+              } : undefined,
           },
           create: {
             versionLabel: item.versionLabel !== undefined ? item.versionLabel : undefined,
@@ -10085,6 +11627,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -10328,6 +11876,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId
+              } : undefined,
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
@@ -10354,6 +11905,13 @@ import { logger } from './utils/logger';
             manifestHash: item.manifestHash !== undefined ? {
                 set: item.manifestHash
               } : undefined,
+            kind: item.kind !== undefined ? {
+                set: item.kind
+              } : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                set: item.backtestJobId
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -10365,9 +11923,294 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.alpacaAccount.user.featureFlagOverrides ? 
+      Array.isArray(props.alpacaAccount.user.featureFlagOverrides) && props.alpacaAccount.user.featureFlagOverrides.length > 0 && props.alpacaAccount.user.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            flag: item.flag !== undefined ? {
+                set: item.flag
+              } : undefined,
+            enabled: item.enabled !== undefined ? {
+                set: item.enabled
+              } : undefined,
+            updatedBy: item.updatedBy !== undefined ? {
+                set: item.updatedBy
+              } : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.alpacaAccount.user.follows ? 
+      Array.isArray(props.alpacaAccount.user.follows) && props.alpacaAccount.user.follows.length > 0 && props.alpacaAccount.user.follows.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.alpacaAccount.user.follows.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.alpacaAccount.user.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            targetKind: item.targetKind !== undefined ? {
+                set: item.targetKind
+              } : undefined,
+            targetId: item.targetId !== undefined ? {
+                set: item.targetId
+              } : undefined,
+            level: item.level !== undefined ? {
+                set: item.level
+              } : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? {
+                set: item.riskBudgetPctNav
+              } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.alpacaAccount.user.autoFollowRules ? 
+      Array.isArray(props.alpacaAccount.user.autoFollowRules) && props.alpacaAccount.user.autoFollowRules.length > 0 && props.alpacaAccount.user.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.alpacaAccount.user.autoFollowRules.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.alpacaAccount.user.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId
+              } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            name: item.name !== undefined ? {
+                set: item.name
+              } : undefined,
+            condition: item.condition !== undefined ? {
+                set: item.condition
+              } : undefined,
+            action: item.action !== undefined ? {
+                set: item.action
+              } : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks
+              } : undefined,
+            enabled: item.enabled !== undefined ? {
+                set: item.enabled
+              } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.alpacaAccount.user.pushSubscriptions ? 
+      Array.isArray(props.alpacaAccount.user.pushSubscriptions) && props.alpacaAccount.user.pushSubscriptions.length > 0 && props.alpacaAccount.user.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            endpoint: item.endpoint !== undefined ? {
+                set: item.endpoint
+              } : undefined,
+            p256dh: item.p256dh !== undefined ? {
+                set: item.p256dh
+              } : undefined,
+            auth: item.auth !== undefined ? {
+                set: item.auth
+              } : undefined,
+            userAgent: item.userAgent !== undefined ? {
+                set: item.userAgent
+              } : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? {
+                set: item.lastSeenAt
+              } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.alpacaAccount.user.adaConversations ? 
+      Array.isArray(props.alpacaAccount.user.adaConversations) && props.alpacaAccount.user.adaConversations.length > 0 && props.alpacaAccount.user.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: props.alpacaAccount.user.adaConversations.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: props.alpacaAccount.user.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            title: item.title !== undefined ? {
+                set: item.title
+              } : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? {
+                set: item.sharedWithOrg
+              } : undefined,
+            deletedAt: item.deletedAt !== undefined ? {
+                set: item.deletedAt
+              } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.alpacaAccount.user.totp ? 
+      typeof props.alpacaAccount.user.totp === 'object' && Object.keys(props.alpacaAccount.user.totp).length === 1 && (Object.keys(props.alpacaAccount.user.totp)[0] === 'id' || Object.keys(props.alpacaAccount.user.totp)[0] === 'symbol')
+? {
+      connect: {
+        id: props.alpacaAccount.user.totp.id
+      }
+} : { upsert: {
+          where: {
+            id: props.alpacaAccount.user.totp.id !== undefined ? {
+                equals: props.alpacaAccount.user.totp.id
+              } : undefined,
+            userId: props.alpacaAccount.user.totp.userId !== undefined ? {
+                equals: props.alpacaAccount.user.totp.userId
+              } : undefined,
+          },
+          update: {
+            id: props.alpacaAccount.user.totp.id !== undefined ? {
+                set: props.alpacaAccount.user.totp.id
+              } : undefined,
+            secretEnc: props.alpacaAccount.user.totp.secretEnc !== undefined ? {
+                set: props.alpacaAccount.user.totp.secretEnc
+              } : undefined,
+            enabledAt: props.alpacaAccount.user.totp.enabledAt !== undefined ? {
+                set: props.alpacaAccount.user.totp.enabledAt
+              } : undefined,
+            recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
+                set: props.alpacaAccount.user.totp.recoveryCodesHash
+              } : undefined,
+          },
+          create: {
+            secretEnc: props.alpacaAccount.user.totp.secretEnc !== undefined ? props.alpacaAccount.user.totp.secretEnc : undefined,
+            enabledAt: props.alpacaAccount.user.totp.enabledAt !== undefined ? props.alpacaAccount.user.totp.enabledAt : undefined,
+            recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
+                set: props.alpacaAccount.user.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.alpacaAccount.user.preference ? 
+      typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && (Object.keys(props.alpacaAccount.user.preference)[0] === 'id' || Object.keys(props.alpacaAccount.user.preference)[0] === 'symbol')
+? {
+      connect: {
+        id: props.alpacaAccount.user.preference.id
+      }
+} : { upsert: {
+          where: {
+            id: props.alpacaAccount.user.preference.id !== undefined ? {
+                equals: props.alpacaAccount.user.preference.id
+              } : undefined,
+            userId: props.alpacaAccount.user.preference.userId !== undefined ? {
+                equals: props.alpacaAccount.user.preference.userId
+              } : undefined,
+          },
+          update: {
+            id: props.alpacaAccount.user.preference.id !== undefined ? {
+                set: props.alpacaAccount.user.preference.id
+              } : undefined,
+            theme: props.alpacaAccount.user.preference.theme !== undefined ? {
+                set: props.alpacaAccount.user.preference.theme
+              } : undefined,
+            density: props.alpacaAccount.user.preference.density !== undefined ? {
+                set: props.alpacaAccount.user.preference.density
+              } : undefined,
+            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
+            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+          },
+          create: {
+            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
+            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
+            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
+            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
         create: {
@@ -10380,6 +12223,8 @@ import { logger } from './utils/logger';
           signupCategory: props.alpacaAccount.user.signupCategory !== undefined ? props.alpacaAccount.user.signupCategory : undefined,
           deletedAt: props.alpacaAccount.user.deletedAt !== undefined ? props.alpacaAccount.user.deletedAt : undefined,
           role: props.alpacaAccount.user.role !== undefined ? props.alpacaAccount.user.role : undefined,
+          availability: props.alpacaAccount.user.availability !== undefined ? props.alpacaAccount.user.availability : undefined,
+          availabilityUntil: props.alpacaAccount.user.availabilityUntil !== undefined ? props.alpacaAccount.user.availabilityUntil : undefined,
           bio: props.alpacaAccount.user.bio !== undefined ? props.alpacaAccount.user.bio : undefined,
           jobTitle: props.alpacaAccount.user.jobTitle !== undefined ? props.alpacaAccount.user.jobTitle : undefined,
           currentAccount: props.alpacaAccount.user.currentAccount !== undefined ? props.alpacaAccount.user.currentAccount : undefined,
@@ -10796,6 +12641,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -10934,6 +12785,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -10942,9 +12796,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.alpacaAccount.user.featureFlagOverrides ? 
+        Array.isArray(props.alpacaAccount.user.featureFlagOverrides) && props.alpacaAccount.user.featureFlagOverrides.length > 0 &&  props.alpacaAccount.user.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.alpacaAccount.user.follows ? 
+        Array.isArray(props.alpacaAccount.user.follows) && props.alpacaAccount.user.follows.length > 0 &&  props.alpacaAccount.user.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.alpacaAccount.user.autoFollowRules ? 
+        Array.isArray(props.alpacaAccount.user.autoFollowRules) && props.alpacaAccount.user.autoFollowRules.length > 0 &&  props.alpacaAccount.user.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.alpacaAccount.user.pushSubscriptions ? 
+        Array.isArray(props.alpacaAccount.user.pushSubscriptions) && props.alpacaAccount.user.pushSubscriptions.length > 0 &&  props.alpacaAccount.user.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.alpacaAccount.user.adaConversations ? 
+        Array.isArray(props.alpacaAccount.user.adaConversations) && props.alpacaAccount.user.adaConversations.length > 0 &&  props.alpacaAccount.user.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.alpacaAccount.user.totp ? 
+        typeof props.alpacaAccount.user.totp === 'object' && Object.keys(props.alpacaAccount.user.totp).length === 1 && Object.keys(props.alpacaAccount.user.totp)[0] === 'id'
+    ? { connect: {
+            id: props.alpacaAccount.user.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.alpacaAccount.user.totp.id !== undefined ? props.alpacaAccount.user.totp.id : undefined,
+            userId: props.alpacaAccount.user.totp.userId !== undefined ? props.alpacaAccount.user.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: props.alpacaAccount.user.totp.secretEnc !== undefined ? props.alpacaAccount.user.totp.secretEnc : undefined,
+            enabledAt: props.alpacaAccount.user.totp.enabledAt !== undefined ? props.alpacaAccount.user.totp.enabledAt : undefined,
+            recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
+                set: props.alpacaAccount.user.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.alpacaAccount.user.preference ? 
+        typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && Object.keys(props.alpacaAccount.user.preference)[0] === 'id'
+    ? { connect: {
+            id: props.alpacaAccount.user.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.alpacaAccount.user.preference.id !== undefined ? props.alpacaAccount.user.preference.id : undefined,
+            userId: props.alpacaAccount.user.preference.userId !== undefined ? props.alpacaAccount.user.preference.userId : undefined,
+          },
+          create: {
+            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
+            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
+            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
+            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -11901,6 +13919,9 @@ import { logger } from './utils/logger';
             key: item.strategy.key !== undefined ? {
                 equals: item.strategy.key
               } : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? {
+                equals: item.strategy.backtestJobId
+              } : undefined,
             ownerUserId: item.strategy.ownerUserId !== undefined ? {
                 equals: item.strategy.ownerUserId
               } : undefined,
@@ -11927,6 +13948,13 @@ import { logger } from './utils/logger';
             manifestHash: item.strategy.manifestHash !== undefined ? {
                 set: item.strategy.manifestHash
               } : undefined,
+            kind: item.strategy.kind !== undefined ? {
+                set: item.strategy.kind
+              } : undefined,
+            spec: item.strategy.spec !== undefined ? item.strategy.spec : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? {
+                set: item.strategy.backtestJobId
+              } : undefined,
             deletedAt: item.strategy.deletedAt !== undefined ? {
                 set: item.strategy.deletedAt
               } : undefined,
@@ -11938,6 +13966,9 @@ import { logger } from './utils/logger';
             origin: item.strategy.origin !== undefined ? item.strategy.origin : undefined,
             lifecycleState: item.strategy.lifecycleState !== undefined ? item.strategy.lifecycleState : undefined,
             manifestHash: item.strategy.manifestHash !== undefined ? item.strategy.manifestHash : undefined,
+            kind: item.strategy.kind !== undefined ? item.strategy.kind : undefined,
+            spec: item.strategy.spec !== undefined ? item.strategy.spec : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? item.strategy.backtestJobId : undefined,
             deletedAt: item.strategy.deletedAt !== undefined ? item.strategy.deletedAt : undefined,
           },
         }
@@ -11963,6 +13994,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.strategy.id !== undefined ? item.strategy.id : undefined,
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? {
+                equals: item.strategy.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
@@ -11971,7 +14005,238 @@ import { logger } from './utils/logger';
             origin: item.strategy.origin !== undefined ? item.strategy.origin : undefined,
             lifecycleState: item.strategy.lifecycleState !== undefined ? item.strategy.lifecycleState : undefined,
             manifestHash: item.strategy.manifestHash !== undefined ? item.strategy.manifestHash : undefined,
+            kind: item.strategy.kind !== undefined ? item.strategy.kind : undefined,
+            spec: item.strategy.spec !== undefined ? item.strategy.spec : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? item.strategy.backtestJobId : undefined,
             deletedAt: item.strategy.deletedAt !== undefined ? item.strategy.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+        },
+      }))
+    } : undefined,
+    deskDecisions: props.alpacaAccount.deskDecisions ? 
+    Array.isArray(props.alpacaAccount.deskDecisions) && props.alpacaAccount.deskDecisions.length > 0 && props.alpacaAccount.deskDecisions.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+    connect: props.alpacaAccount.deskDecisions.map((item) => ({
+      id: item.id
+    }))
+} : { upsert: props.alpacaAccount.deskDecisions.map((item) => ({
+        where: {
+          id: item.id !== undefined ? item.id : undefined,
+          fundId: item.fundId !== undefined ? {
+              equals: item.fundId
+            } : undefined,
+          accountId: item.accountId !== undefined ? {
+              equals: item.accountId
+            } : undefined,
+          ruleId: item.ruleId !== undefined ? {
+              equals: item.ruleId
+            } : undefined,
+          ifIdle: item.ifIdle !== undefined ? {
+              equals: item.ifIdle
+            } : undefined,
+          status: item.status !== undefined ? {
+              equals: item.status
+            } : undefined,
+        },
+        update: {
+          id: item.id !== undefined ? {
+              set: item.id
+            } : undefined,
+          kind: item.kind !== undefined ? {
+              set: item.kind
+            } : undefined,
+          ruleId: item.ruleId !== undefined ? {
+              set: item.ruleId
+            } : undefined,
+          desk: item.desk !== undefined ? {
+              set: item.desk
+            } : undefined,
+          question: item.question !== undefined ? {
+              set: item.question
+            } : undefined,
+          nums: item.nums !== undefined ? item.nums : undefined,
+          counterCase: item.counterCase !== undefined ? {
+              set: item.counterCase
+            } : undefined,
+          ifIdle: item.ifIdle !== undefined ? {
+              set: item.ifIdle
+            } : undefined,
+          facets: item.facets !== undefined ? item.facets : undefined,
+          dueAt: item.dueAt !== undefined ? {
+              set: item.dueAt
+            } : undefined,
+          defaultAction: item.defaultAction !== undefined ? {
+              set: item.defaultAction
+            } : undefined,
+          amendLabel: item.amendLabel !== undefined ? {
+              set: item.amendLabel
+            } : undefined,
+          reasonRequired: item.reasonRequired !== undefined ? {
+              set: item.reasonRequired
+            } : undefined,
+          status: item.status !== undefined ? {
+              set: item.status
+            } : undefined,
+          decidedBy: item.decidedBy !== undefined ? {
+              set: item.decidedBy
+            } : undefined,
+          decidedAt: item.decidedAt !== undefined ? {
+              set: item.decidedAt
+            } : undefined,
+          reason: item.reason !== undefined ? {
+              set: item.reason
+            } : undefined,
+      fund: item.fund ? 
+      typeof item.fund === 'object' && Object.keys(item.fund).length === 1 && (Object.keys(item.fund)[0] === 'id' || Object.keys(item.fund)[0] === 'symbol')
+? {
+      connect: {
+        id: item.fund.id
+      }
+} : { upsert: {
+          where: {
+            id: item.fund.id !== undefined ? {
+                equals: item.fund.id
+              } : undefined,
+            name: item.fund.name !== undefined ? {
+                equals: item.fund.name
+              } : undefined,
+            slug: item.fund.slug !== undefined ? {
+                equals: item.fund.slug
+              } : undefined,
+            status: item.fund.status !== undefined ? {
+                equals: item.fund.status
+              } : undefined,
+            organizationId: item.fund.organizationId !== undefined ? {
+                equals: item.fund.organizationId
+              } : undefined,
+            managerId: item.fund.managerId !== undefined ? {
+                equals: item.fund.managerId
+              } : undefined,
+            operatorId: item.fund.operatorId !== undefined ? {
+                equals: item.fund.operatorId
+              } : undefined,
+          },
+          update: {
+            id: item.fund.id !== undefined ? {
+                set: item.fund.id
+              } : undefined,
+            name: item.fund.name !== undefined ? {
+                set: item.fund.name
+              } : undefined,
+            slug: item.fund.slug !== undefined ? {
+                set: item.fund.slug
+              } : undefined,
+            description: item.fund.description !== undefined ? {
+                set: item.fund.description
+              } : undefined,
+            status: item.fund.status !== undefined ? {
+                set: item.fund.status
+              } : undefined,
+            currency: item.fund.currency !== undefined ? {
+                set: item.fund.currency
+              } : undefined,
+            inceptionDate: item.fund.inceptionDate !== undefined ? {
+                set: item.fund.inceptionDate
+              } : undefined,
+            aum: item.fund.aum !== undefined ? {
+                set: item.fund.aum
+              } : undefined,
+            navPerShare: item.fund.navPerShare !== undefined ? {
+                set: item.fund.navPerShare
+              } : undefined,
+            sharesOutstanding: item.fund.sharesOutstanding !== undefined ? {
+                set: item.fund.sharesOutstanding
+              } : undefined,
+            highWaterMarkNav: item.fund.highWaterMarkNav !== undefined ? {
+                set: item.fund.highWaterMarkNav
+              } : undefined,
+            fees: item.fund.fees !== undefined ? item.fund.fees : undefined,
+            terms: item.fund.terms !== undefined ? item.fund.terms : undefined,
+            regulatory: item.fund.regulatory !== undefined ? item.fund.regulatory : undefined,
+            serviceProviders: item.fund.serviceProviders !== undefined ? item.fund.serviceProviders : undefined,
+            tradingOverrides: item.fund.tradingOverrides !== undefined ? item.fund.tradingOverrides : undefined,
+            deletedAt: item.fund.deletedAt !== undefined ? {
+                set: item.fund.deletedAt
+              } : undefined,
+          },
+          create: {
+            name: item.fund.name !== undefined ? item.fund.name : undefined,
+            slug: item.fund.slug !== undefined ? item.fund.slug : undefined,
+            description: item.fund.description !== undefined ? item.fund.description : undefined,
+            status: item.fund.status !== undefined ? item.fund.status : undefined,
+            currency: item.fund.currency !== undefined ? item.fund.currency : undefined,
+            inceptionDate: item.fund.inceptionDate !== undefined ? item.fund.inceptionDate : undefined,
+            aum: item.fund.aum !== undefined ? item.fund.aum : undefined,
+            navPerShare: item.fund.navPerShare !== undefined ? item.fund.navPerShare : undefined,
+            sharesOutstanding: item.fund.sharesOutstanding !== undefined ? item.fund.sharesOutstanding : undefined,
+            highWaterMarkNav: item.fund.highWaterMarkNav !== undefined ? item.fund.highWaterMarkNav : undefined,
+            fees: item.fund.fees !== undefined ? item.fund.fees : undefined,
+            terms: item.fund.terms !== undefined ? item.fund.terms : undefined,
+            regulatory: item.fund.regulatory !== undefined ? item.fund.regulatory : undefined,
+            serviceProviders: item.fund.serviceProviders !== undefined ? item.fund.serviceProviders : undefined,
+            tradingOverrides: item.fund.tradingOverrides !== undefined ? item.fund.tradingOverrides : undefined,
+            deletedAt: item.fund.deletedAt !== undefined ? item.fund.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+        },
+        create: {
+          kind: item.kind !== undefined ? item.kind : undefined,
+          ruleId: item.ruleId !== undefined ? item.ruleId : undefined,
+          desk: item.desk !== undefined ? item.desk : undefined,
+          question: item.question !== undefined ? item.question : undefined,
+          nums: item.nums !== undefined ? item.nums : undefined,
+          counterCase: item.counterCase !== undefined ? item.counterCase : undefined,
+          ifIdle: item.ifIdle !== undefined ? item.ifIdle : undefined,
+          facets: item.facets !== undefined ? item.facets : undefined,
+          dueAt: item.dueAt !== undefined ? item.dueAt : undefined,
+          defaultAction: item.defaultAction !== undefined ? item.defaultAction : undefined,
+          amendLabel: item.amendLabel !== undefined ? item.amendLabel : undefined,
+          reasonRequired: item.reasonRequired !== undefined ? item.reasonRequired : undefined,
+          status: item.status !== undefined ? item.status : undefined,
+          decidedBy: item.decidedBy !== undefined ? item.decidedBy : undefined,
+          decidedAt: item.decidedAt !== undefined ? item.decidedAt : undefined,
+          reason: item.reason !== undefined ? item.reason : undefined,
+      fund: item.fund ? 
+        typeof item.fund === 'object' && Object.keys(item.fund).length === 1 && Object.keys(item.fund)[0] === 'id'
+    ? { connect: {
+            id: item.fund.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.fund.id !== undefined ? item.fund.id : undefined,
+            name: item.fund.name !== undefined ? {
+                equals: item.fund.name 
+               } : undefined,
+            slug: item.fund.slug !== undefined ? {
+                equals: item.fund.slug 
+               } : undefined,
+            status: item.fund.status !== undefined ? {
+                equals: item.fund.status 
+               } : undefined,
+            organizationId: item.fund.organizationId !== undefined ? {
+                equals: item.fund.organizationId 
+               } : undefined,
+          },
+          create: {
+            name: item.fund.name !== undefined ? item.fund.name : undefined,
+            slug: item.fund.slug !== undefined ? item.fund.slug : undefined,
+            description: item.fund.description !== undefined ? item.fund.description : undefined,
+            status: item.fund.status !== undefined ? item.fund.status : undefined,
+            currency: item.fund.currency !== undefined ? item.fund.currency : undefined,
+            inceptionDate: item.fund.inceptionDate !== undefined ? item.fund.inceptionDate : undefined,
+            aum: item.fund.aum !== undefined ? item.fund.aum : undefined,
+            navPerShare: item.fund.navPerShare !== undefined ? item.fund.navPerShare : undefined,
+            sharesOutstanding: item.fund.sharesOutstanding !== undefined ? item.fund.sharesOutstanding : undefined,
+            highWaterMarkNav: item.fund.highWaterMarkNav !== undefined ? item.fund.highWaterMarkNav : undefined,
+            fees: item.fund.fees !== undefined ? item.fund.fees : undefined,
+            terms: item.fund.terms !== undefined ? item.fund.terms : undefined,
+            regulatory: item.fund.regulatory !== undefined ? item.fund.regulatory : undefined,
+            serviceProviders: item.fund.serviceProviders !== undefined ? item.fund.serviceProviders : undefined,
+            tradingOverrides: item.fund.tradingOverrides !== undefined ? item.fund.tradingOverrides : undefined,
+            deletedAt: item.fund.deletedAt !== undefined ? item.fund.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -12053,6 +14318,8 @@ import { logger } from './utils/logger';
           signupCategory: props.alpacaAccount.user.signupCategory !== undefined ? props.alpacaAccount.user.signupCategory : undefined,
           deletedAt: props.alpacaAccount.user.deletedAt !== undefined ? props.alpacaAccount.user.deletedAt : undefined,
           role: props.alpacaAccount.user.role !== undefined ? props.alpacaAccount.user.role : undefined,
+          availability: props.alpacaAccount.user.availability !== undefined ? props.alpacaAccount.user.availability : undefined,
+          availabilityUntil: props.alpacaAccount.user.availabilityUntil !== undefined ? props.alpacaAccount.user.availabilityUntil : undefined,
           bio: props.alpacaAccount.user.bio !== undefined ? props.alpacaAccount.user.bio : undefined,
           jobTitle: props.alpacaAccount.user.jobTitle !== undefined ? props.alpacaAccount.user.jobTitle : undefined,
           currentAccount: props.alpacaAccount.user.currentAccount !== undefined ? props.alpacaAccount.user.currentAccount : undefined,
@@ -12469,6 +14736,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -12607,6 +14880,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -12615,9 +14891,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: props.alpacaAccount.user.featureFlagOverrides ? 
+        Array.isArray(props.alpacaAccount.user.featureFlagOverrides) && props.alpacaAccount.user.featureFlagOverrides.length > 0 &&  props.alpacaAccount.user.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: props.alpacaAccount.user.follows ? 
+        Array.isArray(props.alpacaAccount.user.follows) && props.alpacaAccount.user.follows.length > 0 &&  props.alpacaAccount.user.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: props.alpacaAccount.user.autoFollowRules ? 
+        Array.isArray(props.alpacaAccount.user.autoFollowRules) && props.alpacaAccount.user.autoFollowRules.length > 0 &&  props.alpacaAccount.user.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: props.alpacaAccount.user.pushSubscriptions ? 
+        Array.isArray(props.alpacaAccount.user.pushSubscriptions) && props.alpacaAccount.user.pushSubscriptions.length > 0 &&  props.alpacaAccount.user.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: props.alpacaAccount.user.adaConversations ? 
+        Array.isArray(props.alpacaAccount.user.adaConversations) && props.alpacaAccount.user.adaConversations.length > 0 &&  props.alpacaAccount.user.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        props.alpacaAccount.user.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: props.alpacaAccount.user.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: props.alpacaAccount.user.totp ? 
+        typeof props.alpacaAccount.user.totp === 'object' && Object.keys(props.alpacaAccount.user.totp).length === 1 && Object.keys(props.alpacaAccount.user.totp)[0] === 'id'
+    ? { connect: {
+            id: props.alpacaAccount.user.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.alpacaAccount.user.totp.id !== undefined ? props.alpacaAccount.user.totp.id : undefined,
+            userId: props.alpacaAccount.user.totp.userId !== undefined ? props.alpacaAccount.user.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: props.alpacaAccount.user.totp.secretEnc !== undefined ? props.alpacaAccount.user.totp.secretEnc : undefined,
+            enabledAt: props.alpacaAccount.user.totp.enabledAt !== undefined ? props.alpacaAccount.user.totp.enabledAt : undefined,
+            recoveryCodesHash: props.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
+                set: props.alpacaAccount.user.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: props.alpacaAccount.user.preference ? 
+        typeof props.alpacaAccount.user.preference === 'object' && Object.keys(props.alpacaAccount.user.preference).length === 1 && Object.keys(props.alpacaAccount.user.preference)[0] === 'id'
+    ? { connect: {
+            id: props.alpacaAccount.user.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: props.alpacaAccount.user.preference.id !== undefined ? props.alpacaAccount.user.preference.id : undefined,
+            userId: props.alpacaAccount.user.preference.userId !== undefined ? props.alpacaAccount.user.preference.userId : undefined,
+          },
+          create: {
+            theme: props.alpacaAccount.user.preference.theme !== undefined ? props.alpacaAccount.user.preference.theme : undefined,
+            density: props.alpacaAccount.user.preference.density !== undefined ? props.alpacaAccount.user.preference.density : undefined,
+            deskPrefs: props.alpacaAccount.user.preference.deskPrefs !== undefined ? props.alpacaAccount.user.preference.deskPrefs : undefined,
+            notificationPrefs: props.alpacaAccount.user.preference.notificationPrefs !== undefined ? props.alpacaAccount.user.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -12979,6 +15419,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.strategy.id !== undefined ? item.strategy.id : undefined,
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? {
+                equals: item.strategy.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
@@ -12987,7 +15430,94 @@ import { logger } from './utils/logger';
             origin: item.strategy.origin !== undefined ? item.strategy.origin : undefined,
             lifecycleState: item.strategy.lifecycleState !== undefined ? item.strategy.lifecycleState : undefined,
             manifestHash: item.strategy.manifestHash !== undefined ? item.strategy.manifestHash : undefined,
+            kind: item.strategy.kind !== undefined ? item.strategy.kind : undefined,
+            spec: item.strategy.spec !== undefined ? item.strategy.spec : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? item.strategy.backtestJobId : undefined,
             deletedAt: item.strategy.deletedAt !== undefined ? item.strategy.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+        },
+      }))
+    } : undefined,
+    deskDecisions: props.alpacaAccount.deskDecisions ? 
+      Array.isArray(props.alpacaAccount.deskDecisions) && props.alpacaAccount.deskDecisions.length > 0 &&  props.alpacaAccount.deskDecisions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+        connect:      props.alpacaAccount.deskDecisions.map((item) => ({
+           id: item.id
+        }))
+ }
+ : { connectOrCreate: props.alpacaAccount.deskDecisions.map((item) => ({
+        where: {
+          id: item.id !== undefined ? item.id : undefined,
+          fundId: item.fundId !== undefined ? {
+              equals: item.fundId 
+             } : undefined,
+          ruleId: item.ruleId !== undefined ? {
+              equals: item.ruleId 
+             } : undefined,
+          ifIdle: item.ifIdle !== undefined ? {
+              equals: item.ifIdle 
+             } : undefined,
+          status: item.status !== undefined ? {
+              equals: item.status 
+             } : undefined,
+        },
+        create: {
+          kind: item.kind !== undefined ? item.kind : undefined,
+          ruleId: item.ruleId !== undefined ? item.ruleId : undefined,
+          desk: item.desk !== undefined ? item.desk : undefined,
+          question: item.question !== undefined ? item.question : undefined,
+          nums: item.nums !== undefined ? item.nums : undefined,
+          counterCase: item.counterCase !== undefined ? item.counterCase : undefined,
+          ifIdle: item.ifIdle !== undefined ? item.ifIdle : undefined,
+          facets: item.facets !== undefined ? item.facets : undefined,
+          dueAt: item.dueAt !== undefined ? item.dueAt : undefined,
+          defaultAction: item.defaultAction !== undefined ? item.defaultAction : undefined,
+          amendLabel: item.amendLabel !== undefined ? item.amendLabel : undefined,
+          reasonRequired: item.reasonRequired !== undefined ? item.reasonRequired : undefined,
+          status: item.status !== undefined ? item.status : undefined,
+          decidedBy: item.decidedBy !== undefined ? item.decidedBy : undefined,
+          decidedAt: item.decidedAt !== undefined ? item.decidedAt : undefined,
+          reason: item.reason !== undefined ? item.reason : undefined,
+      fund: item.fund ? 
+        typeof item.fund === 'object' && Object.keys(item.fund).length === 1 && Object.keys(item.fund)[0] === 'id'
+    ? { connect: {
+            id: item.fund.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.fund.id !== undefined ? item.fund.id : undefined,
+            name: item.fund.name !== undefined ? {
+                equals: item.fund.name 
+               } : undefined,
+            slug: item.fund.slug !== undefined ? {
+                equals: item.fund.slug 
+               } : undefined,
+            status: item.fund.status !== undefined ? {
+                equals: item.fund.status 
+               } : undefined,
+            organizationId: item.fund.organizationId !== undefined ? {
+                equals: item.fund.organizationId 
+               } : undefined,
+          },
+          create: {
+            name: item.fund.name !== undefined ? item.fund.name : undefined,
+            slug: item.fund.slug !== undefined ? item.fund.slug : undefined,
+            description: item.fund.description !== undefined ? item.fund.description : undefined,
+            status: item.fund.status !== undefined ? item.fund.status : undefined,
+            currency: item.fund.currency !== undefined ? item.fund.currency : undefined,
+            inceptionDate: item.fund.inceptionDate !== undefined ? item.fund.inceptionDate : undefined,
+            aum: item.fund.aum !== undefined ? item.fund.aum : undefined,
+            navPerShare: item.fund.navPerShare !== undefined ? item.fund.navPerShare : undefined,
+            sharesOutstanding: item.fund.sharesOutstanding !== undefined ? item.fund.sharesOutstanding : undefined,
+            highWaterMarkNav: item.fund.highWaterMarkNav !== undefined ? item.fund.highWaterMarkNav : undefined,
+            fees: item.fund.fees !== undefined ? item.fund.fees : undefined,
+            terms: item.fund.terms !== undefined ? item.fund.terms : undefined,
+            regulatory: item.fund.regulatory !== undefined ? item.fund.regulatory : undefined,
+            serviceProviders: item.fund.serviceProviders !== undefined ? item.fund.serviceProviders : undefined,
+            tradingOverrides: item.fund.tradingOverrides !== undefined ? item.fund.tradingOverrides : undefined,
+            deletedAt: item.fund.deletedAt !== undefined ? item.fund.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -14700,6 +17230,12 @@ import { logger } from './utils/logger';
           role: prop.alpacaAccount.user.role !== undefined ? {
               set: prop.alpacaAccount.user.role
             } : undefined,
+          availability: prop.alpacaAccount.user.availability !== undefined ? {
+              set: prop.alpacaAccount.user.availability
+            } : undefined,
+          availabilityUntil: prop.alpacaAccount.user.availabilityUntil !== undefined ? {
+              set: prop.alpacaAccount.user.availabilityUntil
+            } : undefined,
           bio: prop.alpacaAccount.user.bio !== undefined ? {
               set: prop.alpacaAccount.user.bio
             } : undefined,
@@ -15530,6 +18066,12 @@ import { logger } from './utils/logger';
                 set: item.summary
               } : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions
+              } : undefined,
           },
           create: {
             versionLabel: item.versionLabel !== undefined ? item.versionLabel : undefined,
@@ -15537,6 +18079,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -15780,6 +18328,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId
+              } : undefined,
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
@@ -15806,6 +18357,13 @@ import { logger } from './utils/logger';
             manifestHash: item.manifestHash !== undefined ? {
                 set: item.manifestHash
               } : undefined,
+            kind: item.kind !== undefined ? {
+                set: item.kind
+              } : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                set: item.backtestJobId
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -15817,9 +18375,294 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: prop.alpacaAccount.user.featureFlagOverrides ? 
+      Array.isArray(prop.alpacaAccount.user.featureFlagOverrides) && prop.alpacaAccount.user.featureFlagOverrides.length > 0 && prop.alpacaAccount.user.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: prop.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: prop.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            flag: item.flag !== undefined ? {
+                set: item.flag
+              } : undefined,
+            enabled: item.enabled !== undefined ? {
+                set: item.enabled
+              } : undefined,
+            updatedBy: item.updatedBy !== undefined ? {
+                set: item.updatedBy
+              } : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: prop.alpacaAccount.user.follows ? 
+      Array.isArray(prop.alpacaAccount.user.follows) && prop.alpacaAccount.user.follows.length > 0 && prop.alpacaAccount.user.follows.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: prop.alpacaAccount.user.follows.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: prop.alpacaAccount.user.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            targetKind: item.targetKind !== undefined ? {
+                set: item.targetKind
+              } : undefined,
+            targetId: item.targetId !== undefined ? {
+                set: item.targetId
+              } : undefined,
+            level: item.level !== undefined ? {
+                set: item.level
+              } : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? {
+                set: item.riskBudgetPctNav
+              } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: prop.alpacaAccount.user.autoFollowRules ? 
+      Array.isArray(prop.alpacaAccount.user.autoFollowRules) && prop.alpacaAccount.user.autoFollowRules.length > 0 && prop.alpacaAccount.user.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: prop.alpacaAccount.user.autoFollowRules.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: prop.alpacaAccount.user.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId
+              } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            name: item.name !== undefined ? {
+                set: item.name
+              } : undefined,
+            condition: item.condition !== undefined ? {
+                set: item.condition
+              } : undefined,
+            action: item.action !== undefined ? {
+                set: item.action
+              } : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks
+              } : undefined,
+            enabled: item.enabled !== undefined ? {
+                set: item.enabled
+              } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: prop.alpacaAccount.user.pushSubscriptions ? 
+      Array.isArray(prop.alpacaAccount.user.pushSubscriptions) && prop.alpacaAccount.user.pushSubscriptions.length > 0 && prop.alpacaAccount.user.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: prop.alpacaAccount.user.pushSubscriptions.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: prop.alpacaAccount.user.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            endpoint: item.endpoint !== undefined ? {
+                set: item.endpoint
+              } : undefined,
+            p256dh: item.p256dh !== undefined ? {
+                set: item.p256dh
+              } : undefined,
+            auth: item.auth !== undefined ? {
+                set: item.auth
+              } : undefined,
+            userAgent: item.userAgent !== undefined ? {
+                set: item.userAgent
+              } : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? {
+                set: item.lastSeenAt
+              } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: prop.alpacaAccount.user.adaConversations ? 
+      Array.isArray(prop.alpacaAccount.user.adaConversations) && prop.alpacaAccount.user.adaConversations.length > 0 && prop.alpacaAccount.user.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: prop.alpacaAccount.user.adaConversations.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: prop.alpacaAccount.user.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            title: item.title !== undefined ? {
+                set: item.title
+              } : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? {
+                set: item.sharedWithOrg
+              } : undefined,
+            deletedAt: item.deletedAt !== undefined ? {
+                set: item.deletedAt
+              } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: prop.alpacaAccount.user.totp ? 
+      typeof prop.alpacaAccount.user.totp === 'object' && Object.keys(prop.alpacaAccount.user.totp).length === 1 && (Object.keys(prop.alpacaAccount.user.totp)[0] === 'id' || Object.keys(prop.alpacaAccount.user.totp)[0] === 'symbol')
+? {
+      connect: {
+        id: prop.alpacaAccount.user.totp.id
+      }
+} : { upsert: {
+          where: {
+            id: prop.alpacaAccount.user.totp.id !== undefined ? {
+                equals: prop.alpacaAccount.user.totp.id
+              } : undefined,
+            userId: prop.alpacaAccount.user.totp.userId !== undefined ? {
+                equals: prop.alpacaAccount.user.totp.userId
+              } : undefined,
+          },
+          update: {
+            id: prop.alpacaAccount.user.totp.id !== undefined ? {
+                set: prop.alpacaAccount.user.totp.id
+              } : undefined,
+            secretEnc: prop.alpacaAccount.user.totp.secretEnc !== undefined ? {
+                set: prop.alpacaAccount.user.totp.secretEnc
+              } : undefined,
+            enabledAt: prop.alpacaAccount.user.totp.enabledAt !== undefined ? {
+                set: prop.alpacaAccount.user.totp.enabledAt
+              } : undefined,
+            recoveryCodesHash: prop.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
+                set: prop.alpacaAccount.user.totp.recoveryCodesHash
+              } : undefined,
+          },
+          create: {
+            secretEnc: prop.alpacaAccount.user.totp.secretEnc !== undefined ? prop.alpacaAccount.user.totp.secretEnc : undefined,
+            enabledAt: prop.alpacaAccount.user.totp.enabledAt !== undefined ? prop.alpacaAccount.user.totp.enabledAt : undefined,
+            recoveryCodesHash: prop.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
+                set: prop.alpacaAccount.user.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: prop.alpacaAccount.user.preference ? 
+      typeof prop.alpacaAccount.user.preference === 'object' && Object.keys(prop.alpacaAccount.user.preference).length === 1 && (Object.keys(prop.alpacaAccount.user.preference)[0] === 'id' || Object.keys(prop.alpacaAccount.user.preference)[0] === 'symbol')
+? {
+      connect: {
+        id: prop.alpacaAccount.user.preference.id
+      }
+} : { upsert: {
+          where: {
+            id: prop.alpacaAccount.user.preference.id !== undefined ? {
+                equals: prop.alpacaAccount.user.preference.id
+              } : undefined,
+            userId: prop.alpacaAccount.user.preference.userId !== undefined ? {
+                equals: prop.alpacaAccount.user.preference.userId
+              } : undefined,
+          },
+          update: {
+            id: prop.alpacaAccount.user.preference.id !== undefined ? {
+                set: prop.alpacaAccount.user.preference.id
+              } : undefined,
+            theme: prop.alpacaAccount.user.preference.theme !== undefined ? {
+                set: prop.alpacaAccount.user.preference.theme
+              } : undefined,
+            density: prop.alpacaAccount.user.preference.density !== undefined ? {
+                set: prop.alpacaAccount.user.preference.density
+              } : undefined,
+            deskPrefs: prop.alpacaAccount.user.preference.deskPrefs !== undefined ? prop.alpacaAccount.user.preference.deskPrefs : undefined,
+            notificationPrefs: prop.alpacaAccount.user.preference.notificationPrefs !== undefined ? prop.alpacaAccount.user.preference.notificationPrefs : undefined,
+          },
+          create: {
+            theme: prop.alpacaAccount.user.preference.theme !== undefined ? prop.alpacaAccount.user.preference.theme : undefined,
+            density: prop.alpacaAccount.user.preference.density !== undefined ? prop.alpacaAccount.user.preference.density : undefined,
+            deskPrefs: prop.alpacaAccount.user.preference.deskPrefs !== undefined ? prop.alpacaAccount.user.preference.deskPrefs : undefined,
+            notificationPrefs: prop.alpacaAccount.user.preference.notificationPrefs !== undefined ? prop.alpacaAccount.user.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
         create: {
@@ -15832,6 +18675,8 @@ import { logger } from './utils/logger';
           signupCategory: prop.alpacaAccount.user.signupCategory !== undefined ? prop.alpacaAccount.user.signupCategory : undefined,
           deletedAt: prop.alpacaAccount.user.deletedAt !== undefined ? prop.alpacaAccount.user.deletedAt : undefined,
           role: prop.alpacaAccount.user.role !== undefined ? prop.alpacaAccount.user.role : undefined,
+          availability: prop.alpacaAccount.user.availability !== undefined ? prop.alpacaAccount.user.availability : undefined,
+          availabilityUntil: prop.alpacaAccount.user.availabilityUntil !== undefined ? prop.alpacaAccount.user.availabilityUntil : undefined,
           bio: prop.alpacaAccount.user.bio !== undefined ? prop.alpacaAccount.user.bio : undefined,
           jobTitle: prop.alpacaAccount.user.jobTitle !== undefined ? prop.alpacaAccount.user.jobTitle : undefined,
           currentAccount: prop.alpacaAccount.user.currentAccount !== undefined ? prop.alpacaAccount.user.currentAccount : undefined,
@@ -16248,6 +19093,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -16386,6 +19237,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -16394,9 +19248,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: prop.alpacaAccount.user.featureFlagOverrides ? 
+        Array.isArray(prop.alpacaAccount.user.featureFlagOverrides) && prop.alpacaAccount.user.featureFlagOverrides.length > 0 &&  prop.alpacaAccount.user.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: prop.alpacaAccount.user.follows ? 
+        Array.isArray(prop.alpacaAccount.user.follows) && prop.alpacaAccount.user.follows.length > 0 &&  prop.alpacaAccount.user.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.alpacaAccount.user.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.alpacaAccount.user.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: prop.alpacaAccount.user.autoFollowRules ? 
+        Array.isArray(prop.alpacaAccount.user.autoFollowRules) && prop.alpacaAccount.user.autoFollowRules.length > 0 &&  prop.alpacaAccount.user.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.alpacaAccount.user.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.alpacaAccount.user.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: prop.alpacaAccount.user.pushSubscriptions ? 
+        Array.isArray(prop.alpacaAccount.user.pushSubscriptions) && prop.alpacaAccount.user.pushSubscriptions.length > 0 &&  prop.alpacaAccount.user.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.alpacaAccount.user.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.alpacaAccount.user.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: prop.alpacaAccount.user.adaConversations ? 
+        Array.isArray(prop.alpacaAccount.user.adaConversations) && prop.alpacaAccount.user.adaConversations.length > 0 &&  prop.alpacaAccount.user.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.alpacaAccount.user.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.alpacaAccount.user.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: prop.alpacaAccount.user.totp ? 
+        typeof prop.alpacaAccount.user.totp === 'object' && Object.keys(prop.alpacaAccount.user.totp).length === 1 && Object.keys(prop.alpacaAccount.user.totp)[0] === 'id'
+    ? { connect: {
+            id: prop.alpacaAccount.user.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: prop.alpacaAccount.user.totp.id !== undefined ? prop.alpacaAccount.user.totp.id : undefined,
+            userId: prop.alpacaAccount.user.totp.userId !== undefined ? prop.alpacaAccount.user.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: prop.alpacaAccount.user.totp.secretEnc !== undefined ? prop.alpacaAccount.user.totp.secretEnc : undefined,
+            enabledAt: prop.alpacaAccount.user.totp.enabledAt !== undefined ? prop.alpacaAccount.user.totp.enabledAt : undefined,
+            recoveryCodesHash: prop.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
+                set: prop.alpacaAccount.user.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: prop.alpacaAccount.user.preference ? 
+        typeof prop.alpacaAccount.user.preference === 'object' && Object.keys(prop.alpacaAccount.user.preference).length === 1 && Object.keys(prop.alpacaAccount.user.preference)[0] === 'id'
+    ? { connect: {
+            id: prop.alpacaAccount.user.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: prop.alpacaAccount.user.preference.id !== undefined ? prop.alpacaAccount.user.preference.id : undefined,
+            userId: prop.alpacaAccount.user.preference.userId !== undefined ? prop.alpacaAccount.user.preference.userId : undefined,
+          },
+          create: {
+            theme: prop.alpacaAccount.user.preference.theme !== undefined ? prop.alpacaAccount.user.preference.theme : undefined,
+            density: prop.alpacaAccount.user.preference.density !== undefined ? prop.alpacaAccount.user.preference.density : undefined,
+            deskPrefs: prop.alpacaAccount.user.preference.deskPrefs !== undefined ? prop.alpacaAccount.user.preference.deskPrefs : undefined,
+            notificationPrefs: prop.alpacaAccount.user.preference.notificationPrefs !== undefined ? prop.alpacaAccount.user.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -17353,6 +20371,9 @@ import { logger } from './utils/logger';
             key: item.strategy.key !== undefined ? {
                 equals: item.strategy.key
               } : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? {
+                equals: item.strategy.backtestJobId
+              } : undefined,
             ownerUserId: item.strategy.ownerUserId !== undefined ? {
                 equals: item.strategy.ownerUserId
               } : undefined,
@@ -17379,6 +20400,13 @@ import { logger } from './utils/logger';
             manifestHash: item.strategy.manifestHash !== undefined ? {
                 set: item.strategy.manifestHash
               } : undefined,
+            kind: item.strategy.kind !== undefined ? {
+                set: item.strategy.kind
+              } : undefined,
+            spec: item.strategy.spec !== undefined ? item.strategy.spec : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? {
+                set: item.strategy.backtestJobId
+              } : undefined,
             deletedAt: item.strategy.deletedAt !== undefined ? {
                 set: item.strategy.deletedAt
               } : undefined,
@@ -17390,6 +20418,9 @@ import { logger } from './utils/logger';
             origin: item.strategy.origin !== undefined ? item.strategy.origin : undefined,
             lifecycleState: item.strategy.lifecycleState !== undefined ? item.strategy.lifecycleState : undefined,
             manifestHash: item.strategy.manifestHash !== undefined ? item.strategy.manifestHash : undefined,
+            kind: item.strategy.kind !== undefined ? item.strategy.kind : undefined,
+            spec: item.strategy.spec !== undefined ? item.strategy.spec : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? item.strategy.backtestJobId : undefined,
             deletedAt: item.strategy.deletedAt !== undefined ? item.strategy.deletedAt : undefined,
           },
         }
@@ -17415,6 +20446,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.strategy.id !== undefined ? item.strategy.id : undefined,
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? {
+                equals: item.strategy.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
@@ -17423,7 +20457,238 @@ import { logger } from './utils/logger';
             origin: item.strategy.origin !== undefined ? item.strategy.origin : undefined,
             lifecycleState: item.strategy.lifecycleState !== undefined ? item.strategy.lifecycleState : undefined,
             manifestHash: item.strategy.manifestHash !== undefined ? item.strategy.manifestHash : undefined,
+            kind: item.strategy.kind !== undefined ? item.strategy.kind : undefined,
+            spec: item.strategy.spec !== undefined ? item.strategy.spec : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? item.strategy.backtestJobId : undefined,
             deletedAt: item.strategy.deletedAt !== undefined ? item.strategy.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+        },
+      }))
+    } : undefined,
+    deskDecisions: prop.alpacaAccount.deskDecisions ? 
+    Array.isArray(prop.alpacaAccount.deskDecisions) && prop.alpacaAccount.deskDecisions.length > 0 && prop.alpacaAccount.deskDecisions.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+    connect: prop.alpacaAccount.deskDecisions.map((item) => ({
+      id: item.id
+    }))
+} : { upsert: prop.alpacaAccount.deskDecisions.map((item) => ({
+        where: {
+          id: item.id !== undefined ? item.id : undefined,
+          fundId: item.fundId !== undefined ? {
+              equals: item.fundId
+            } : undefined,
+          accountId: item.accountId !== undefined ? {
+              equals: item.accountId
+            } : undefined,
+          ruleId: item.ruleId !== undefined ? {
+              equals: item.ruleId
+            } : undefined,
+          ifIdle: item.ifIdle !== undefined ? {
+              equals: item.ifIdle
+            } : undefined,
+          status: item.status !== undefined ? {
+              equals: item.status
+            } : undefined,
+        },
+        update: {
+          id: item.id !== undefined ? {
+              set: item.id
+            } : undefined,
+          kind: item.kind !== undefined ? {
+              set: item.kind
+            } : undefined,
+          ruleId: item.ruleId !== undefined ? {
+              set: item.ruleId
+            } : undefined,
+          desk: item.desk !== undefined ? {
+              set: item.desk
+            } : undefined,
+          question: item.question !== undefined ? {
+              set: item.question
+            } : undefined,
+          nums: item.nums !== undefined ? item.nums : undefined,
+          counterCase: item.counterCase !== undefined ? {
+              set: item.counterCase
+            } : undefined,
+          ifIdle: item.ifIdle !== undefined ? {
+              set: item.ifIdle
+            } : undefined,
+          facets: item.facets !== undefined ? item.facets : undefined,
+          dueAt: item.dueAt !== undefined ? {
+              set: item.dueAt
+            } : undefined,
+          defaultAction: item.defaultAction !== undefined ? {
+              set: item.defaultAction
+            } : undefined,
+          amendLabel: item.amendLabel !== undefined ? {
+              set: item.amendLabel
+            } : undefined,
+          reasonRequired: item.reasonRequired !== undefined ? {
+              set: item.reasonRequired
+            } : undefined,
+          status: item.status !== undefined ? {
+              set: item.status
+            } : undefined,
+          decidedBy: item.decidedBy !== undefined ? {
+              set: item.decidedBy
+            } : undefined,
+          decidedAt: item.decidedAt !== undefined ? {
+              set: item.decidedAt
+            } : undefined,
+          reason: item.reason !== undefined ? {
+              set: item.reason
+            } : undefined,
+      fund: item.fund ? 
+      typeof item.fund === 'object' && Object.keys(item.fund).length === 1 && (Object.keys(item.fund)[0] === 'id' || Object.keys(item.fund)[0] === 'symbol')
+? {
+      connect: {
+        id: item.fund.id
+      }
+} : { upsert: {
+          where: {
+            id: item.fund.id !== undefined ? {
+                equals: item.fund.id
+              } : undefined,
+            name: item.fund.name !== undefined ? {
+                equals: item.fund.name
+              } : undefined,
+            slug: item.fund.slug !== undefined ? {
+                equals: item.fund.slug
+              } : undefined,
+            status: item.fund.status !== undefined ? {
+                equals: item.fund.status
+              } : undefined,
+            organizationId: item.fund.organizationId !== undefined ? {
+                equals: item.fund.organizationId
+              } : undefined,
+            managerId: item.fund.managerId !== undefined ? {
+                equals: item.fund.managerId
+              } : undefined,
+            operatorId: item.fund.operatorId !== undefined ? {
+                equals: item.fund.operatorId
+              } : undefined,
+          },
+          update: {
+            id: item.fund.id !== undefined ? {
+                set: item.fund.id
+              } : undefined,
+            name: item.fund.name !== undefined ? {
+                set: item.fund.name
+              } : undefined,
+            slug: item.fund.slug !== undefined ? {
+                set: item.fund.slug
+              } : undefined,
+            description: item.fund.description !== undefined ? {
+                set: item.fund.description
+              } : undefined,
+            status: item.fund.status !== undefined ? {
+                set: item.fund.status
+              } : undefined,
+            currency: item.fund.currency !== undefined ? {
+                set: item.fund.currency
+              } : undefined,
+            inceptionDate: item.fund.inceptionDate !== undefined ? {
+                set: item.fund.inceptionDate
+              } : undefined,
+            aum: item.fund.aum !== undefined ? {
+                set: item.fund.aum
+              } : undefined,
+            navPerShare: item.fund.navPerShare !== undefined ? {
+                set: item.fund.navPerShare
+              } : undefined,
+            sharesOutstanding: item.fund.sharesOutstanding !== undefined ? {
+                set: item.fund.sharesOutstanding
+              } : undefined,
+            highWaterMarkNav: item.fund.highWaterMarkNav !== undefined ? {
+                set: item.fund.highWaterMarkNav
+              } : undefined,
+            fees: item.fund.fees !== undefined ? item.fund.fees : undefined,
+            terms: item.fund.terms !== undefined ? item.fund.terms : undefined,
+            regulatory: item.fund.regulatory !== undefined ? item.fund.regulatory : undefined,
+            serviceProviders: item.fund.serviceProviders !== undefined ? item.fund.serviceProviders : undefined,
+            tradingOverrides: item.fund.tradingOverrides !== undefined ? item.fund.tradingOverrides : undefined,
+            deletedAt: item.fund.deletedAt !== undefined ? {
+                set: item.fund.deletedAt
+              } : undefined,
+          },
+          create: {
+            name: item.fund.name !== undefined ? item.fund.name : undefined,
+            slug: item.fund.slug !== undefined ? item.fund.slug : undefined,
+            description: item.fund.description !== undefined ? item.fund.description : undefined,
+            status: item.fund.status !== undefined ? item.fund.status : undefined,
+            currency: item.fund.currency !== undefined ? item.fund.currency : undefined,
+            inceptionDate: item.fund.inceptionDate !== undefined ? item.fund.inceptionDate : undefined,
+            aum: item.fund.aum !== undefined ? item.fund.aum : undefined,
+            navPerShare: item.fund.navPerShare !== undefined ? item.fund.navPerShare : undefined,
+            sharesOutstanding: item.fund.sharesOutstanding !== undefined ? item.fund.sharesOutstanding : undefined,
+            highWaterMarkNav: item.fund.highWaterMarkNav !== undefined ? item.fund.highWaterMarkNav : undefined,
+            fees: item.fund.fees !== undefined ? item.fund.fees : undefined,
+            terms: item.fund.terms !== undefined ? item.fund.terms : undefined,
+            regulatory: item.fund.regulatory !== undefined ? item.fund.regulatory : undefined,
+            serviceProviders: item.fund.serviceProviders !== undefined ? item.fund.serviceProviders : undefined,
+            tradingOverrides: item.fund.tradingOverrides !== undefined ? item.fund.tradingOverrides : undefined,
+            deletedAt: item.fund.deletedAt !== undefined ? item.fund.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+        },
+        create: {
+          kind: item.kind !== undefined ? item.kind : undefined,
+          ruleId: item.ruleId !== undefined ? item.ruleId : undefined,
+          desk: item.desk !== undefined ? item.desk : undefined,
+          question: item.question !== undefined ? item.question : undefined,
+          nums: item.nums !== undefined ? item.nums : undefined,
+          counterCase: item.counterCase !== undefined ? item.counterCase : undefined,
+          ifIdle: item.ifIdle !== undefined ? item.ifIdle : undefined,
+          facets: item.facets !== undefined ? item.facets : undefined,
+          dueAt: item.dueAt !== undefined ? item.dueAt : undefined,
+          defaultAction: item.defaultAction !== undefined ? item.defaultAction : undefined,
+          amendLabel: item.amendLabel !== undefined ? item.amendLabel : undefined,
+          reasonRequired: item.reasonRequired !== undefined ? item.reasonRequired : undefined,
+          status: item.status !== undefined ? item.status : undefined,
+          decidedBy: item.decidedBy !== undefined ? item.decidedBy : undefined,
+          decidedAt: item.decidedAt !== undefined ? item.decidedAt : undefined,
+          reason: item.reason !== undefined ? item.reason : undefined,
+      fund: item.fund ? 
+        typeof item.fund === 'object' && Object.keys(item.fund).length === 1 && Object.keys(item.fund)[0] === 'id'
+    ? { connect: {
+            id: item.fund.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.fund.id !== undefined ? item.fund.id : undefined,
+            name: item.fund.name !== undefined ? {
+                equals: item.fund.name 
+               } : undefined,
+            slug: item.fund.slug !== undefined ? {
+                equals: item.fund.slug 
+               } : undefined,
+            status: item.fund.status !== undefined ? {
+                equals: item.fund.status 
+               } : undefined,
+            organizationId: item.fund.organizationId !== undefined ? {
+                equals: item.fund.organizationId 
+               } : undefined,
+          },
+          create: {
+            name: item.fund.name !== undefined ? item.fund.name : undefined,
+            slug: item.fund.slug !== undefined ? item.fund.slug : undefined,
+            description: item.fund.description !== undefined ? item.fund.description : undefined,
+            status: item.fund.status !== undefined ? item.fund.status : undefined,
+            currency: item.fund.currency !== undefined ? item.fund.currency : undefined,
+            inceptionDate: item.fund.inceptionDate !== undefined ? item.fund.inceptionDate : undefined,
+            aum: item.fund.aum !== undefined ? item.fund.aum : undefined,
+            navPerShare: item.fund.navPerShare !== undefined ? item.fund.navPerShare : undefined,
+            sharesOutstanding: item.fund.sharesOutstanding !== undefined ? item.fund.sharesOutstanding : undefined,
+            highWaterMarkNav: item.fund.highWaterMarkNav !== undefined ? item.fund.highWaterMarkNav : undefined,
+            fees: item.fund.fees !== undefined ? item.fund.fees : undefined,
+            terms: item.fund.terms !== undefined ? item.fund.terms : undefined,
+            regulatory: item.fund.regulatory !== undefined ? item.fund.regulatory : undefined,
+            serviceProviders: item.fund.serviceProviders !== undefined ? item.fund.serviceProviders : undefined,
+            tradingOverrides: item.fund.tradingOverrides !== undefined ? item.fund.tradingOverrides : undefined,
+            deletedAt: item.fund.deletedAt !== undefined ? item.fund.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -17505,6 +20770,8 @@ import { logger } from './utils/logger';
           signupCategory: prop.alpacaAccount.user.signupCategory !== undefined ? prop.alpacaAccount.user.signupCategory : undefined,
           deletedAt: prop.alpacaAccount.user.deletedAt !== undefined ? prop.alpacaAccount.user.deletedAt : undefined,
           role: prop.alpacaAccount.user.role !== undefined ? prop.alpacaAccount.user.role : undefined,
+          availability: prop.alpacaAccount.user.availability !== undefined ? prop.alpacaAccount.user.availability : undefined,
+          availabilityUntil: prop.alpacaAccount.user.availabilityUntil !== undefined ? prop.alpacaAccount.user.availabilityUntil : undefined,
           bio: prop.alpacaAccount.user.bio !== undefined ? prop.alpacaAccount.user.bio : undefined,
           jobTitle: prop.alpacaAccount.user.jobTitle !== undefined ? prop.alpacaAccount.user.jobTitle : undefined,
           currentAccount: prop.alpacaAccount.user.currentAccount !== undefined ? prop.alpacaAccount.user.currentAccount : undefined,
@@ -17921,6 +21188,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? item.status : undefined,
             summary: item.summary !== undefined ? item.summary : undefined,
             charterBody: item.charterBody !== undefined ? item.charterBody : undefined,
+            autonomy: item.autonomy !== undefined ? item.autonomy : undefined,
+            triggers: item.triggers !== undefined ? item.triggers : undefined,
+            instruments: item.instruments !== undefined ? item.instruments : undefined,
+            exclusions: item.exclusions !== undefined ? {
+                set: item.exclusions 
+               } : undefined,
           },
         }))
       } : undefined,
@@ -18059,6 +21332,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.id !== undefined ? item.id : undefined,
             key: item.key !== undefined ? item.key : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? {
+                equals: item.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.key !== undefined ? item.key : undefined,
@@ -18067,9 +21343,173 @@ import { logger } from './utils/logger';
             origin: item.origin !== undefined ? item.origin : undefined,
             lifecycleState: item.lifecycleState !== undefined ? item.lifecycleState : undefined,
             manifestHash: item.manifestHash !== undefined ? item.manifestHash : undefined,
+            kind: item.kind !== undefined ? item.kind : undefined,
+            spec: item.spec !== undefined ? item.spec : undefined,
+            backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
+      } : undefined,
+      featureFlagOverrides: prop.alpacaAccount.user.featureFlagOverrides ? 
+        Array.isArray(prop.alpacaAccount.user.featureFlagOverrides) && prop.alpacaAccount.user.featureFlagOverrides.length > 0 &&  prop.alpacaAccount.user.featureFlagOverrides.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.alpacaAccount.user.featureFlagOverrides.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+          },
+          create: {
+            flag: item.flag !== undefined ? item.flag : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+            updatedBy: item.updatedBy !== undefined ? item.updatedBy : undefined,
+          },
+        }))
+      } : undefined,
+      follows: prop.alpacaAccount.user.follows ? 
+        Array.isArray(prop.alpacaAccount.user.follows) && prop.alpacaAccount.user.follows.length > 0 &&  prop.alpacaAccount.user.follows.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.alpacaAccount.user.follows.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.alpacaAccount.user.follows.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            targetId: item.targetId !== undefined ? {
+                equals: item.targetId 
+               } : undefined,
+          },
+          create: {
+            targetKind: item.targetKind !== undefined ? item.targetKind : undefined,
+            targetId: item.targetId !== undefined ? item.targetId : undefined,
+            level: item.level !== undefined ? item.level : undefined,
+            riskBudgetPctNav: item.riskBudgetPctNav !== undefined ? item.riskBudgetPctNav : undefined,
+          },
+        }))
+      } : undefined,
+      autoFollowRules: prop.alpacaAccount.user.autoFollowRules ? 
+        Array.isArray(prop.alpacaAccount.user.autoFollowRules) && prop.alpacaAccount.user.autoFollowRules.length > 0 &&  prop.alpacaAccount.user.autoFollowRules.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.alpacaAccount.user.autoFollowRules.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.alpacaAccount.user.autoFollowRules.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            ownerId: item.ownerId !== undefined ? {
+                equals: item.ownerId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            condition: item.condition !== undefined ? item.condition : undefined,
+            action: item.action !== undefined ? item.action : undefined,
+            destinationDesks: item.destinationDesks !== undefined ? {
+                set: item.destinationDesks 
+               } : undefined,
+            enabled: item.enabled !== undefined ? item.enabled : undefined,
+          },
+        }))
+      } : undefined,
+      pushSubscriptions: prop.alpacaAccount.user.pushSubscriptions ? 
+        Array.isArray(prop.alpacaAccount.user.pushSubscriptions) && prop.alpacaAccount.user.pushSubscriptions.length > 0 &&  prop.alpacaAccount.user.pushSubscriptions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.alpacaAccount.user.pushSubscriptions.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.alpacaAccount.user.pushSubscriptions.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+          },
+          create: {
+            endpoint: item.endpoint !== undefined ? item.endpoint : undefined,
+            p256dh: item.p256dh !== undefined ? item.p256dh : undefined,
+            auth: item.auth !== undefined ? item.auth : undefined,
+            userAgent: item.userAgent !== undefined ? item.userAgent : undefined,
+            lastSeenAt: item.lastSeenAt !== undefined ? item.lastSeenAt : undefined,
+          },
+        }))
+      } : undefined,
+      adaConversations: prop.alpacaAccount.user.adaConversations ? 
+        Array.isArray(prop.alpacaAccount.user.adaConversations) && prop.alpacaAccount.user.adaConversations.length > 0 &&  prop.alpacaAccount.user.adaConversations.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        prop.alpacaAccount.user.adaConversations.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: prop.alpacaAccount.user.adaConversations.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId 
+               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId 
+               } : undefined,
+            title: item.title !== undefined ? {
+                equals: item.title 
+               } : undefined,
+          },
+          create: {
+            title: item.title !== undefined ? item.title : undefined,
+            sharedWithOrg: item.sharedWithOrg !== undefined ? item.sharedWithOrg : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      totp: prop.alpacaAccount.user.totp ? 
+        typeof prop.alpacaAccount.user.totp === 'object' && Object.keys(prop.alpacaAccount.user.totp).length === 1 && Object.keys(prop.alpacaAccount.user.totp)[0] === 'id'
+    ? { connect: {
+            id: prop.alpacaAccount.user.totp.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: prop.alpacaAccount.user.totp.id !== undefined ? prop.alpacaAccount.user.totp.id : undefined,
+            userId: prop.alpacaAccount.user.totp.userId !== undefined ? prop.alpacaAccount.user.totp.userId : undefined,
+          },
+          create: {
+            secretEnc: prop.alpacaAccount.user.totp.secretEnc !== undefined ? prop.alpacaAccount.user.totp.secretEnc : undefined,
+            enabledAt: prop.alpacaAccount.user.totp.enabledAt !== undefined ? prop.alpacaAccount.user.totp.enabledAt : undefined,
+            recoveryCodesHash: prop.alpacaAccount.user.totp.recoveryCodesHash !== undefined ? {
+                set: prop.alpacaAccount.user.totp.recoveryCodesHash 
+               } : undefined,
+          },
+        }
+      } : undefined,
+      preference: prop.alpacaAccount.user.preference ? 
+        typeof prop.alpacaAccount.user.preference === 'object' && Object.keys(prop.alpacaAccount.user.preference).length === 1 && Object.keys(prop.alpacaAccount.user.preference)[0] === 'id'
+    ? { connect: {
+            id: prop.alpacaAccount.user.preference.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: prop.alpacaAccount.user.preference.id !== undefined ? prop.alpacaAccount.user.preference.id : undefined,
+            userId: prop.alpacaAccount.user.preference.userId !== undefined ? prop.alpacaAccount.user.preference.userId : undefined,
+          },
+          create: {
+            theme: prop.alpacaAccount.user.preference.theme !== undefined ? prop.alpacaAccount.user.preference.theme : undefined,
+            density: prop.alpacaAccount.user.preference.density !== undefined ? prop.alpacaAccount.user.preference.density : undefined,
+            deskPrefs: prop.alpacaAccount.user.preference.deskPrefs !== undefined ? prop.alpacaAccount.user.preference.deskPrefs : undefined,
+            notificationPrefs: prop.alpacaAccount.user.preference.notificationPrefs !== undefined ? prop.alpacaAccount.user.preference.notificationPrefs : undefined,
+          },
+        }
       } : undefined,
         },
       }
@@ -18431,6 +21871,9 @@ import { logger } from './utils/logger';
           where: {
             id: item.strategy.id !== undefined ? item.strategy.id : undefined,
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? {
+                equals: item.strategy.backtestJobId 
+               } : undefined,
           },
           create: {
             key: item.strategy.key !== undefined ? item.strategy.key : undefined,
@@ -18439,7 +21882,94 @@ import { logger } from './utils/logger';
             origin: item.strategy.origin !== undefined ? item.strategy.origin : undefined,
             lifecycleState: item.strategy.lifecycleState !== undefined ? item.strategy.lifecycleState : undefined,
             manifestHash: item.strategy.manifestHash !== undefined ? item.strategy.manifestHash : undefined,
+            kind: item.strategy.kind !== undefined ? item.strategy.kind : undefined,
+            spec: item.strategy.spec !== undefined ? item.strategy.spec : undefined,
+            backtestJobId: item.strategy.backtestJobId !== undefined ? item.strategy.backtestJobId : undefined,
             deletedAt: item.strategy.deletedAt !== undefined ? item.strategy.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+        },
+      }))
+    } : undefined,
+    deskDecisions: prop.alpacaAccount.deskDecisions ? 
+      Array.isArray(prop.alpacaAccount.deskDecisions) && prop.alpacaAccount.deskDecisions.length > 0 &&  prop.alpacaAccount.deskDecisions.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+        connect:      prop.alpacaAccount.deskDecisions.map((item) => ({
+           id: item.id
+        }))
+ }
+ : { connectOrCreate: prop.alpacaAccount.deskDecisions.map((item) => ({
+        where: {
+          id: item.id !== undefined ? item.id : undefined,
+          fundId: item.fundId !== undefined ? {
+              equals: item.fundId 
+             } : undefined,
+          ruleId: item.ruleId !== undefined ? {
+              equals: item.ruleId 
+             } : undefined,
+          ifIdle: item.ifIdle !== undefined ? {
+              equals: item.ifIdle 
+             } : undefined,
+          status: item.status !== undefined ? {
+              equals: item.status 
+             } : undefined,
+        },
+        create: {
+          kind: item.kind !== undefined ? item.kind : undefined,
+          ruleId: item.ruleId !== undefined ? item.ruleId : undefined,
+          desk: item.desk !== undefined ? item.desk : undefined,
+          question: item.question !== undefined ? item.question : undefined,
+          nums: item.nums !== undefined ? item.nums : undefined,
+          counterCase: item.counterCase !== undefined ? item.counterCase : undefined,
+          ifIdle: item.ifIdle !== undefined ? item.ifIdle : undefined,
+          facets: item.facets !== undefined ? item.facets : undefined,
+          dueAt: item.dueAt !== undefined ? item.dueAt : undefined,
+          defaultAction: item.defaultAction !== undefined ? item.defaultAction : undefined,
+          amendLabel: item.amendLabel !== undefined ? item.amendLabel : undefined,
+          reasonRequired: item.reasonRequired !== undefined ? item.reasonRequired : undefined,
+          status: item.status !== undefined ? item.status : undefined,
+          decidedBy: item.decidedBy !== undefined ? item.decidedBy : undefined,
+          decidedAt: item.decidedAt !== undefined ? item.decidedAt : undefined,
+          reason: item.reason !== undefined ? item.reason : undefined,
+      fund: item.fund ? 
+        typeof item.fund === 'object' && Object.keys(item.fund).length === 1 && Object.keys(item.fund)[0] === 'id'
+    ? { connect: {
+            id: item.fund.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.fund.id !== undefined ? item.fund.id : undefined,
+            name: item.fund.name !== undefined ? {
+                equals: item.fund.name 
+               } : undefined,
+            slug: item.fund.slug !== undefined ? {
+                equals: item.fund.slug 
+               } : undefined,
+            status: item.fund.status !== undefined ? {
+                equals: item.fund.status 
+               } : undefined,
+            organizationId: item.fund.organizationId !== undefined ? {
+                equals: item.fund.organizationId 
+               } : undefined,
+          },
+          create: {
+            name: item.fund.name !== undefined ? item.fund.name : undefined,
+            slug: item.fund.slug !== undefined ? item.fund.slug : undefined,
+            description: item.fund.description !== undefined ? item.fund.description : undefined,
+            status: item.fund.status !== undefined ? item.fund.status : undefined,
+            currency: item.fund.currency !== undefined ? item.fund.currency : undefined,
+            inceptionDate: item.fund.inceptionDate !== undefined ? item.fund.inceptionDate : undefined,
+            aum: item.fund.aum !== undefined ? item.fund.aum : undefined,
+            navPerShare: item.fund.navPerShare !== undefined ? item.fund.navPerShare : undefined,
+            sharesOutstanding: item.fund.sharesOutstanding !== undefined ? item.fund.sharesOutstanding : undefined,
+            highWaterMarkNav: item.fund.highWaterMarkNav !== undefined ? item.fund.highWaterMarkNav : undefined,
+            fees: item.fund.fees !== undefined ? item.fund.fees : undefined,
+            terms: item.fund.terms !== undefined ? item.fund.terms : undefined,
+            regulatory: item.fund.regulatory !== undefined ? item.fund.regulatory : undefined,
+            serviceProviders: item.fund.serviceProviders !== undefined ? item.fund.serviceProviders : undefined,
+            tradingOverrides: item.fund.tradingOverrides !== undefined ? item.fund.tradingOverrides : undefined,
+            deletedAt: item.fund.deletedAt !== undefined ? item.fund.deletedAt : undefined,
           },
         }
       } : undefined,
