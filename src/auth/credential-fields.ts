@@ -42,4 +42,10 @@ export const CREDENTIAL_FIELDS: ReadonlyMap<string, ReadonlySet<string>> = new M
   ['VerificationToken', new Set(['token'])],
   ['AccountLinkingRequest', new Set(['verificationToken'])],
   ['InviteToken', new Set(['token'])],
+  // The TOTP secret (encrypted, but decryptable by whoever holds the key) and
+  // the recovery-code hashes are a second factor. The schema already omits
+  // them from every output and predicate type; listing them here also keeps
+  // them out of `groupBy` / `distinct` for non-service callers and redacts
+  // them from audit payloads copied from mutation variables.
+  ['UserTotp', new Set(['secretEnc', 'recoveryCodesHash'])],
 ]);

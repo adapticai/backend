@@ -41,7 +41,7 @@ Adding/changing a field: edit schema → `npm run build` → publish → bump co
 | `GQL.MAX_DEPTH=N`              | relation | override the default nesting depth (4)                |
 | `TYPESTRING.SKIP` / `.INCLUDE` | any      | same curation for LLM-context typeStrings             |
 
-Gotchas: **directives never propagate to sibling fields** — each field needs its own comment; security-sensitive fields (API keys, tokens, secrets) always get `GQL.SKIP=true`; add an exclusion only after proving no consumer reads the field (search `adaptic.<model>.*` call sites across repos); after any comment change, regenerate (`npm run build`, or at minimum `generate:selections`) and inspect `src/generated/selectionSets/<Model>.ts` before publishing.
+Gotchas: **directives never propagate to sibling fields** — each field needs its own comment; security-sensitive fields (API keys, tokens, secrets) always get `GQL.SKIP=true` and an entry in `src/auth/credential-fields.ts`; a column that may be written but never read back (e.g. `UserTotp.secretEnc`) also gets `@TypeGraphQL.omit(output: true, input: ["where", "orderBy"])` and an entry in `WRITE_ONLY_FIELDS` (`src/config/server-only-models.ts`), because the omit directive leaves it on the groupBy, aggregate and `CreateManyAndReturn` outputs; add an exclusion only after proving no consumer reads the field (search `adaptic.<model>.*` call sites across repos); after any comment change, regenerate (`npm run build`, or at minimum `generate:selections`) and inspect `src/generated/selectionSets/<Model>.ts` before publishing.
 
 ## Engineering rules (backend-legacy register — generic rules live in `../docs/ENGINEERING_DOCTRINE.md` and the root file)
 

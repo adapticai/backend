@@ -6,6 +6,8 @@ import {
   isObjectType,
 } from 'graphql';
 
+import { indexGeneratedTypes } from '../middleware/generated-type-names';
+
 /**
  * Prisma models that are server-only: they live in the schema (so Prisma owns
  * their migrations and the client can read them) but are NEVER part of the
@@ -85,9 +87,53 @@ export function isServerOnlyTypeName(typeName: string): boolean {
 }
 
 /**
+ * Write-only columns, by Prisma model: a caller may set them through the
+ * generated create / update inputs, but no output type returns them. They are
+ * read only server-side, through Prisma.
+ *
+ * Each column also carries `@TypeGraphQL.omit(output: true, input: ["where",
+ * "orderBy"])`, `GQL.SKIP=true` and `TYPESTRING.SKIP=true` in the schema. The
+ * omit directive removes the column from the model type and the predicate
+ * inputs only: typegraphql-prisma still emits it on the model's `GroupBy`,
+ * `MinAggregate`, `MaxAggregate` and `CountAggregate` types and on the
+ * `CreateManyAndReturn` / `UpdateManyAndReturn` row types, where it would be
+ * served by value. {@link withoutServerOnlySchemaSurface} removes it there.
+ *
+ * UserTotp: the TOTP shared secret (encrypted at rest) and the hashes of the
+ * unused recovery codes. Either lets its holder pass the second factor.
+ */
+export const WRITE_ONLY_FIELDS: ReadonlyMap<string, ReadonlySet<string>> = new Map<
+  string,
+  ReadonlySet<string>
+>([['UserTotp', new Set(['secretEnc', 'recoveryCodesHash'])]]);
+
+const WRITE_ONLY_OUTPUTS = indexGeneratedTypes(WRITE_ONLY_FIELDS);
+
+/** Suffix of the generated per-model count aggregate output type. */
+const COUNT_AGGREGATE_SUFFIX = 'CountAggregate';
+
+/**
+ * @param typeName - A GraphQL output type name.
+ * @returns The write-only columns that type would serve, or `undefined`.
+ */
+export function writeOnlyOutputFieldsFor(
+  typeName: string
+): ReadonlySet<string> | undefined {
+  const valued = WRITE_ONLY_OUTPUTS.outputFields(typeName);
+  if (valued) return valued;
+  // The count aggregate returns how many rows hold a value, not the value;
+  // it is removed too so no output type names a write-only column at all.
+  return typeName.endsWith(COUNT_AGGREGATE_SUFFIX)
+    ? WRITE_ONLY_FIELDS.get(typeName.slice(0, -COUNT_AGGREGATE_SUFFIX.length))
+    : undefined;
+}
+
+/**
  * Removes every field that returns, or takes an argument of, a server-only
- * type, then rebuilds the schema so types reachable only through those fields
- * drop out of the type map (and out of introspection).
+ * type, and every write-only column ({@link WRITE_ONLY_FIELDS}) from the
+ * output types that would serve it, then rebuilds the schema so types
+ * reachable only through those fields drop out of the type map (and out of
+ * introspection).
  *
  * typegraphql-prisma's `@TypeGraphQL.omit` hides a relation field from the
  * model type and its inputs but still emits the relation's count on the
@@ -109,7 +155,12 @@ export function withoutServerOnlySchemaSurface(
     }
     if (isObjectType(type) || isInterfaceType(type)) {
       const fields = type.getFields();
+      const writeOnly = writeOnlyOutputFieldsFor(type.name);
       for (const [name, field] of Object.entries(fields)) {
+        if (writeOnly?.has(name)) {
+          delete fields[name];
+          continue;
+        }
         const touchesServerOnly =
           isServerOnlyTypeName(getNamedType(field.type).name) ||
           field.args.some((arg) =>
