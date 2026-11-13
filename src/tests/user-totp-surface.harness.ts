@@ -11,6 +11,7 @@
 import 'reflect-metadata';
 import { buildSchema } from 'type-graphql';
 import {
+  getNamedType,
   isEnumType,
   isInputObjectType,
   isInterfaceType,
@@ -19,9 +20,11 @@ import {
 
 import { resolvers } from '../generated/typegraphql-prisma';
 import {
+  AccountEquityCurveResolver,
   BrokerageAccountCredentialStatusResolver,
   OptionsGreeksHistoryCustomResolver,
   TradingSettingsResolver,
+  UserTotpResolver,
 } from '../resolvers/custom';
 import {
   withoutServerOnlyResolvers,
@@ -42,6 +45,8 @@ async function main(): Promise<void> {
         OptionsGreeksHistoryCustomResolver,
         TradingSettingsResolver,
         BrokerageAccountCredentialStatusResolver,
+        AccountEquityCurveResolver,
+        UserTotpResolver,
       ],
       validate: false,
     })
@@ -75,7 +80,16 @@ async function main(): Promise<void> {
   }
 
   const totp = schema.getType('UserTotp');
+  const mutationType = schema.getMutationType();
+  const totpMutationOutputs: Record<string, string[]> = {};
+  for (const name of ['enrollUserTotp', 'confirmUserTotp', 'verifyUserTotp', 'disableUserTotp']) {
+    const field = mutationType?.getFields()[name];
+    const output = field ? getNamedType(field.type) : undefined;
+    totpMutationOutputs[name] =
+      output && isObjectType(output) ? Object.keys(output.getFields()).sort() : [];
+  }
   const report = {
+    totpMutationOutputs,
     outputs,
     predicates,
     writeInputs: writeInputs.sort(),

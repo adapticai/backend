@@ -41,9 +41,15 @@
  *     yet, restricted per model to the actions the platform performs, and for
  *     `AuditLog` and `Configuration` to content a user may author
  *     (`./user-write-content.ts`).
+ *   - `mandate_tenant` — `MandateVersion`: the addressed version's mandate
+ *     must belong to an organization the caller is a member of or a fund they
+ *     are entitled to. Nested writes treat it as `authenticated`, as before.
  *   - `resolver_authorized` — custom mutations whose resolver performs its own
  *     authorization.
  *   - everything else is `service_only`.
+ * - `UserTotp` and the TOTP custom mutations are service-principal only:
+ *   not even an admin may write a user's second factor through GraphQL
+ *   ({@link SERVICE_PRINCIPAL_ONLY_MODELS}).
  * - no principal may run no mutation.
  *
  * Nested relation writes are decided hop by hop in `./nested-write-policy.ts`.
@@ -76,7 +82,7 @@
  */
 
 import type { BackendPrincipal } from './token-verifier';
-import { GOVERNED_MODELS } from './tenancy-scope';
+import { DESK_MODELS, GOVERNED_MODELS } from './tenancy-scope';
 
 /** Operating mode of the mutation guard. See the module doc. */
 export type MutationAuthMode = 'off' | 'shadow' | 'enforce';
@@ -145,11 +151,53 @@ export function expandEnforcedModels(enforcedModels: ReadonlySet<string>): Reado
   return new Set([...enforcedModels, ...ENTITLEMENT_SOURCE_MODELS]);
 }
 
+/** The TOTP custom mutations (`src/resolvers/custom/UserTotpResolver.ts`), as classified targets. */
+export const TOTP_CUSTOM_MUTATIONS: readonly string[] = [
+  'custom:enrollUserTotp',
+  'custom:confirmUserTotp',
+  'custom:verifyUserTotp',
+  'custom:disableUserTotp',
+];
+
 /**
- * The mode a mutation is decided in. `off` is a kill switch and wins; a
- * global `enforce` covers every model; under `shadow`, the mutation enforces
- * when ANY model it writes — the root or one reached by a nested write — is
- * escalated (directly, or through {@link expandEnforcedModels}).
+ * Targets only the service principal may write: a user's second factor. An
+ * admin principal is a signed-in person, and a person who can rewrite another
+ * person's second factor has defeated it, so admin is refused here too.
+ */
+export const SERVICE_PRINCIPAL_ONLY_MODELS: ReadonlySet<string> = new Set<string>([
+  'UserTotp',
+  ...TOTP_CUSTOM_MUTATIONS,
+]);
+
+/**
+ * Targets decided at `enforce` in every mode, `off` included, whatever the
+ * environment says: the desk models and the TOTP mutations.
+ *
+ * `MUTATION_AUTH_MODE` stages the guard for models that had live writers
+ * before it existed — shadow proves no legitimate writer is refused, `off`
+ * restores the unguarded behaviour. These targets were born after the guard
+ * and have never been written unguarded, so there is no writer for shadow to
+ * protect and nothing for `off` to restore; holding them in shadow would let
+ * anyone write a user's push endpoints, feature overrides or second factor
+ * while the would-deny series accumulated.
+ */
+export const ALWAYS_ENFORCED_MUTATION_MODELS: ReadonlySet<string> = new Set<string>([
+  ...DESK_MODELS,
+  ...TOTP_CUSTOM_MUTATIONS,
+]);
+
+/** Whether any of a mutation's written models is always enforced. */
+export function touchesAlwaysEnforced(models: readonly string[]): boolean {
+  return models.some((model) => ALWAYS_ENFORCED_MUTATION_MODELS.has(model));
+}
+
+/**
+ * The mode a mutation is decided in. A mutation writing an always-enforced
+ * target ({@link ALWAYS_ENFORCED_MUTATION_MODELS}) is enforced in every mode.
+ * Otherwise `off` is a kill switch and wins; a global `enforce` covers every
+ * model; under `shadow`, the mutation enforces when ANY model it writes — the
+ * root or one reached by a nested write — is escalated (directly, or through
+ * {@link expandEnforcedModels}).
  *
  * @param models - The root model and every nested write's model.
  * @param mode - The global mode.
@@ -160,6 +208,7 @@ export function effectiveModeFor(
   mode: MutationAuthMode,
   enforcedModels: ReadonlySet<string>
 ): MutationAuthMode {
+  if (touchesAlwaysEnforced(models)) return 'enforce';
   if (mode === 'off' || mode === 'enforce') return mode;
   const escalated = expandEnforcedModels(enforcedModels);
   return models.some((model) => escalated.has(model)) ? 'enforce' : 'shadow';
@@ -231,6 +280,7 @@ export type UserWritePolicy =
   | 'account_owned'
   | 'self'
   | 'tenant_scoped'
+  | 'mandate_tenant'
   | 'authenticated'
   | 'resolver_authorized';
 
@@ -267,7 +317,13 @@ export const MODEL_WRITE_RULES: ReadonlyMap<string, ModelWriteRule> = new Map<
   ['Configuration', { policy: 'authenticated', userActions: ONLY('upsert') }],
   ['DashboardLayout', { policy: 'authenticated', userActions: ONLY('upsert') }],
   ['Mandate', { policy: 'authenticated', userActions: ONLY('create', 'update') }],
-  ['MandateVersion', { policy: 'authenticated', userActions: ONLY('update') }],
+  // A version is the mandate's charter: a user may edit one only inside the
+  // tenant (organization or fund) of the mandate it belongs to.
+  ['MandateVersion', { policy: 'mandate_tenant', userActions: ONLY('update') }],
+  // Desk models with no user writer: overrides are set by operators, and a
+  // second factor only by the backend's own TOTP mutations.
+  ['FeatureFlagOverride', { policy: 'service_only' }],
+  ['UserTotp', { policy: 'service_only' }],
   ['MandateApproval', { policy: 'authenticated', userActions: ONLY('create') }],
   ['Alert', { policy: 'authenticated', userActions: ONLY('update') }],
   ['AuditLog', { policy: 'authenticated', userActions: ONLY('create') }],
@@ -301,6 +357,7 @@ export type MutationAuthReason =
   | 'authenticated_user_model'
   | 'resolver_authorized'
   | 'unauthenticated'
+  | 'service_principal_only'
   | 'model_not_user_writable'
   | 'action_not_user_writable'
   | 'bulk_not_user_writable'
@@ -334,6 +391,11 @@ export interface MutationFacts {
   readonly targetsSelf?: boolean;
   /** For `tenant_scoped`: the guard's own scope check; absent = not yet resolved. */
   readonly tenantScope?: TenantScope;
+  /**
+   * Every model the mutation's nested writes reach. A non-service principal is
+   * refused when one is service-principal only, whatever its root.
+   */
+  readonly nestedModels?: readonly string[];
   /** The refusal from `./nested-write-policy.ts`, if any nested write is refused. */
   readonly nestedRefusal?: 'nested_write_not_user_writable' | 'nested_entitlement_write' | null;
   /** The refusal from `./user-write-content.ts`, if the payload's content is refused. */
@@ -376,6 +438,10 @@ export function evaluateMutationAccess(
     return { allowed: false, reason: 'unauthenticated', refusal: 'unauthenticated' };
   }
   if (principal.kind === 'server') return allow('service_principal');
+  const written = [target.model, ...(facts.nestedModels ?? [])];
+  if (written.some((model) => SERVICE_PRINCIPAL_ONLY_MODELS.has(model))) {
+    return forbid('service_principal_only');
+  }
   if (principal.kind === 'admin') return allow('admin_principal');
 
   const rule = ruleFor(target.model);
@@ -398,6 +464,7 @@ export function evaluateMutationAccess(
     case 'self':
       return facts.targetsSelf === true ? allow('self') : forbid('not_self');
     case 'tenant_scoped':
+    case 'mandate_tenant':
       if (facts.tenantScope === 'in_scope') return allow('tenant_scoped');
       if (facts.tenantScope === 'out_of_scope') return forbid('tenant_out_of_scope');
       return forbid('tenant_unresolved');

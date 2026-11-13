@@ -106,7 +106,8 @@
     "type-graphql": "^2.0.0-rc.2",
     "typegraphql-prisma": "^0.28.0",
     "undici": "^6.27.1",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "zod": "^3.25.76"
   },
   "optionalDependencies": {
     "@aws-sdk/client-lambda": "^3.859.0",

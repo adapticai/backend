@@ -182,16 +182,25 @@ describe('read coverage on the tenant-scoped models', () => {
     return entry && typeof entry === 'object' ? Object.keys(entry) : [];
   }
 
-  it('names exactly the models observed answering unauthenticated', () => {
+  it('names exactly the models observed answering unauthenticated, plus the desk models', () => {
     // Exact, sorted, and deliberately not a length check: this list may only
-    // grow by measurement, so a change here has to be an explicit decision
-    // rather than a count that quietly absorbs one.
+    // grow by measurement (or, for a model born scoped, at birth), so a change
+    // here has to be an explicit decision rather than a count that quietly
+    // absorbs one.
     expect([...TENANT_SCOPED_READ_MODELS].sort()).toEqual([
+      'AdaConversation',
+      'AdaMessage',
       'AuditLog',
+      'AutoFollowRule',
+      'DeskDecision',
+      'FeatureFlagOverride',
+      'Follow',
       'Fund',
       'OrgMembership',
       'Organization',
+      'PushSubscription',
       'User',
+      'UserTotp',
     ]);
   });
 

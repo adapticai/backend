@@ -29,6 +29,7 @@ These variables must be configured for the application to run:
 | `JWT_SALT`                      | Salt for password hashing (min 32 chars)           | Generate with `openssl rand -base64 32`       |
 | `NEXTAUTH_SECRET`               | NextAuth secret (should match JWT_SECRET)          | Same as JWT_SECRET                            |
 | `NEXT_PUBLIC_SERVER_AUTH_TOKEN` | Server authentication token for GraphQL            | Custom token string                           |
+| `TOTP_ENCRYPTION_KEY`           | AES-256-GCM key for TOTP secrets at rest: exactly 32 bytes, base64. Without it every TOTP mutation fails with `TOTP_KEY_UNAVAILABLE`; rotating it makes existing enrolments unreadable (users re-enrol) | Generate with `openssl rand -base64 32` |
 
 #### Database
 

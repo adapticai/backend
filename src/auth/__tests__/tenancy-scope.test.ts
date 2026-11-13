@@ -196,18 +196,22 @@ describe('buildScopeWhere', () => {
   });
 
   it('scopes notification deliveries/preferences to the caller only', () => {
+    // Equality is in the filter-object form: the fragment is injected before
+    // TypeGraphQL converts the where argument into its filter input classes,
+    // and a bare value there converts to an empty filter that matches every
+    // row (src/tests/desk-authz.test.ts measures it on the served schema).
     const ent = entitlement();
     expect(buildScopeWhere('NotificationDelivery', ent)).toEqual({
-      recipientUserId: USER,
+      recipientUserId: { equals: USER },
     });
     expect(buildScopeWhere('NotificationPreference', ent)).toEqual({
-      userId: USER,
+      userId: { equals: USER },
     });
     expect(buildScopeWhere('NotificationEvent', ent)).toEqual({
       OR: [
         { orgId: { in: [ORG_A] } },
         { fundId: { in: [FUND_A1, FUND_A2] } },
-        { actorUserId: USER },
+        { actorUserId: { equals: USER } },
       ],
     });
   });

@@ -48,7 +48,7 @@
  * @module auth/nested-write-policy
  */
 
-import { ruleFor, type MutationAuthReason } from './mutation-authorization';
+import { ruleFor, type MutationAuthReason, type UserWritePolicy } from './mutation-authorization';
 import type { NestedWrite } from './nested-write-inspector';
 
 /** Where a relation's foreign key lives, as the Prisma data model states it. */
@@ -90,9 +90,19 @@ export type NestedWriteRefusal = Extract<
   'nested_write_not_user_writable' | 'nested_entitlement_write'
 >;
 
+/**
+ * A model's policy as the nested rules read it. `mandate_tenant` is a ROOT
+ * rule (the addressed version's mandate must be in the caller's tenant);
+ * nested, a mandate version keeps the `authenticated` treatment it had.
+ */
+function nestedPolicyOf(model: string): UserWritePolicy {
+  const policy = ruleFor(model).policy;
+  return policy === 'mandate_tenant' ? 'authenticated' : policy;
+}
+
 function connectAllowed(write: NestedWrite, callerId: string, relations: RelationFacts): boolean {
   if (relations.fkOnParent(write.parentModel, write.relation) !== true) return false;
-  const policy = ruleFor(write.model).policy;
+  const policy = nestedPolicyOf(write.model);
   switch (policy) {
     case 'self':
       return (
@@ -117,7 +127,7 @@ function connectAllowed(write: NestedWrite, callerId: string, relations: Relatio
 }
 
 function contentWriteAllowed(write: NestedWrite, operation: string): boolean {
-  const policy = ruleFor(write.model).policy;
+  const policy = nestedPolicyOf(write.model);
   if (operation === 'create' && policy === 'authenticated') return true;
   if (policy !== 'account_owned' || write.depth !== 1) return false;
   return OWNED_CONTENT_EDGES.get(`${write.parentModel}.${write.relation}`)?.has(operation) === true;

@@ -51,6 +51,29 @@ export const IR_MODELS: readonly EnhanceModelName[] = [
 ];
 
 /**
+ * The trading-desk models, admitted to {@link TENANT_SCOPED_READ_MODELS} at
+ * birth. The measurement criterion below exists to find surfaces that were
+ * already answering to anyone; these never did. Their row scope is the
+ * tenancy predicate in `src/auth/tenancy-scope.ts` (`DESK_MODELS`: a user's
+ * own rows for Follow, PushSubscription, UserTotp and an unshared
+ * AdaConversation; the fund tenant for DeskDecision, AutoFollowRule and a
+ * shared AdaConversation; the user or organization for FeatureFlagOverride),
+ * enforced in every mode, with an unauthenticated read refused outright by
+ * the tenancy middleware. Decorating them here puts the same reads on the
+ * checker's evaluation and would-deny series as the models below.
+ */
+export const DESK_READ_MODELS: readonly EnhanceModelName[] = [
+  'AdaConversation',
+  'AdaMessage',
+  'DeskDecision',
+  'PushSubscription',
+  'UserTotp',
+  'Follow',
+  'AutoFollowRule',
+  'FeatureFlagOverride',
+];
+
+/**
  * Models whose READ actions are decorated as well as their deletes.
  *
  * These four answer to anyone today. A read-only probe of the deployed API
@@ -106,6 +129,7 @@ export const TENANT_SCOPED_READ_MODELS: readonly EnhanceModelName[] = [
   'User',
   'AuditLog',
   'Fund',
+  ...DESK_READ_MODELS,
 ];
 
 /**

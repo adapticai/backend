@@ -25,6 +25,7 @@ import {
   BrokerageAccountCredentialStatusResolver,
   OptionsGreeksHistoryCustomResolver,
   TradingSettingsResolver,
+  UserTotpResolver,
 } from './resolvers/custom';
 import { createServer } from 'http';
 import cors from 'cors';
@@ -37,6 +38,7 @@ import { createAuditLogPlugin } from './middleware/audit-logger';
 import { createTenancyScopingMiddleware } from './middleware/tenancy-scoping';
 import { createCredentialFieldGuardMiddleware } from './middleware/credential-field-guard';
 import { installMutationAuthGuard } from './middleware/mutation-auth-guard';
+import { installMandateVersionValidation } from './middleware/mandate-version-validation';
 import { wsActorRequest } from './middleware/trading-policy-audit';
 import { cortexAuthChecker } from './auth/cortex-auth-checker';
 import { applyCortexAuthorizationMap } from './auth/authorization-map';
@@ -174,6 +176,7 @@ const startServer = async () => {
       TradingSettingsResolver,
       BrokerageAccountCredentialStatusResolver,
       AccountEquityCurveResolver,
+      UserTotpResolver,
     ],
     validate: false,
     // Row-level tenancy scoping (SP2-G7 / SOC2). Applies ONLY to user-scoped
@@ -209,6 +212,11 @@ const startServer = async () => {
   // `shadow`) and the per-model escalation `MUTATION_AUTH_ENFORCE_MODELS`; see
   // src/middleware/mutation-auth-guard.ts and
   // docs/security/2026-09-24-mutation-authorization-runbook.md.
+  // MandateVersion JSON shapes (autonomy, triggers, instruments) are checked on
+  // every mutation that can write a version, nested writes included. Installed
+  // BEFORE the guard so the guard wraps it and authorises first.
+  const mandateValidatedMutations = installMandateVersionValidation(schema);
+  logger.info('[mandate-version] JSON shape validation installed', { mandateValidatedMutations });
   const guardedMutations = installMutationAuthGuard(schema);
   logger.info('[mutation-auth] guard installed on every root Mutation field', {
     guardedMutations,

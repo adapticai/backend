@@ -66,6 +66,7 @@ import {
   evaluateMutationAccess,
   getEnforcedModels,
   getMutationAuthMode,
+  touchesAlwaysEnforced,
   type MutationAuthEvaluation,
   type MutationAuthMode,
   type MutationFacts,
@@ -92,7 +93,7 @@ import {
   type MutationAuthPrisma,
   type TouchedAccounts,
 } from './mutation-account-facts';
-import { tenantScopeOf } from './mutation-tenant-facts';
+import { mandateVersionScopeOf, tenantScopeOf } from './mutation-tenant-facts';
 import {
   actorFor,
   changeReasonFor,
@@ -291,9 +292,11 @@ async function decide(
   prisma: MutationAuthPrisma | undefined,
   relations: RelationFacts
 ): Promise<MutationAuthEvaluation> {
-  if (principal?.kind !== 'user') return evaluateMutationAccess(principal, target);
+  const nestedModels = nested.map((n) => n.model);
+  if (principal?.kind !== 'user') return evaluateMutationAccess(principal, target, { nestedModels });
 
   const facts: MutationFacts = {
+    nestedModels,
     nestedRefusal: firstNestedRefusal(nested, principal.sub, relations),
     contentRefusal: userContentRefusal(target, args, principal.sub),
     targetsSelf: targetsSelf(principal, args),
@@ -314,9 +317,11 @@ async function decide(
     }
   }
 
-  if (first.reason === 'tenant_unresolved' && isGovernedModel(target.model)) {
+  if (first.reason === 'tenant_unresolved' && (isGovernedModel(target.model) || target.model === 'MandateVersion')) {
     try {
-      const tenantScope = await tenantScopeOf(prisma, target.model, target, args, principal.sub);
+      const tenantScope = isGovernedModel(target.model)
+        ? await tenantScopeOf(prisma, target.model, target, args, principal.sub)
+        : await mandateVersionScopeOf(prisma, args, principal.sub);
       return evaluateMutationAccess(principal, target, { ...facts, tenantScope });
     } catch (error: unknown) {
       logger.error('[mutation-auth] tenant scope could not be read; refusing as unresolved', {
@@ -453,7 +458,8 @@ function createMutationGuard(
           ? { allowed: true, reason: 'guard_off' }
           : await decide(principal, target, nested, argRecord, touched, prisma, relations);
     } catch (error: unknown) {
-      const refuse = failsClosedOnError(baseMode);
+      const refuse =
+        failsClosedOnError(baseMode) || touchesAlwaysEnforced([classifyMutationField(info.fieldName, models).model]);
       mutationAuthorizationTotal.inc({
         mutation: info.fieldName,
         principal_kind: principal?.kind ?? 'none',

@@ -78,9 +78,31 @@ export function getTenancyScopingMode(
 // -----------------------------------------------------------------------------
 
 /**
- * The tenancy + notification models subject to row-level scoping. Everything
- * else (AlpacaAccount, Trade, User, …) is intentionally out of scope for this
- * change — see the SP2-G7 gap and the follow-ups in the middleware docs.
+ * The trading-desk models. They are tenancy-governed like the models above
+ * them, and additionally ALWAYS enforced (see {@link ALWAYS_ENFORCED_MODELS}).
+ *
+ * Ownership: Follow, PushSubscription and UserTotp belong to a user
+ * (`userId`); AdaConversation belongs to its author and is readable by the
+ * fund's members only when `sharedWithOrg`; AdaMessage inherits its
+ * conversation's scope; DeskDecision and AutoFollowRule belong to a fund;
+ * FeatureFlagOverride belongs to a user or an organization.
+ */
+export const DESK_MODELS = [
+  'Follow',
+  'AutoFollowRule',
+  'PushSubscription',
+  'AdaConversation',
+  'AdaMessage',
+  'UserTotp',
+  'DeskDecision',
+  'FeatureFlagOverride',
+] as const;
+
+/**
+ * The tenancy, notification and desk models subject to row-level scoping.
+ * Everything else (AlpacaAccount, Trade, User, …) is intentionally out of
+ * scope for this change — see the SP2-G7 gap and the follow-ups in the
+ * middleware docs.
  */
 export const GOVERNED_MODELS = [
   'Organization',
@@ -91,7 +113,28 @@ export const GOVERNED_MODELS = [
   'NotificationEvent',
   'NotificationDelivery',
   'NotificationPreference',
+  ...DESK_MODELS,
 ] as const;
+
+/**
+ * Governed models whose scoping is enforced in every mode, `off` included,
+ * and which refuse an unauthenticated caller outright.
+ *
+ * `TENANCY_SCOPING_MODE` stages the rollout for models that had live traffic
+ * before scoping existed: shadow proves no legitimate caller is caught before
+ * enforcement can break one, and `off` rolls back to the unscoped behaviour.
+ * The desk models were born after the guard and have never been served
+ * unscoped, so there is no caller for shadow to protect and no unscoped
+ * behaviour for `off` to restore. Holding them in shadow would only serve a
+ * user's conversations, push endpoints and second-factor state to whoever
+ * asks while the shadow series accumulated.
+ */
+export const ALWAYS_ENFORCED_MODELS: ReadonlySet<string> = new Set<string>(DESK_MODELS);
+
+/** Whether a governed model is scoped in every mode (see {@link ALWAYS_ENFORCED_MODELS}). */
+export function isAlwaysEnforced(model: string): boolean {
+  return ALWAYS_ENFORCED_MODELS.has(model);
+}
 
 /** A model name subject to row-level tenancy scoping. */
 export type GovernedModel = (typeof GOVERNED_MODELS)[number];
@@ -131,6 +174,14 @@ const PLURAL_FIELD: Record<GovernedModel, string> = {
   NotificationEvent: 'notificationEvents',
   NotificationDelivery: 'notificationDeliveries',
   NotificationPreference: 'notificationPreferences',
+  Follow: 'follows',
+  AutoFollowRule: 'autoFollowRules',
+  PushSubscription: 'pushSubscriptions',
+  AdaConversation: 'adaConversations',
+  AdaMessage: 'adaMessages',
+  UserTotp: 'userTotps',
+  DeskDecision: 'deskDecisions',
+  FeatureFlagOverride: 'featureFlagOverrides',
 };
 
 /** Lower-camel the first character of a model name (e.g. `Fund` → `fund`). */
@@ -281,6 +332,28 @@ export async function resolveEntitlement(
 /** A Prisma `where`-fragment object. */
 export type WhereFragment = Record<string, unknown>;
 
+/** The AdaConversation rows a user may READ: their own, and shared ones in an entitled fund. */
+function adaConversationReadScope(ent: Entitlement, fundIds: string[]): WhereFragment {
+  return {
+    OR: [{ userId: { equals: ent.userId } }, { sharedWithOrg: { equals: true }, fundId: { in: fundIds } }],
+  };
+}
+
+/**
+ * Equality on a scalar column, in the filter-object form.
+ *
+ * The fragment is injected into the GraphQL `where` argument BEFORE
+ * TypeGraphQL converts the arguments into the generated input classes, and
+ * the column's input type there is a filter class (`UuidFilter`,
+ * `StringFilter`). A bare value (`{ userId: 'u' }`) is valid Prisma but is not
+ * a filter object, so the conversion turns it into an empty filter, which
+ * matches every row: the scope would silently stop scoping. `{ equals }` is
+ * the form both the conversion and Prisma read the same way.
+ */
+function eq(value: string): { equals: string } {
+  return { equals: value };
+}
+
 /**
  * Build the Prisma `where` fragment that restricts reads/writes of a governed
  * model to the caller's entitled rows:
@@ -323,14 +396,45 @@ export function buildScopeWhere(
         OR: [
           { orgId: { in: orgIds } },
           { fundId: { in: fundIds } },
-          { actorUserId: ent.userId },
+          { actorUserId: eq(ent.userId) },
         ],
       };
     case 'NotificationDelivery':
-      return { recipientUserId: ent.userId };
+      return { recipientUserId: eq(ent.userId) };
     case 'NotificationPreference':
-      return { userId: ent.userId };
+    case 'Follow':
+    case 'PushSubscription':
+    case 'UserTotp':
+      return { userId: eq(ent.userId) };
+    case 'AutoFollowRule':
+    case 'DeskDecision':
+      return { fundId: { in: fundIds } };
+    case 'AdaConversation':
+      return adaConversationReadScope(ent, fundIds);
+    case 'AdaMessage':
+      return { conversation: { is: adaConversationReadScope(ent, fundIds) } };
+    case 'FeatureFlagOverride':
+      return { OR: [{ userId: eq(ent.userId) }, { organizationId: { in: orgIds } }] };
   }
+}
+
+/**
+ * The scope a WRITE (update, upsert, delete) must stay inside. Identical to
+ * {@link buildScopeWhere} except for Ada conversations: a conversation shared
+ * with the organization is readable by its members but writable only by its
+ * author, and the same holds for its messages.
+ *
+ * @param model - The governed model.
+ * @param ent - The caller's entitlement.
+ * @returns A Prisma `where` fragment.
+ */
+export function buildWriteScopeWhere(
+  model: GovernedModel,
+  ent: Entitlement
+): WhereFragment {
+  if (model === 'AdaConversation') return { userId: eq(ent.userId) };
+  if (model === 'AdaMessage') return { conversation: { is: { userId: eq(ent.userId) } } };
+  return buildScopeWhere(model, ent);
 }
 
 /**
@@ -432,11 +536,105 @@ function singleDataInScope(
       );
       return recipientId === ent.userId;
     }
-    case 'NotificationPreference': {
+    case 'NotificationPreference':
+    case 'PushSubscription':
+    case 'UserTotp': {
       const userId = readConnectId(data, 'userId', 'user');
       return userId === ent.userId;
     }
+    case 'Follow':
+    case 'AdaConversation': {
+      const userId = readConnectId(data, 'userId', 'user');
+      const fundId = readConnectId(data, 'fundId', 'fund');
+      return userId === ent.userId && fundId !== undefined && fundIds.has(fundId);
+    }
+    case 'AutoFollowRule': {
+      const ownerId = readConnectId(data, 'ownerId', 'owner');
+      const fundId = readConnectId(data, 'fundId', 'fund');
+      return ownerId === ent.userId && fundId !== undefined && fundIds.has(fundId);
+    }
+    case 'DeskDecision': {
+      const fundId = readConnectId(data, 'fundId', 'fund');
+      return fundId !== undefined && fundIds.has(fundId);
+    }
+    case 'FeatureFlagOverride': {
+      const userId = readConnectId(data, 'userId', 'user');
+      const orgId = readConnectId(data, 'organizationId', 'organization');
+      if (userId !== undefined && orgId !== undefined) return false;
+      return userId === ent.userId || (orgId !== undefined && orgIds.has(orgId));
+    }
+    case 'AdaMessage':
+      // A message's tenant is its conversation's, which the payload names only
+      // by id: it cannot be proven from the payload alone. The callers that can
+      // read the database resolve it with {@link parentScopedCreateInScope}.
+      return false;
   }
+}
+
+/** A governed model whose create payload is scoped by a parent row it references. */
+interface CreateParent {
+  readonly model: GovernedModel;
+  readonly scalarField: string;
+  readonly relationField: string;
+}
+
+const CREATE_PARENTS: Partial<Record<GovernedModel, CreateParent>> = {
+  AdaMessage: { model: 'AdaConversation', scalarField: 'conversationId', relationField: 'conversation' },
+};
+
+/** Minimal delegate for reading a parent row under a scope fragment. */
+export interface ParentScopeReader {
+  findFirst(args: { where: WhereFragment; select: { id: true } }): Promise<{ id: string } | null>;
+}
+
+/** The parent delegates {@link parentScopedCreateInScope} reads. */
+export interface ParentScopePrismaClient {
+  adaConversation: ParentScopeReader;
+}
+
+/** Whether a model's create is scoped by a parent row (see {@link parentScopedCreateInScope}). */
+export function hasCreateParent(model: GovernedModel): boolean {
+  return CREATE_PARENTS[model] !== undefined;
+}
+
+/**
+ * Whether a create payload (or every element of a createMany payload) names a
+ * parent row the caller may WRITE. Used for models whose tenant is their
+ * parent's, which {@link dataInScope} cannot decide from the payload alone.
+ *
+ * @param prisma - A client exposing the parent delegates.
+ * @param model - The governed model being created.
+ * @param data - The create payload (object or array).
+ * @param ent - The caller's entitlement.
+ * @returns `false` for a model with no parent rule, a payload naming no
+ *   parent, or a parent outside the caller's write scope.
+ */
+export async function parentScopedCreateInScope(
+  prisma: ParentScopePrismaClient,
+  model: GovernedModel,
+  data: unknown,
+  ent: Entitlement
+): Promise<boolean> {
+  const parent = CREATE_PARENTS[model];
+  if (!parent) return false;
+  const items = Array.isArray(data) ? data : [data];
+  if (items.length === 0) return false;
+  const ids: string[] = [];
+  for (const item of items) {
+    if (item === null || typeof item !== 'object') return false;
+    const id = readConnectId(item as Record<string, unknown>, parent.scalarField, parent.relationField);
+    if (id === undefined) return false;
+    ids.push(id);
+  }
+  const reader = prisma.adaConversation;
+  for (const id of unique(ids)) {
+    const row = await reader.findFirst({
+      where: injectScopeWhere({ id }, buildWriteScopeWhere(parent.model, ent)),
+      select: { id: true },
+    });
+    if (!row) return false;
+  }
+  return true;
 }
 
 /**
@@ -568,8 +766,28 @@ function readAlreadyScoped(
     case 'NotificationDelivery':
       return isSelf('recipientUserId');
     case 'NotificationPreference':
+    case 'PushSubscription':
+    case 'UserTotp':
       return isSelf('userId');
+    case 'Follow':
+      return isSelf('userId') || compoundIsSelf(where, 'userId_fundId_targetKind_targetId', ent.userId);
+    case 'AdaConversation':
+      return isSelf('userId');
+    case 'AutoFollowRule':
+    case 'DeskDecision':
+      return inFund('fundId');
+    case 'FeatureFlagOverride':
+      return isSelf('userId') || inOrg('organizationId');
+    case 'AdaMessage':
+      return false;
   }
+}
+
+/** Whether a compound unique selector in `where` names the caller as its `userId`. */
+function compoundIsSelf(where: WhereFragment | undefined, compound: string, userId: string): boolean {
+  const key = where?.[compound];
+  if (key === null || typeof key !== 'object') return false;
+  return (key as Record<string, unknown>).userId === userId;
 }
 
 /**
@@ -605,7 +823,17 @@ export function evaluateAccess(
 
   // upsertScope: verify the create payload AND require the where be pre-scoped
   // (the update path is additionally hardened by where-injection at enforce).
+  // An always-enforced model is never run unscoped, so its where-injection is
+  // guaranteed and carries the update side on its own: a `where` naming a row
+  // outside the caller's scope matches nothing and the upsert falls through to
+  // the create, which must be in scope. That lets a user upsert by a natural
+  // key the scope fragment does not name (a push subscription's `endpoint`).
   const createInScope = dataInScope(field.model, args.create, ent);
+  if (isAlwaysEnforced(field.model)) {
+    return createInScope
+      ? { decision: 'allow', reason: 'upsert_create_in_scope_where_injected' }
+      : { decision: 'deny', reason: 'upsert_create_out_of_scope' };
+  }
   const whereScoped = readAlreadyScoped(field.model, where, ent);
   if (createInScope && whereScoped) {
     return { decision: 'allow', reason: 'upsert_in_scope' };

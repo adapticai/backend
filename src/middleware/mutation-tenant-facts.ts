@@ -12,9 +12,11 @@
  * then checked against. The decision here is applied at the guard's own mode.
  *
  * - create: the payload's tenant must be one the caller is entitled to
- *   (`dataInScope`, the tenancy module's own create rule).
- * - update / delete: the addressed row must match the caller's scope
- *   (`findUnique` on the caller's `where` AND the scope fragment).
+ *   (`dataInScope`, the tenancy module's own create rule; for a model whose
+ *   tenant is a parent row's, such as an Ada message's conversation, the
+ *   parent is read under the caller's write scope).
+ * - update / delete: the addressed row must match the caller's WRITE scope
+ *   (`findUnique` on the caller's `where` AND the write-scope fragment).
  * - upsert: if the row exists it must be in scope; if it does not, the
  *   create payload must be.
  *
@@ -23,12 +25,16 @@
 
 import type { MutationTarget, TenantScope } from '../auth/mutation-authorization';
 import {
-  buildScopeWhere,
+  buildWriteScopeWhere,
   dataInScope,
+  hasCreateParent,
   injectScopeWhere,
+  parentScopedCreateInScope,
   resolveEntitlement,
+  type Entitlement,
   type EntitlementPrismaClient,
   type GovernedModel,
+  type ParentScopeReader,
 } from '../auth/tenancy-scope';
 
 type Where = Record<string, unknown>;
@@ -51,6 +57,15 @@ export interface TenantScopePrisma extends EntitlementPrismaClient {
   notificationEvent: ScopedRowReader;
   notificationDelivery: ScopedRowReader;
   notificationPreference: ScopedRowReader;
+  follow: ScopedRowReader;
+  autoFollowRule: ScopedRowReader;
+  pushSubscription: ScopedRowReader;
+  adaConversation: ScopedRowReader & ParentScopeReader;
+  adaMessage: ScopedRowReader;
+  userTotp: ScopedRowReader;
+  deskDecision: ScopedRowReader;
+  featureFlagOverride: ScopedRowReader;
+  mandateVersion: ScopedRowReader;
 }
 
 function readerFor(prisma: TenantScopePrisma, model: GovernedModel): ScopedRowReader {
@@ -71,7 +86,34 @@ function readerFor(prisma: TenantScopePrisma, model: GovernedModel): ScopedRowRe
       return prisma.notificationDelivery;
     case 'NotificationPreference':
       return prisma.notificationPreference;
+    case 'Follow':
+      return prisma.follow;
+    case 'AutoFollowRule':
+      return prisma.autoFollowRule;
+    case 'PushSubscription':
+      return prisma.pushSubscription;
+    case 'AdaConversation':
+      return prisma.adaConversation;
+    case 'AdaMessage':
+      return prisma.adaMessage;
+    case 'UserTotp':
+      return prisma.userTotp;
+    case 'DeskDecision':
+      return prisma.deskDecision;
+    case 'FeatureFlagOverride':
+      return prisma.featureFlagOverride;
   }
+}
+
+/** Whether a create (or upsert's create) payload lands in the caller's scope. */
+async function createInScope(
+  prisma: TenantScopePrisma,
+  model: GovernedModel,
+  data: unknown,
+  entitlement: Entitlement
+): Promise<boolean> {
+  if (dataInScope(model, data, entitlement)) return true;
+  return hasCreateParent(model) ? parentScopedCreateInScope(prisma, model, data, entitlement) : false;
 }
 
 function asRecord(value: unknown): Where | undefined {
@@ -94,18 +136,49 @@ export async function tenantScopeOf(
 ): Promise<TenantScope> {
   const entitlement = await resolveEntitlement(prisma, userId);
   if (target.action === 'create') {
-    return dataInScope(model, args.data, entitlement) ? 'in_scope' : 'out_of_scope';
+    return (await createInScope(prisma, model, args.data, entitlement)) ? 'in_scope' : 'out_of_scope';
   }
   const where = asRecord(args.where);
   if (!where) return 'out_of_scope';
   const reader = readerFor(prisma, model);
   const scoped = await reader.findUnique({
-    where: injectScopeWhere(where, buildScopeWhere(model, entitlement)),
+    where: injectScopeWhere(where, buildWriteScopeWhere(model, entitlement)),
     select: ID_ONLY,
   });
   if (scoped) return 'in_scope';
   if (target.action !== 'upsert') return 'out_of_scope';
   const existing = await reader.findUnique({ where, select: ID_ONLY });
   if (existing) return 'out_of_scope';
-  return dataInScope(model, args.create, entitlement) ? 'in_scope' : 'out_of_scope';
+  return (await createInScope(prisma, model, args.create, entitlement)) ? 'in_scope' : 'out_of_scope';
+}
+
+/**
+ * Whether a user's update of a MandateVersion addresses a version whose
+ * mandate lies in the caller's entitlement: the mandate's organization is one
+ * they are a member of, or its fund one they are entitled to. A user may only
+ * update a version (`MODEL_WRITE_RULES`), so the addressed row is all there
+ * is to check.
+ *
+ * @throws Whatever the database raised; the caller fails closed on it.
+ */
+export async function mandateVersionScopeOf(
+  prisma: TenantScopePrisma,
+  args: Record<string, unknown>,
+  userId: string
+): Promise<TenantScope> {
+  const where = asRecord(args.where);
+  if (!where) return 'out_of_scope';
+  const entitlement = await resolveEntitlement(prisma, userId);
+  const scoped = await prisma.mandateVersion.findUnique({
+    where: injectScopeWhere(where, {
+      mandate: {
+        OR: [
+          { organizationId: { in: [...entitlement.orgIds] } },
+          { fundId: { in: [...entitlement.fundIds] } },
+        ],
+      },
+    }),
+    select: ID_ONLY,
+  });
+  return scoped ? 'in_scope' : 'out_of_scope';
 }

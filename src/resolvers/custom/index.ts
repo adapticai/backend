@@ -22,3 +22,9 @@ export {
   AccountEquityCurve,
   EquityCurvePoint,
 } from './AccountEquityCurveResolver';
+export {
+  UserTotpResolver,
+  UserTotpEnrollment,
+  UserTotpResult,
+  UserTotpVerification,
+} from './UserTotpResolver';

@@ -23,6 +23,7 @@ interface TotpSurfaceReport {
   writeInputs: string[];
   enumValues: string[];
   userTotpFields: string[];
+  totpMutationOutputs: Record<string, string[]>;
 }
 
 const HARNESS_TIMEOUT_MS = 300_000;
@@ -42,6 +43,7 @@ describe('UserTotp secrets on the served GraphQL schema', () => {
       'createdAt',
       'enabledAt',
       'id',
+      'lastUsedStep',
       'updatedAt',
       'user',
       'userId',
@@ -50,6 +52,15 @@ describe('UserTotp secrets on the served GraphQL schema', () => {
 
   it('no output type returns them', () => {
     expect(report.outputs).toEqual([]);
+  });
+
+  it('the TOTP mutations are served, and only enrolment returns secret material', () => {
+    expect(report.totpMutationOutputs).toEqual({
+      enrollUserTotp: ['otpauthUri', 'recoveryCodes'],
+      confirmUserTotp: ['ok'],
+      verifyUserTotp: ['ok', 'recoveryUsed'],
+      disableUserTotp: ['ok'],
+    });
   });
 
   it('no filter, sort or having input accepts them', () => {

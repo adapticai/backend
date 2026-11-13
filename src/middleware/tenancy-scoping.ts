@@ -8,8 +8,11 @@
  * caller is entitled to.
  *
  * CRITICAL SAFETY CONTRACT: service (`SERVER_AUTH_TOKEN`) and admin principals
- * — and unauthenticated callers, which carry no user identity — are bypassed
- * before any scoping runs, in EVERY mode. The engine and utils call these
+ * — and, on the staged models, unauthenticated callers, which carry no user
+ * identity — are bypassed before any scoping runs, in EVERY mode. The desk
+ * models (`ALWAYS_ENFORCED_MODELS` in src/auth/tenancy-scope.ts) are the
+ * exception: they are scoped in every mode and refuse an unauthenticated
+ * caller with `UNAUTHENTICATED`. The engine and utils call these
  * resolvers with a server principal and MUST retain full unscoped access; this
  * middleware never narrows or denies a server/admin query.
  *
@@ -40,13 +43,20 @@ import { GraphQLError } from 'graphql';
 import type { BackendPrincipal } from '../auth/token-verifier';
 import {
   buildScopeWhere,
+  buildWriteScopeWhere,
   classifyGovernedField,
   evaluateAccess,
   getTenancyScopingMode,
+  hasCreateParent,
   injectScopeWhere,
+  isAlwaysEnforced,
+  parentScopedCreateInScope,
   resolveEntitlement,
+  type AccessAssessment,
   type EntitlementPrismaClient,
   type Entitlement,
+  type GovernedField,
+  type ParentScopePrismaClient,
   type TenancyScopingMode,
   type WhereFragment,
 } from '../auth/tenancy-scope';
@@ -74,6 +84,34 @@ function forbidden(message: string): GraphQLError {
   return new GraphQLError(message, {
     extensions: { code: 'FORBIDDEN', http: { status: 403 } },
   });
+}
+
+/** An `UNAUTHENTICATED` GraphQL error (HTTP 401) for an always-enforced model. */
+function unauthenticated(model: string): GraphQLError {
+  return new GraphQLError(`Unauthenticated: ${model} requires a verified principal`, {
+    extensions: { code: 'UNAUTHENTICATED', http: { status: 401 } },
+  });
+}
+
+/**
+ * For a create the payload cannot prove in scope on its own (a model scoped
+ * by a parent row, such as an Ada message by its conversation), read the
+ * parent under the caller's write scope. Any other assessment is returned as is.
+ */
+async function withParentScope(
+  governed: GovernedField,
+  assessment: AccessAssessment,
+  args: { data?: unknown },
+  context: TenancyScopingContext,
+  entitlement: Entitlement
+): Promise<AccessAssessment> {
+  if (governed.opKind !== 'createScope' || assessment.decision !== 'deny') return assessment;
+  if (!hasCreateParent(governed.model)) return assessment;
+  const prisma = context.prisma as ParentScopePrismaClient | undefined;
+  if (!prisma) return assessment;
+  return (await parentScopedCreateInScope(prisma, governed.model, args.data, entitlement))
+    ? { decision: 'allow', reason: 'create_parent_in_scope' }
+    : assessment;
 }
 
 /**
@@ -118,9 +156,6 @@ export function createTenancyScopingMiddleware(
     // typed pass-through so returning it downstream is not an unsafe-any return.
     const proceed = (): Promise<unknown> => next() as Promise<unknown>;
 
-    const mode = resolveMode();
-    if (mode === 'off') return proceed();
-
     // Only the root Query/Mutation entry points are scoped. Nested relation
     // resolvers (parentType is a model) and every non-governed field short out
     // here — the cheapest possible path for the hot resolver stack.
@@ -131,13 +166,29 @@ export function createTenancyScopingMiddleware(
     const governed = classifyGovernedField(info.fieldName);
     if (!governed) return proceed();
 
-    // Principal gate: service/admin/unauthenticated callers are NEVER scoped.
+    // An always-enforced (desk) model is scoped whatever the configured mode;
+    // see ALWAYS_ENFORCED_MODELS for why it has no shadow or off state.
+    const alwaysEnforced = isAlwaysEnforced(governed.model);
+    const mode: TenancyScopingMode = alwaysEnforced ? 'enforce' : resolveMode();
+    if (mode === 'off') return proceed();
+
+    // Principal gate: service/admin callers are NEVER scoped. An
+    // unauthenticated caller carries no identity to scope by: it passes on the
+    // staged models and is refused on the always-enforced ones.
     const principal = context.principal;
-    if (
-      !principal ||
-      principal.kind === 'server' ||
-      principal.kind === 'admin'
-    ) {
+    if (!principal) {
+      if (alwaysEnforced) {
+        tenancyScopingDecisionsTotal.inc({
+          mode,
+          model: governed.model,
+          operation: info.fieldName,
+          decision: 'deny',
+        });
+        throw unauthenticated(governed.model);
+      }
+      return proceed();
+    }
+    if (principal.kind === 'server' || principal.kind === 'admin') {
       return proceed();
     }
 
@@ -172,9 +223,15 @@ export function createTenancyScopingMiddleware(
       return proceed();
     }
 
-    const assessment = evaluateAccess(
+    const assessment = await withParentScope(
       governed,
-      args as { where?: unknown; data?: unknown; create?: unknown },
+      evaluateAccess(
+        governed,
+        args as { where?: unknown; data?: unknown; create?: unknown },
+        entitlement
+      ),
+      args as { data?: unknown },
+      context,
       entitlement
     );
 
@@ -206,10 +263,14 @@ export function createTenancyScopingMiddleware(
     }
 
     // --- enforce -------------------------------------------------------------
+    // A write (update, delete, upsert) is held to the write scope, which is
+    // narrower than the read scope for models a member may read but only the
+    // author may change (a shared Ada conversation).
+    const scopeFor = parentTypeName === 'Mutation' ? buildWriteScopeWhere : buildScopeWhere;
     if (governed.opKind === 'whereScope') {
       const scoped = injectScopeWhere(
         (args.where as WhereFragment | undefined) ?? undefined,
-        buildScopeWhere(governed.model, entitlement)
+        scopeFor(governed.model, entitlement)
       );
       (args as { where?: unknown }).where = scoped;
       return proceed();
@@ -232,7 +293,7 @@ export function createTenancyScopingMiddleware(
     if (governed.opKind === 'upsertScope') {
       const scoped = injectScopeWhere(
         (args.where as WhereFragment | undefined) ?? undefined,
-        buildScopeWhere(governed.model, entitlement)
+        scopeFor(governed.model, entitlement)
       );
       (args as { where?: unknown }).where = scoped;
     }
