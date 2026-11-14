@@ -21,6 +21,8 @@ import { logger } from './utils/logger';
   operationName
   ipAddress
   metadata
+  fundId
+  ledgerSeq
 
   `;
 
@@ -77,6 +79,7 @@ import { logger } from './utils/logger';
   operationName: props.operationName !== undefined ? props.operationName : undefined,
   ipAddress: props.ipAddress !== undefined ? props.ipAddress : undefined,
   metadata: props.metadata !== undefined ? props.metadata : undefined,
+  fundId: props.fundId !== undefined ? props.fundId : undefined,
 
             },
           };
@@ -239,6 +242,7 @@ import { logger } from './utils/logger';
   operationName: prop.operationName !== undefined ? prop.operationName : undefined,
   ipAddress: prop.ipAddress !== undefined ? prop.ipAddress : undefined,
   metadata: prop.metadata !== undefined ? prop.metadata : undefined,
+  fundId: prop.fundId !== undefined ? prop.fundId : undefined,
       })),
           ...(options?.skipDuplicates ? { skipDuplicates: true } : {}),
         };
@@ -416,6 +420,9 @@ import { logger } from './utils/logger';
             set: props.ipAddress 
            } : undefined,
   metadata: props.metadata !== undefined ? props.metadata : undefined,
+  fundId: props.fundId !== undefined ? {
+            set: props.fundId 
+           } : undefined,
       },
         };
 
@@ -583,6 +590,7 @@ import { logger } from './utils/logger';
   operationName: props.operationName !== undefined ? props.operationName : undefined,
   ipAddress: props.ipAddress !== undefined ? props.ipAddress : undefined,
   metadata: props.metadata !== undefined ? props.metadata : undefined,
+  fundId: props.fundId !== undefined ? props.fundId : undefined,
       },
           update: {
       timestamp: props.timestamp !== undefined ? {
@@ -608,6 +616,9 @@ import { logger } from './utils/logger';
             set: props.ipAddress 
            } : undefined,
   metadata: props.metadata !== undefined ? props.metadata : undefined,
+  fundId: props.fundId !== undefined ? {
+            set: props.fundId 
+           } : undefined,
       },
         };
 
@@ -790,6 +801,9 @@ import { logger } from './utils/logger';
             set: prop.ipAddress 
            } : undefined,
   metadata: prop.metadata !== undefined ? prop.metadata : undefined,
+  fundId: prop.fundId !== undefined ? {
+            set: prop.fundId 
+           } : undefined,
 
           },
         }));

@@ -210,6 +210,7 @@ import { logger } from './utils/logger';
         kind: props.strategyRef.kind !== undefined ? props.strategyRef.kind : undefined,
         spec: props.strategyRef.spec !== undefined ? props.strategyRef.spec : undefined,
         backtestJobId: props.strategyRef.backtestJobId !== undefined ? props.strategyRef.backtestJobId : undefined,
+        desk: props.strategyRef.desk !== undefined ? props.strategyRef.desk : undefined,
         deletedAt: props.strategyRef.deletedAt !== undefined ? props.strategyRef.deletedAt : undefined,
     owner: props.strategyRef.owner ? 
       typeof props.strategyRef.owner === 'object' && Object.keys(props.strategyRef.owner).length === 1 && Object.keys(props.strategyRef.owner)[0] === 'id'
@@ -1641,6 +1642,9 @@ import { logger } from './utils/logger';
         backtestJobId: props.strategyRef.backtestJobId !== undefined ? {
             set: props.strategyRef.backtestJobId
           } : undefined,
+        desk: props.strategyRef.desk !== undefined ? {
+            set: props.strategyRef.desk
+          } : undefined,
         deletedAt: props.strategyRef.deletedAt !== undefined ? {
             set: props.strategyRef.deletedAt
           } : undefined,
@@ -4153,6 +4157,7 @@ import { logger } from './utils/logger';
         kind: props.strategyRef.kind !== undefined ? props.strategyRef.kind : undefined,
         spec: props.strategyRef.spec !== undefined ? props.strategyRef.spec : undefined,
         backtestJobId: props.strategyRef.backtestJobId !== undefined ? props.strategyRef.backtestJobId : undefined,
+        desk: props.strategyRef.desk !== undefined ? props.strategyRef.desk : undefined,
         deletedAt: props.strategyRef.deletedAt !== undefined ? props.strategyRef.deletedAt : undefined,
     owner: props.strategyRef.owner ? 
       typeof props.strategyRef.owner === 'object' && Object.keys(props.strategyRef.owner).length === 1 && Object.keys(props.strategyRef.owner)[0] === 'id'
@@ -5265,6 +5270,7 @@ import { logger } from './utils/logger';
         kind: props.strategyRef.kind !== undefined ? props.strategyRef.kind : undefined,
         spec: props.strategyRef.spec !== undefined ? props.strategyRef.spec : undefined,
         backtestJobId: props.strategyRef.backtestJobId !== undefined ? props.strategyRef.backtestJobId : undefined,
+        desk: props.strategyRef.desk !== undefined ? props.strategyRef.desk : undefined,
         deletedAt: props.strategyRef.deletedAt !== undefined ? props.strategyRef.deletedAt : undefined,
     owner: props.strategyRef.owner ? 
       typeof props.strategyRef.owner === 'object' && Object.keys(props.strategyRef.owner).length === 1 && Object.keys(props.strategyRef.owner)[0] === 'id'
@@ -6346,6 +6352,9 @@ import { logger } from './utils/logger';
         spec: props.strategyRef.spec !== undefined ? props.strategyRef.spec : undefined,
         backtestJobId: props.strategyRef.backtestJobId !== undefined ? {
             set: props.strategyRef.backtestJobId
+          } : undefined,
+        desk: props.strategyRef.desk !== undefined ? {
+            set: props.strategyRef.desk
           } : undefined,
         deletedAt: props.strategyRef.deletedAt !== undefined ? {
             set: props.strategyRef.deletedAt
@@ -8859,6 +8868,7 @@ import { logger } from './utils/logger';
         kind: props.strategyRef.kind !== undefined ? props.strategyRef.kind : undefined,
         spec: props.strategyRef.spec !== undefined ? props.strategyRef.spec : undefined,
         backtestJobId: props.strategyRef.backtestJobId !== undefined ? props.strategyRef.backtestJobId : undefined,
+        desk: props.strategyRef.desk !== undefined ? props.strategyRef.desk : undefined,
         deletedAt: props.strategyRef.deletedAt !== undefined ? props.strategyRef.deletedAt : undefined,
     owner: props.strategyRef.owner ? 
       typeof props.strategyRef.owner === 'object' && Object.keys(props.strategyRef.owner).length === 1 && Object.keys(props.strategyRef.owner)[0] === 'id'
@@ -10103,6 +10113,9 @@ import { logger } from './utils/logger';
         spec: prop.strategyRef.spec !== undefined ? prop.strategyRef.spec : undefined,
         backtestJobId: prop.strategyRef.backtestJobId !== undefined ? {
             set: prop.strategyRef.backtestJobId
+          } : undefined,
+        desk: prop.strategyRef.desk !== undefined ? {
+            set: prop.strategyRef.desk
           } : undefined,
         deletedAt: prop.strategyRef.deletedAt !== undefined ? {
             set: prop.strategyRef.deletedAt
@@ -12616,6 +12629,7 @@ import { logger } from './utils/logger';
         kind: prop.strategyRef.kind !== undefined ? prop.strategyRef.kind : undefined,
         spec: prop.strategyRef.spec !== undefined ? prop.strategyRef.spec : undefined,
         backtestJobId: prop.strategyRef.backtestJobId !== undefined ? prop.strategyRef.backtestJobId : undefined,
+        desk: prop.strategyRef.desk !== undefined ? prop.strategyRef.desk : undefined,
         deletedAt: prop.strategyRef.deletedAt !== undefined ? prop.strategyRef.deletedAt : undefined,
     owner: prop.strategyRef.owner ? 
       typeof prop.strategyRef.owner === 'object' && Object.keys(prop.strategyRef.owner).length === 1 && Object.keys(prop.strategyRef.owner)[0] === 'id'

@@ -36,6 +36,10 @@ import { logger } from './utils/logger';
   threshold
   unit
   limitKind
+  ruleCode
+  metricKey
+  action
+  group
   orderIdx
   createdAt
   updatedAt
@@ -93,6 +97,10 @@ import { logger } from './utils/logger';
   threshold: props.threshold !== undefined ? props.threshold : undefined,
   unit: props.unit !== undefined ? props.unit : undefined,
   limitKind: props.limitKind !== undefined ? props.limitKind : undefined,
+  ruleCode: props.ruleCode !== undefined ? props.ruleCode : undefined,
+  metricKey: props.metricKey !== undefined ? props.metricKey : undefined,
+  action: props.action !== undefined ? props.action : undefined,
+  group: props.group !== undefined ? props.group : undefined,
   orderIdx: props.orderIdx !== undefined ? props.orderIdx : undefined,
   mandateVersion: props.mandateVersion ? 
     typeof props.mandateVersion === 'object' && Object.keys(props.mandateVersion).length === 1 && Object.keys(props.mandateVersion)[0] === 'id'
@@ -902,6 +910,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -1440,6 +1449,10 @@ import { logger } from './utils/logger';
   threshold: prop.threshold !== undefined ? prop.threshold : undefined,
   unit: prop.unit !== undefined ? prop.unit : undefined,
   limitKind: prop.limitKind !== undefined ? prop.limitKind : undefined,
+  ruleCode: prop.ruleCode !== undefined ? prop.ruleCode : undefined,
+  metricKey: prop.metricKey !== undefined ? prop.metricKey : undefined,
+  action: prop.action !== undefined ? prop.action : undefined,
+  group: prop.group !== undefined ? prop.group : undefined,
   orderIdx: prop.orderIdx !== undefined ? prop.orderIdx : undefined,
       })),
           ...(options?.skipDuplicates ? { skipDuplicates: true } : {}),
@@ -1615,6 +1628,18 @@ import { logger } from './utils/logger';
            } : undefined,
   limitKind: props.limitKind !== undefined ? {
             set: props.limitKind 
+           } : undefined,
+  ruleCode: props.ruleCode !== undefined ? {
+            set: props.ruleCode 
+           } : undefined,
+  metricKey: props.metricKey !== undefined ? {
+            set: props.metricKey 
+           } : undefined,
+  action: props.action !== undefined ? {
+            set: props.action 
+           } : undefined,
+  group: props.group !== undefined ? {
+            set: props.group 
            } : undefined,
   orderIdx: props.orderIdx !== undefined ? {
             set: props.orderIdx 
@@ -3435,6 +3460,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            desk: item.desk !== undefined ? {
+                set: item.desk
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -3449,6 +3477,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -4305,6 +4334,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -5938,6 +5968,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -6486,6 +6517,10 @@ import { logger } from './utils/logger';
   threshold: props.threshold !== undefined ? props.threshold : undefined,
   unit: props.unit !== undefined ? props.unit : undefined,
   limitKind: props.limitKind !== undefined ? props.limitKind : undefined,
+  ruleCode: props.ruleCode !== undefined ? props.ruleCode : undefined,
+  metricKey: props.metricKey !== undefined ? props.metricKey : undefined,
+  action: props.action !== undefined ? props.action : undefined,
+  group: props.group !== undefined ? props.group : undefined,
   orderIdx: props.orderIdx !== undefined ? props.orderIdx : undefined,
   mandateVersion: props.mandateVersion ? 
     typeof props.mandateVersion === 'object' && Object.keys(props.mandateVersion).length === 1 && Object.keys(props.mandateVersion)[0] === 'id'
@@ -7295,6 +7330,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -7694,6 +7730,18 @@ import { logger } from './utils/logger';
            } : undefined,
   limitKind: props.limitKind !== undefined ? {
             set: props.limitKind 
+           } : undefined,
+  ruleCode: props.ruleCode !== undefined ? {
+            set: props.ruleCode 
+           } : undefined,
+  metricKey: props.metricKey !== undefined ? {
+            set: props.metricKey 
+           } : undefined,
+  action: props.action !== undefined ? {
+            set: props.action 
+           } : undefined,
+  group: props.group !== undefined ? {
+            set: props.group 
            } : undefined,
   orderIdx: props.orderIdx !== undefined ? {
             set: props.orderIdx 
@@ -9508,6 +9556,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            desk: item.desk !== undefined ? {
+                set: item.desk
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -9522,6 +9573,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -10378,6 +10430,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -12011,6 +12064,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -12567,6 +12621,18 @@ import { logger } from './utils/logger';
            } : undefined,
   limitKind: prop.limitKind !== undefined ? {
             set: prop.limitKind 
+           } : undefined,
+  ruleCode: prop.ruleCode !== undefined ? {
+            set: prop.ruleCode 
+           } : undefined,
+  metricKey: prop.metricKey !== undefined ? {
+            set: prop.metricKey 
+           } : undefined,
+  action: prop.action !== undefined ? {
+            set: prop.action 
+           } : undefined,
+  group: prop.group !== undefined ? {
+            set: prop.group 
            } : undefined,
   orderIdx: prop.orderIdx !== undefined ? {
             set: prop.orderIdx 
@@ -14387,6 +14453,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            desk: item.desk !== undefined ? {
+                set: item.desk
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -14401,6 +14470,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -15257,6 +15327,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -16890,6 +16961,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))

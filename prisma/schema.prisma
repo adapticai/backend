@@ -5231,11 +5231,28 @@ model AuditLog {
   /// Additional metadata about the mutation context. TYPESTRING.SKIP=true
   metadata Json?
 
+  /// The fund this entry belongs to on the desk ledger. Null for entries no
+  /// fund ledger shows (rows written before the ledger existed, and system
+  /// writes outside any fund). Like `userId`, it carries no foreign key: an
+  /// audit record outlives the row it names.
+  fundId String? @db.Uuid
+
+  /// Ledger position, assigned by the database from the `audit_logs_ledger_seq`
+  /// sequence on insert and never by a caller (omitted from the create and
+  /// update inputs). Strictly increasing across all rows, so increasing within
+  /// every fund, with gaps. Rows written before the ledger existed hold null:
+  /// numbering them would invent an order their timestamps do not establish.
+  /// The desk ledger id is `L-<ledgerSeq>`; a page before a cursor is
+  /// `where: { fundId: { equals }, ledgerSeq: { lt } }`, `orderBy: [{ ledgerSeq: { sort: desc } }]`.
+  /// @TypeGraphQL.omit(input: ["create", "update"])
+  ledgerSeq BigInt? @unique @default(autoincrement())
+
   @@index([timestamp])
   @@index([userId, timestamp])
   @@index([modelName, timestamp])
   @@index([recordId])
   @@index([operationType, timestamp])
+  @@index([fundId, ledgerSeq])
   @@map(name: "audit_logs")
 }
 
@@ -7212,6 +7229,82 @@ enum MandateLimitKind {
   TRIGGER
 }
 
+/// A quantity the engine measures today and a MandateRule can bound. Only
+/// measured quantities are listed: a rule keyed to a quantity the engine does
+/// not compute would render a gauge with no reading. Each value names the
+/// engine computation it reads and its unit.
+enum MandateMetric {
+  /// Gross exposure over equity, (|long| + |short|) / equity, as a multiple
+  /// (engine `websockets/handlers/risk-handler.ts` grossExposure / leverage;
+  /// risk-validation Stage 6 currentLeverage).
+  GROSS_LEVERAGE
+
+  /// |net exposure| / gross exposure, as a fraction (engine risk-handler
+  /// `exposure_net` limit check).
+  NET_EXPOSURE_RATIO
+
+  /// Largest single-name |market value| / equity, as a fraction (engine
+  /// risk-handler position weight; risk-validation Stage 4).
+  SINGLE_NAME_CONCENTRATION
+
+  /// Largest single-sector weight of equity, as a fraction (engine risk-handler
+  /// sectorExposure; risk-validation Stage 5 maxSectorConcentration).
+  MAX_SECTOR_CONCENTRATION
+
+  /// Session loss against the daily-loss baseline, as a fraction of equity
+  /// (engine risk-validation Stage 9 dailyPnL).
+  DAILY_LOSS
+
+  /// Drawdown from the account equity high-water mark, as a fraction (engine
+  /// risk-validation Stage 10 computeDrawdownFraction).
+  DRAWDOWN
+
+  /// Parametric one-day 95% value at risk, in account currency (engine
+  /// RiskMetricsCalculatorService via risk-handler var95).
+  VAR_95
+
+  /// Parametric one-day 99% value at risk, in account currency (risk-handler var99).
+  VAR_99
+
+  /// Parametric one-day 95% expected shortfall, in account currency
+  /// (risk-handler expectedShortfall).
+  EXPECTED_SHORTFALL_95
+
+  /// Broker initial-margin requirement over equity, as a fraction (engine
+  /// risk-handler marginUtilization).
+  MARGIN_UTILIZATION
+
+  /// Number of open positions (engine risk-validation Stage 3).
+  OPEN_POSITIONS
+}
+
+/// What the engine does when a MandateRule's measured quantity crosses its threshold.
+enum MandateAction {
+  /// Refuse the order that would cross the threshold.
+  BLOCK
+
+  /// Raise a desk decision for a human before acting.
+  ESCALATE
+
+  /// Halt new risk in the rule's scope.
+  HALT
+
+  /// Reduce exposure in the rule's scope.
+  DERISK
+}
+
+/// The group a MandateRule's limit gauge is shown under on the desk.
+enum MandateRuleGroup {
+  /// Exposure and concentration limits.
+  EXPOSURE
+
+  /// Loss, drawdown and value-at-risk limits.
+  LOSS
+
+  /// Liquidity and participation limits.
+  LIQUIDITY
+}
+
 // A Mandate is the org/fund-scoped, authored governance charter — the INTENT layer that sits
 // ABOVE the per-account TradingPolicy the engine enforces. It holds identity + tenancy scope +
 // owner + persona scope + a pointer to the currently-active MandateVersion. The versioned
@@ -7386,6 +7479,26 @@ model MandateRule {
   /// Direction/nature of the threshold (MAX/MIN/TARGET/TRIGGER); platform MandateRule.limitKind. Null for qualitative clauses.
   limitKind MandateLimitKind?
 
+  /// Stable code naming this rule within its version (e.g. `R-01`, `R-01b`); the
+  /// desk's limit gauges and the ledger cite it. Unique per mandate version.
+  /// Null for a clause no gauge or ledger entry cites.
+  ruleCode String? @db.VarChar(32)
+
+  /// The quantity the engine measures against `threshold`. Null for a
+  /// qualitative clause, which no gauge can show. A rule naming a metric must
+  /// also carry `threshold`, `action`, `group` and `ruleCode` (database CHECK
+  /// `mandate_rules_metric_complete_check`), because a limit gauge needs every
+  /// one of them.
+  metricKey MandateMetric?
+
+  /// What the engine does when the measured quantity crosses `threshold`. Null
+  /// for a qualitative clause.
+  action MandateAction?
+
+  /// The gauge group this rule is shown under on the desk. Null for a
+  /// qualitative clause.
+  group MandateRuleGroup?
+
   /// Ordering index of this rule within its version (ascending). TYPESTRING.SKIP=true
   orderIdx Int @default(0)
 
@@ -7395,6 +7508,7 @@ model MandateRule {
   /// Timestamp when the rule was last updated. TYPESTRING.SKIP=true
   updatedAt DateTime @updatedAt
 
+  @@unique([mandateVersionId, ruleCode])
   @@index([mandateVersionId])
   @@index([mandateVersionId, orderIdx])
   @@map(name: "mandate_rules")
@@ -7550,6 +7664,12 @@ model Strategy {
   /// Identifier of the backtest job run against `spec`. NULL means none has run.
   backtestJobId String?
 
+  /// The agent desk this strategy trades under. NULL means no operator has
+  /// assigned it yet: a strategy is never placed on a desk by default, because
+  /// the desk decides which autonomy matrix governs its orders and which desk's
+  /// metrics its fills count toward.
+  desk DeskType?
+
   /// Foreign key referencing the owning User. NULL for SYSTEM strategies,
   /// which the platform owns rather than any individual. TYPESTRING.SKIP=true
   ownerUserId String? @db.Uuid
@@ -7577,6 +7697,7 @@ model Strategy {
 
   @@index([lifecycleState])
   @@index([ownerUserId])
+  @@index([desk])
   @@map(name: "strategies")
 }
 
@@ -7729,6 +7850,18 @@ enum DeskDecisionStatus {
 
   /// Not decided by `dueAt`; the server applied `defaultAction`.
   defaulted
+}
+
+/// The three agent desks a strategy, and so its orders, are attributed to.
+enum DeskType {
+  /// Trades discrete events (earnings, guidance, macro releases, news clusters).
+  EVENT
+
+  /// Holds thematic baskets authored as a thesis with constituents and weights.
+  THEMATIC
+
+  /// Runs signal strategies defined by inputs and a formula over a universe.
+  SYSTEMATIC
 }
 
 /// Authoring kind of a Strategy drafted on the desk.

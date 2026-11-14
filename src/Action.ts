@@ -166,6 +166,7 @@ import { logger } from './utils/logger';
           kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
           spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
+          desk: props.trade.strategyRef.desk !== undefined ? props.trade.strategyRef.desk : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
         typeof props.trade.strategyRef.owner === 'object' && Object.keys(props.trade.strategyRef.owner).length === 1 && Object.keys(props.trade.strategyRef.owner)[0] === 'id'
@@ -787,6 +788,9 @@ import { logger } from './utils/logger';
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? {
               set: props.trade.strategyRef.backtestJobId
             } : undefined,
+          desk: props.trade.strategyRef.desk !== undefined ? {
+              set: props.trade.strategyRef.desk
+            } : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? {
               set: props.trade.strategyRef.deletedAt
             } : undefined,
@@ -962,6 +966,7 @@ import { logger } from './utils/logger';
           kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
           spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
+          desk: props.trade.strategyRef.desk !== undefined ? props.trade.strategyRef.desk : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
         typeof props.trade.strategyRef.owner === 'object' && Object.keys(props.trade.strategyRef.owner).length === 1 && Object.keys(props.trade.strategyRef.owner)[0] === 'id'
@@ -1096,6 +1101,7 @@ import { logger } from './utils/logger';
           kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
           spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
+          desk: props.trade.strategyRef.desk !== undefined ? props.trade.strategyRef.desk : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
         typeof props.trade.strategyRef.owner === 'object' && Object.keys(props.trade.strategyRef.owner).length === 1 && Object.keys(props.trade.strategyRef.owner)[0] === 'id'
@@ -1429,6 +1435,7 @@ import { logger } from './utils/logger';
           kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
           spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
+          desk: props.trade.strategyRef.desk !== undefined ? props.trade.strategyRef.desk : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
         typeof props.trade.strategyRef.owner === 'object' && Object.keys(props.trade.strategyRef.owner).length === 1 && Object.keys(props.trade.strategyRef.owner)[0] === 'id'
@@ -1728,6 +1735,9 @@ import { logger } from './utils/logger';
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? {
               set: props.trade.strategyRef.backtestJobId
             } : undefined,
+          desk: props.trade.strategyRef.desk !== undefined ? {
+              set: props.trade.strategyRef.desk
+            } : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? {
               set: props.trade.strategyRef.deletedAt
             } : undefined,
@@ -1903,6 +1913,7 @@ import { logger } from './utils/logger';
           kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
           spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
+          desk: props.trade.strategyRef.desk !== undefined ? props.trade.strategyRef.desk : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
         typeof props.trade.strategyRef.owner === 'object' && Object.keys(props.trade.strategyRef.owner).length === 1 && Object.keys(props.trade.strategyRef.owner)[0] === 'id'
@@ -2037,6 +2048,7 @@ import { logger } from './utils/logger';
           kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
           spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
+          desk: props.trade.strategyRef.desk !== undefined ? props.trade.strategyRef.desk : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
         typeof props.trade.strategyRef.owner === 'object' && Object.keys(props.trade.strategyRef.owner).length === 1 && Object.keys(props.trade.strategyRef.owner)[0] === 'id'
@@ -2499,6 +2511,9 @@ import { logger } from './utils/logger';
           backtestJobId: prop.trade.strategyRef.backtestJobId !== undefined ? {
               set: prop.trade.strategyRef.backtestJobId
             } : undefined,
+          desk: prop.trade.strategyRef.desk !== undefined ? {
+              set: prop.trade.strategyRef.desk
+            } : undefined,
           deletedAt: prop.trade.strategyRef.deletedAt !== undefined ? {
               set: prop.trade.strategyRef.deletedAt
             } : undefined,
@@ -2674,6 +2689,7 @@ import { logger } from './utils/logger';
           kind: prop.trade.strategyRef.kind !== undefined ? prop.trade.strategyRef.kind : undefined,
           spec: prop.trade.strategyRef.spec !== undefined ? prop.trade.strategyRef.spec : undefined,
           backtestJobId: prop.trade.strategyRef.backtestJobId !== undefined ? prop.trade.strategyRef.backtestJobId : undefined,
+          desk: prop.trade.strategyRef.desk !== undefined ? prop.trade.strategyRef.desk : undefined,
           deletedAt: prop.trade.strategyRef.deletedAt !== undefined ? prop.trade.strategyRef.deletedAt : undefined,
       owner: prop.trade.strategyRef.owner ? 
         typeof prop.trade.strategyRef.owner === 'object' && Object.keys(prop.trade.strategyRef.owner).length === 1 && Object.keys(prop.trade.strategyRef.owner)[0] === 'id'
@@ -2808,6 +2824,7 @@ import { logger } from './utils/logger';
           kind: prop.trade.strategyRef.kind !== undefined ? prop.trade.strategyRef.kind : undefined,
           spec: prop.trade.strategyRef.spec !== undefined ? prop.trade.strategyRef.spec : undefined,
           backtestJobId: prop.trade.strategyRef.backtestJobId !== undefined ? prop.trade.strategyRef.backtestJobId : undefined,
+          desk: prop.trade.strategyRef.desk !== undefined ? prop.trade.strategyRef.desk : undefined,
           deletedAt: prop.trade.strategyRef.deletedAt !== undefined ? prop.trade.strategyRef.deletedAt : undefined,
       owner: prop.trade.strategyRef.owner ? 
         typeof prop.trade.strategyRef.owner === 'object' && Object.keys(prop.trade.strategyRef.owner).length === 1 && Object.keys(prop.trade.strategyRef.owner)[0] === 'id'
