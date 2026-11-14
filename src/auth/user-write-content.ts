@@ -9,7 +9,9 @@
  *   identity (`id`, `email`, `emailVerified`), a billing link (`customerId`,
  *   `plan`) or a stored credential (`openaiAPIKey`). A user may set only the
  *   profile and onboarding fields the platform's own routes write, and no
- *   relation at all through their row.
+ *   relation at all through their row. Desk availability (`availability`,
+ *   `availabilityUntil`) is the user's own statement of whether they are at
+ *   the desk; deputy routing reads it, so only its owner may set it.
  * - **AuditLog.** The attributed TradingPolicy trail is identified by
  *   `metadata.source = 'mutation-auth-guard'`. A user-authored row claiming
  *   that source, or naming someone else as its `userId`, is a forged
@@ -34,6 +36,8 @@ export const USER_SELF_WRITABLE_FIELDS: ReadonlySet<string> = new Set([
   'jobTitle',
   'onboardingComplete',
   'signupCategory',
+  'availability',
+  'availabilityUntil',
 ]);
 
 /** `AuditLog.metadata.source` values only the backend itself may write. */

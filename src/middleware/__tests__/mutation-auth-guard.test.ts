@@ -433,6 +433,13 @@ describe('user write content', () => {
     expect(scenario('self/owner/enforce').writes).toEqual(['user.update']);
   });
 
+  it('lets a user set their own desk availability, and never another user\'s', () => {
+    const own = scenario('m/availability/owner/enforce');
+    expect(own.reasons).toEqual([]);
+    expect(own.writes).toEqual(['user.update']);
+    expectRefused('m/availabilityOther/owner/enforce', 'not_self');
+  });
+
   it('refuses a user-authored audit row claiming the guard\'s source', () => {
     expectRefused('m/forgedAudit/owner/enforce', 'reserved_audit_source');
     expect(scenario('m/audit/owner/enforce').writes).toEqual(['auditLog.create']);

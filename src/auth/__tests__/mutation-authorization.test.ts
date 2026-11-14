@@ -341,6 +341,16 @@ describe('userContentRefusal', () => {
     }
   });
 
+  it('lets a user set their own desk availability and when it lapses', () => {
+    expect(
+      userContentRefusal(
+        t('updateOneUser'),
+        { data: { availability: { set: 'away' }, availabilityUntil: { set: '2026-11-14T10:00:00.000Z' } } },
+        me
+      )
+    ).toBeNull();
+  });
+
   it('refuses an audit row claiming the guard\'s source or another author', () => {
     expect(userContentRefusal(t('createOneAuditLog'), { data: { metadata: { source: 'mutation-auth-guard' } } }, me)).toBe(
       'reserved_audit_source'

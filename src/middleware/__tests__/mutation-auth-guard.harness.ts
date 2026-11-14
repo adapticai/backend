@@ -152,6 +152,9 @@ const ARM_VIA_BROKER = `mutation { updateOneBrokerageAccount(where: { id: "ba2" 
 
 // Majors.
 const SELF_ROLE = `mutation { updateOneUser(where: { id: "${U_OWNER}" }, data: { role: { set: ADMIN } }) { id } }`;
+// Desk availability: a user sets their own; never another user's.
+const SET_AVAILABILITY = (userId: string): string =>
+  `mutation { updateOneUser(where: { id: "${userId}" }, data: { availability: { set: away }, availabilityUntil: { set: "2026-11-14T10:00:00.000Z" } }) { id } }`;
 const AUDIT_ROW = (source: string): string =>
   `mutation { createOneAuditLog(data: { userId: "${U_OWNER}", operationType: UPDATE, modelName: "TradingPolicy", recordId: "p1", changedFields: {}, metadata: { source: "${source}" } }) { id } }`;
 const CONFIG_UPSERT = (key: string): string =>
@@ -270,6 +273,8 @@ export const SCENARIOS: Scenario[] = [
   { name: 'b3/armUnderUser/owner/enforce', query: ARM_UNDER_USER(U_OWNER, 'a1'), principal: 'owner', mode: 'enforce' },
 
   { name: 'm/selfRole/owner/enforce', query: SELF_ROLE, principal: 'owner', mode: 'enforce' },
+  { name: 'm/availability/owner/enforce', query: SET_AVAILABILITY(U_OWNER), principal: 'owner', mode: 'enforce' },
+  { name: 'm/availabilityOther/owner/enforce', query: SET_AVAILABILITY(U_STRANGER), principal: 'owner', mode: 'enforce' },
   { name: 'm/forgedAudit/owner/enforce', query: AUDIT_ROW('mutation-auth-guard'), principal: 'owner', mode: 'enforce' },
   { name: 'm/audit/owner/enforce', query: AUDIT_ROW('platform'), principal: 'owner', mode: 'enforce' },
   { name: 'm/systemConfig/owner/enforce', query: CONFIG_UPSERT('llm.alias.routing'), principal: 'owner', mode: 'enforce' },
