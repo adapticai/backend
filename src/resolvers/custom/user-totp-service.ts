@@ -189,6 +189,36 @@ export async function verifyTotpCode(
     : { ok: false, recoveryUsed: false };
 }
 
+/**
+ * A user's enrolment state, without any secret material: whether an enrolment
+ * row exists (pending or confirmed), whether it is confirmed, and when.
+ */
+export interface TotpStatus {
+  readonly enrolled: boolean;
+  readonly enabled: boolean;
+  readonly enabledAt: Date | null;
+}
+
+/**
+ * Read a user's enrolment state. Selects only `enabledAt`, so neither the
+ * ciphertext nor the recovery-code hashes are ever loaded for this read.
+ */
+export async function readTotpStatus(
+  prisma: TotpPrisma,
+  userId: string
+): Promise<TotpStatus> {
+  const row = await prisma.userTotp.findUnique({
+    where: { userId },
+    select: { enabledAt: true },
+  });
+  if (!row) return { enrolled: false, enabled: false, enabledAt: null };
+  return {
+    enrolled: true,
+    enabled: row.enabledAt !== null,
+    enabledAt: row.enabledAt,
+  };
+}
+
 /** Remove a user's enrolment. Returns whether one existed. */
 export async function disableTotp(
   prisma: TotpPrisma,

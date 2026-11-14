@@ -88,7 +88,19 @@ async function main(): Promise<void> {
     totpMutationOutputs[name] =
       output && isObjectType(output) ? Object.keys(output.getFields()).sort() : [];
   }
+  const statusField = schema.getQueryType()?.getFields().userTotpStatus;
+  const statusOutput = statusField ? getNamedType(statusField.type) : undefined;
+  const totpStatusQuery = {
+    args: statusField ? statusField.args.map((arg) => `${arg.name}:${String(arg.type)}`) : [],
+    fields:
+      statusOutput && isObjectType(statusOutput)
+        ? Object.entries(statusOutput.getFields())
+            .map(([name, field]) => `${name}:${String(field.type)}`)
+            .sort()
+        : [],
+  };
   const report = {
+    totpStatusQuery,
     totpMutationOutputs,
     outputs,
     predicates,

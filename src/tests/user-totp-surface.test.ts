@@ -24,6 +24,7 @@ interface TotpSurfaceReport {
   enumValues: string[];
   userTotpFields: string[];
   totpMutationOutputs: Record<string, string[]>;
+  totpStatusQuery: { args: string[]; fields: string[] };
 }
 
 const HARNESS_TIMEOUT_MS = 300_000;
@@ -60,6 +61,13 @@ describe('UserTotp secrets on the served GraphQL schema', () => {
       confirmUserTotp: ['ok'],
       verifyUserTotp: ['ok', 'recoveryUsed'],
       disableUserTotp: ['ok'],
+    });
+  });
+
+  it('the status read is served and returns no secret material', () => {
+    expect(report.totpStatusQuery).toEqual({
+      args: ['userId:String!'],
+      fields: ['enabled:Boolean!', 'enabledAt:DateTimeISO', 'enrolled:Boolean!'],
     });
   });
 

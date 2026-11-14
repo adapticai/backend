@@ -1,5 +1,5 @@
 /**
- * The principal check of the TOTP mutations (`./UserTotpResolver.ts`), kept
+ * The principal check of the TOTP mutations and status read (`./UserTotpResolver.ts`), kept
  * free of decorators so it can be tested without TypeGraphQL's metadata.
  *
  * @module resolvers/custom/totp-principal
@@ -18,7 +18,7 @@ export function assertServicePrincipal(
 ): void {
   if (!principal) {
     throw new GraphQLError(
-      'Unauthenticated: TOTP mutations require the service principal',
+      'Unauthenticated: TOTP operations require the service principal',
       {
         extensions: {
           code: 'UNAUTHENTICATED',
@@ -29,7 +29,7 @@ export function assertServicePrincipal(
   }
   if (principal.kind !== 'server') {
     throw new GraphQLError(
-      'Forbidden: TOTP mutations are service-principal only',
+      'Forbidden: TOTP operations are service-principal only',
       {
         extensions: {
           code: 'FORBIDDEN',

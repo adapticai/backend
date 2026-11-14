@@ -1,6 +1,8 @@
 /**
  * TOTP second-factor mutations: `enrollUserTotp`, `confirmUserTotp`,
- * `verifyUserTotp`, `disableUserTotp`.
+ * `verifyUserTotp`, `disableUserTotp`; and the status read `userTotpStatus`,
+ * which the platform consults before enrolment and at sign-in so that
+ * enrolment and enforcement read the same state.
  *
  * Service-principal only. The platform's server calls them with the service
  * token on behalf of a signed-in user whose session it has already verified;
@@ -37,6 +39,7 @@ import {
   confirmTotp,
   disableTotp,
   enrollTotp,
+  readTotpStatus,
   TotpStateError,
   verifyTotpCode,
   type TotpFailure,
@@ -77,6 +80,28 @@ export class UserTotpVerification {
     description: 'Whether a recovery code (now consumed) was used.',
   })
   recoveryUsed!: boolean;
+}
+
+/** A user's enrolment state. Carries no secret material. */
+@TypeGraphQL.ObjectType('UserTotpStatus', {
+  description: 'Whether a user has a TOTP enrolment, and whether it is confirmed.',
+})
+export class UserTotpStatus {
+  @TypeGraphQL.Field((_type) => Boolean, {
+    description: 'An enrolment exists, pending or confirmed.',
+  })
+  enrolled!: boolean;
+
+  @TypeGraphQL.Field((_type) => Boolean, {
+    description: 'The enrolment is confirmed, so sign-in requires a code.',
+  })
+  enabled!: boolean;
+
+  @TypeGraphQL.Field((_type) => Date, {
+    nullable: true,
+    description: 'When the enrolment was confirmed; null while pending or absent.',
+  })
+  enabledAt!: Date | null;
 }
 
 /** GraphQL context fields the resolver reads. */
@@ -139,9 +164,26 @@ function prismaOf(ctx: TotpContext): TotpPrisma {
   return getPrismaFromContext(ctx) as TotpPrisma;
 }
 
-/** The TOTP mutations. See the module documentation. */
+/** The TOTP mutations and status read. See the module documentation. */
 @TypeGraphQL.Resolver()
 export class UserTotpResolver {
+  @TypeGraphQL.Query((_returns) => UserTotpStatus, {
+    description:
+      'A user\'s TOTP enrolment state, without secret material. Service principal only.',
+  })
+  async userTotpStatus(
+    @TypeGraphQL.Arg('userId', (_type) => String) userId: string,
+    @TypeGraphQL.Ctx() ctx: TotpContext
+  ): Promise<UserTotpStatus> {
+    assertServicePrincipal(ctx.principal);
+    const status = await readTotpStatus(prismaOf(ctx), userId);
+    return {
+      enrolled: status.enrolled,
+      enabled: status.enabled,
+      enabledAt: status.enabledAt,
+    };
+  }
+
   @TypeGraphQL.Mutation((_returns) => UserTotpEnrollment, {
     description:
       'Start (or restart a pending) TOTP enrolment. Service principal only.',
