@@ -282,6 +282,7 @@ describe('publish.yml run scripts, executed', () => {
       const npm = [
         'case "$1" in',
         '  view) exit 0 ;;',
+        '  pack) echo "[{\\"entryCount\\": ${PACK_COUNT:-33252}}]" ;;',
         '  publish) if [ "$(jq -r .name package.json)" = "${FAIL_NAME:-}" ]; then exit 1; fi; exit 0 ;;',
         '  *) exit 0 ;;',
         'esac',
@@ -297,6 +298,18 @@ describe('publish.yml run scripts, executed', () => {
       const half = execute(run, { ...env, FAIL_NAME: '@adaptic/backend' }, { npm }, dist);
       expect(half.status).not.toBe(0);
       expect(half.githubOutput).toBe('');
+
+      // The registry refuses an oversized file count (E415 "Too many files"):
+      // the step stops before any `npm publish` when the packed count exceeds
+      // the guard, or cannot be read.
+      for (const count of ['66296', 'null']) {
+        writeFileSync(join(dist, 'package.json'), manifest);
+        const big = execute(run, { ...env, PACK_COUNT: count }, { npm }, dist);
+        expect(big.status).not.toBe(0);
+        expect(big.calls.filter((c) => c.startsWith('npm publish'))).toHaveLength(0);
+        expect(big.stderr).toContain('registry refuses oversized file counts');
+        expect(big.githubOutput).toBe('');
+      }
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
