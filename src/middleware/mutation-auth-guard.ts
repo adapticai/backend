@@ -453,6 +453,13 @@ function createMutationGuard(
       nested = findNestedWrites(info, argRecord, modelsLongestFirst, target);
       const written = nested.filter((n) => writesNestedModelRows(n, relations)).map((n) => n.model);
       mode = effectiveModeFor([target.model, ...written], baseMode, resolveEnforced());
+      // A user-written row that places itself in a fund's ledger is refused in
+      // every mode, `off` included: the ledger is the fund's record of what
+      // happened (G-LED-01), its reader keys on fundId alone, and a forged row
+      // would be served as fact while the global guard sits in shadow.
+      if (principal?.kind === 'user' && userContentRefusal(target, argRecord, principal.sub) === 'ledger_fund_reserved') {
+        mode = 'enforce';
+      }
       evaluation =
         mode === 'off'
           ? { allowed: true, reason: 'guard_off' }

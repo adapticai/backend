@@ -454,6 +454,14 @@ describe('user write content', () => {
     expect(server.writes).toEqual(['auditLog.create']);
   });
 
+  it('refuses a user-authored fund ledger row in shadow and off too, while ordinary audit rows keep the global mode', () => {
+    for (const name of ['m/ledgerOtherFund/owner/shadow', 'm/ledgerOtherFund/owner/off']) {
+      expectRefused(name, 'ledger_fund_reserved');
+      expect(scenario(name).writes).toEqual([]);
+    }
+    expect(scenario('m/audit/owner/shadow').writes).toEqual(['auditLog.create']);
+  });
+
   it('refuses a user upsert of a system configuration row, and admits their own preference row', () => {
     expectRefused('m/systemConfig/owner/enforce', 'config_key_not_user_scoped');
     expect(scenario('m/ownConfig/owner/enforce').writes).toEqual(['configuration.upsert']);

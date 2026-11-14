@@ -283,6 +283,9 @@ export const SCENARIOS: Scenario[] = [
   { name: 'm/ledgerOtherFund/owner/enforce', query: AUDIT_LEDGER_ROW(U_OWNER, FUND_2), principal: 'owner', mode: 'enforce' },
   { name: 'm/ledgerOwnFund/fundUser/enforce', query: AUDIT_LEDGER_ROW(U_FUND, FUND_1), principal: 'fundUser', mode: 'enforce' },
   { name: 'm/ledger/server/enforce', query: AUDIT_LEDGER_ROW(U_OWNER, FUND_2), principal: 'server', mode: 'enforce' },
+  { name: 'm/ledgerOtherFund/owner/shadow', query: AUDIT_LEDGER_ROW(U_OWNER, FUND_2), principal: 'owner', mode: 'shadow' },
+  { name: 'm/ledgerOtherFund/owner/off', query: AUDIT_LEDGER_ROW(U_OWNER, FUND_2), principal: 'owner', mode: 'off' },
+  { name: 'm/audit/owner/shadow', query: AUDIT_ROW('platform'), principal: 'owner', mode: 'shadow' },
   { name: 'm/systemConfig/owner/enforce', query: CONFIG_UPSERT('llm.alias.routing'), principal: 'owner', mode: 'enforce' },
   {
     name: 'm/ownConfig/owner/enforce',
