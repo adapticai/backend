@@ -15,7 +15,11 @@
  * - **AuditLog.** The attributed TradingPolicy trail is identified by
  *   `metadata.source = 'mutation-auth-guard'`. A user-authored row claiming
  *   that source, or naming someone else as its `userId`, is a forged
- *   attribution record, so both are refused.
+ *   attribution record, so both are refused. `fundId` places a row in that
+ *   fund's desk ledger, which is the engine's record of what the desk did and
+ *   is written by the service principal; a user-authored row setting it would
+ *   be served as a ledger entry of a fund the user may not even belong to, so
+ *   a user may not set it at all (`ledger_fund_reserved`).
  * - **Configuration.** The table also holds system rows (LLM alias routing,
  *   engine settings) keyed by a unique `configKey`. The platform's per-user
  *   preference rows live under `platform.web.<surface>.user.<userId>`; a user
@@ -49,7 +53,11 @@ const USER_CONFIG_KEY = /^platform\.web\.[a-z0-9][a-z0-9-]*\.user\.([0-9a-f-]{36
 /** Why a user's write content was refused (a bounded metric label). */
 export type ContentRefusal = Extract<
   MutationAuthReason,
-  'field_not_user_writable' | 'reserved_audit_source' | 'audit_actor_mismatch' | 'config_key_not_user_scoped'
+  | 'field_not_user_writable'
+  | 'reserved_audit_source'
+  | 'audit_actor_mismatch'
+  | 'ledger_fund_reserved'
+  | 'config_key_not_user_scoped'
 >;
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
@@ -76,6 +84,7 @@ function auditLogRefusal(args: Record<string, unknown>, callerId: string): Conte
   if (data.userId !== undefined && data.userId !== null && data.userId !== callerId) {
     return 'audit_actor_mismatch';
   }
+  if (data.fundId !== undefined && data.fundId !== null) return 'ledger_fund_reserved';
   return null;
 }
 

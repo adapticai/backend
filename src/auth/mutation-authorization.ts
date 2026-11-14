@@ -369,6 +369,7 @@ export type MutationAuthReason =
   | 'field_not_user_writable'
   | 'reserved_audit_source'
   | 'audit_actor_mismatch'
+  | 'ledger_fund_reserved'
   | 'config_key_not_user_scoped'
   | 'nested_write_not_user_writable'
   | 'nested_entitlement_write';
@@ -403,6 +404,7 @@ export interface MutationFacts {
     | 'field_not_user_writable'
     | 'reserved_audit_source'
     | 'audit_actor_mismatch'
+    | 'ledger_fund_reserved'
     | 'config_key_not_user_scoped'
     | null;
 }

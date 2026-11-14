@@ -157,6 +157,9 @@ const SET_AVAILABILITY = (userId: string): string =>
   `mutation { updateOneUser(where: { id: "${userId}" }, data: { availability: { set: away }, availabilityUntil: { set: "2026-11-14T10:00:00.000Z" } }) { id } }`;
 const AUDIT_ROW = (source: string): string =>
   `mutation { createOneAuditLog(data: { userId: "${U_OWNER}", operationType: UPDATE, modelName: "TradingPolicy", recordId: "p1", changedFields: {}, metadata: { source: "${source}" } }) { id } }`;
+// A fund ledger entry: the engine's service principal writes it; no signed-in user may place one.
+const AUDIT_LEDGER_ROW = (userId: string, fundId: string): string =>
+  `mutation { createOneAuditLog(data: { userId: "${userId}", operationType: UPDATE, modelName: "Order", recordId: "o1", changedFields: {}, fundId: "${fundId}", metadata: { source: "platform" } }) { id } }`;
 const CONFIG_UPSERT = (key: string): string =>
   `mutation { upsertOneConfiguration(where: { configKey: "${key}" }, create: { configKey: "${key}", configValue: {}, type: USER_PREFERENCE }, update: { configValue: {} }) { id } }`;
 // Controls: the platform's own fund-operator writes stay admitted.
@@ -277,6 +280,9 @@ export const SCENARIOS: Scenario[] = [
   { name: 'm/availabilityOther/owner/enforce', query: SET_AVAILABILITY(U_STRANGER), principal: 'owner', mode: 'enforce' },
   { name: 'm/forgedAudit/owner/enforce', query: AUDIT_ROW('mutation-auth-guard'), principal: 'owner', mode: 'enforce' },
   { name: 'm/audit/owner/enforce', query: AUDIT_ROW('platform'), principal: 'owner', mode: 'enforce' },
+  { name: 'm/ledgerOtherFund/owner/enforce', query: AUDIT_LEDGER_ROW(U_OWNER, FUND_2), principal: 'owner', mode: 'enforce' },
+  { name: 'm/ledgerOwnFund/fundUser/enforce', query: AUDIT_LEDGER_ROW(U_FUND, FUND_1), principal: 'fundUser', mode: 'enforce' },
+  { name: 'm/ledger/server/enforce', query: AUDIT_LEDGER_ROW(U_OWNER, FUND_2), principal: 'server', mode: 'enforce' },
   { name: 'm/systemConfig/owner/enforce', query: CONFIG_UPSERT('llm.alias.routing'), principal: 'owner', mode: 'enforce' },
   {
     name: 'm/ownConfig/owner/enforce',

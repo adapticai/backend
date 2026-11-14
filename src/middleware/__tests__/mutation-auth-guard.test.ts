@@ -445,6 +445,15 @@ describe('user write content', () => {
     expect(scenario('m/audit/owner/enforce').writes).toEqual(['auditLog.create']);
   });
 
+  it('refuses a user-authored row in any fund ledger, and admits the service principal\'s', () => {
+    expectRefused('m/ledgerOtherFund/owner/enforce', 'ledger_fund_reserved');
+    expect(scenario('m/ledgerOtherFund/owner/enforce').writes).toEqual([]);
+    expectRefused('m/ledgerOwnFund/fundUser/enforce', 'ledger_fund_reserved');
+    const server = scenario('m/ledger/server/enforce');
+    expect(server.reasons).toEqual([]);
+    expect(server.writes).toEqual(['auditLog.create']);
+  });
+
   it('refuses a user upsert of a system configuration row, and admits their own preference row', () => {
     expectRefused('m/systemConfig/owner/enforce', 'config_key_not_user_scoped');
     expect(scenario('m/ownConfig/owner/enforce').writes).toEqual(['configuration.upsert']);

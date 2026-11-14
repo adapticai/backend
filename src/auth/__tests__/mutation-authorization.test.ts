@@ -359,6 +359,14 @@ describe('userContentRefusal', () => {
     expect(userContentRefusal(t('createOneAuditLog'), { data: { userId: me, metadata: { source: 'platform' } } }, me)).toBeNull();
   });
 
+  it('refuses a user-authored audit row that places itself in a fund ledger', () => {
+    const fund = '77777777-7777-4777-8777-777777777777';
+    expect(
+      userContentRefusal(t('createOneAuditLog'), { data: { userId: me, fundId: fund, metadata: { source: 'platform' } } }, me)
+    ).toBe('ledger_fund_reserved');
+    expect(userContentRefusal(t('createOneAuditLog'), { data: { userId: me, fundId: null } }, me)).toBeNull();
+  });
+
   it('confines a configuration upsert to the caller\'s own platform preference key', () => {
     const own = `platform.web.chart-preferences.user.${me}`;
     expect(

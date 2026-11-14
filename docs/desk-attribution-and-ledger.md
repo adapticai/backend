@@ -49,6 +49,7 @@ Mandate rules project into `TradingPolicy` on approval and the engine enforces `
 - It is strictly increasing across all rows, and so increasing within every fund, with gaps. A dense per-fund counter would need a lock per fund on the write path of the busiest table in the database; the contract needs only monotonic ids.
 - Rows written before this migration keep `ledgerSeq = NULL`. The column was added without a default and the default set afterwards, because a volatile default on `ADD COLUMN` would number every historical row in physical order, an order its timestamps do not establish.
 - Like `userId`, `fundId` has no foreign key: an audit record outlives the row it names.
+- Who may set `fundId`: only the service principal (the engine) or an admin. AuditLog is `authenticated` create for a signed-in user, so the mutation guard refuses a user-authored row that sets `fundId` (`ledger_fund_reserved`, `src/auth/user-write-content.ts`), whichever fund it names and whether or not the user is assigned to it. Without that refusal, any signed-in user could place a row in another tenant's ledger, because the page below selects on `fundId` alone. Under `MUTATION_AUTH_MODE=shadow` the refusal is counted, not enforced, so the ledger is trustworthy against user writes once the guard enforces.
 
 ### How the engine reads `GET /api/v1/ledger?fundId&before&limit`
 
