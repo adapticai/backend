@@ -353,6 +353,19 @@ jobs:
           echo "NPM tag: $NPM_TAG"
           echo "NPM whoami: $(npm whoami || echo 'Not authenticated')"
 
+          # The registry refuses a tarball with too many files ("E415 Too many
+          # files"); 0.0.1053 died there at 66,296 files once the desk models'
+          # generated code landed. Source maps are excluded in package-npm.json
+          # (`!**/*.map`), and this guard fails the run with a clear message
+          # long before the limit, instead of at the registry PUT.
+          MAX_PACKAGE_FILES=50000
+          FILE_COUNT=$(npm pack --dry-run --json 2>/dev/null | jq '.[0].entryCount')
+          echo "Packed file count: $FILE_COUNT (guard: $MAX_PACKAGE_FILES)"
+          if [ -z "$FILE_COUNT" ] || [ "$FILE_COUNT" = "null" ] || [ "$FILE_COUNT" -gt "$MAX_PACKAGE_FILES" ]; then
+            echo "::error::Package would contain ${FILE_COUNT:-an unknown number of} files (guard $MAX_PACKAGE_FILES); the registry refuses oversized file counts. Trim package-npm.json 'files'." >&2
+            exit 1
+          fi
+
           publish_as() {
             NAME="$1"
             # Idempotence: npm refuses to republish an existing version with a 403.
