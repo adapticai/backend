@@ -7575,6 +7575,12 @@ enum StrategyLifecycleState {
   /// Defined, with no manifest bound to it.
   DRAFT
 
+  /// Submitted for approval: the author can no longer edit it, and a person
+  /// other than the author decides whether it moves on to SHADOW or back to
+  /// DRAFT. Written only by the engine's submission and its verdict, never
+  /// by the author. Asserts nothing about capital.
+  PENDING_APPROVAL
+
   /// Registered for observation only — the state a newly registered strategy
   /// is seeded in, and the one that asserts nothing about capital.
   SHADOW

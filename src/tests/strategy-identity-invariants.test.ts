@@ -115,6 +115,7 @@ describe('Strategy is an entity, not an enum label', () => {
     const lifecycleEnum = datamodel.enums.find((e) => e.name === 'StrategyLifecycleState');
     expect(lifecycleEnum?.values.map((v) => v.name)).toEqual([
       'DRAFT',
+      'PENDING_APPROVAL',
       'SHADOW',
       'ACTIVE',
       'PAUSED',
