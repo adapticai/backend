@@ -25,6 +25,7 @@ import { logger } from './utils/logger';
     kind
     spec
     backtestJobId
+    backtestSpecHash
     desk
     ownerUserId
     createdAt
@@ -914,6 +915,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -1494,6 +1496,7 @@ import { logger } from './utils/logger';
         kind: props.strategy.kind !== undefined ? props.strategy.kind : undefined,
         spec: props.strategy.spec !== undefined ? props.strategy.spec : undefined,
         backtestJobId: props.strategy.backtestJobId !== undefined ? props.strategy.backtestJobId : undefined,
+        backtestSpecHash: props.strategy.backtestSpecHash !== undefined ? props.strategy.backtestSpecHash : undefined,
         desk: props.strategy.desk !== undefined ? props.strategy.desk : undefined,
         deletedAt: props.strategy.deletedAt !== undefined ? props.strategy.deletedAt : undefined,
     owner: props.strategy.owner ? 
@@ -4522,6 +4525,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? {
+                set: item.backtestSpecHash
+              } : undefined,
             desk: item.desk !== undefined ? {
                 set: item.desk
               } : undefined,
@@ -4539,6 +4545,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -5381,6 +5388,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -7450,6 +7458,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -8055,6 +8064,9 @@ import { logger } from './utils/logger';
         spec: props.strategy.spec !== undefined ? props.strategy.spec : undefined,
         backtestJobId: props.strategy.backtestJobId !== undefined ? {
             set: props.strategy.backtestJobId
+          } : undefined,
+        backtestSpecHash: props.strategy.backtestSpecHash !== undefined ? {
+            set: props.strategy.backtestSpecHash
           } : undefined,
         desk: props.strategy.desk !== undefined ? {
             set: props.strategy.desk
@@ -10626,6 +10638,7 @@ import { logger } from './utils/logger';
         kind: props.strategy.kind !== undefined ? props.strategy.kind : undefined,
         spec: props.strategy.spec !== undefined ? props.strategy.spec : undefined,
         backtestJobId: props.strategy.backtestJobId !== undefined ? props.strategy.backtestJobId : undefined,
+        backtestSpecHash: props.strategy.backtestSpecHash !== undefined ? props.strategy.backtestSpecHash : undefined,
         desk: props.strategy.desk !== undefined ? props.strategy.desk : undefined,
         deletedAt: props.strategy.deletedAt !== undefined ? props.strategy.deletedAt : undefined,
     owner: props.strategy.owner ? 
@@ -12485,6 +12498,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -13065,6 +13079,7 @@ import { logger } from './utils/logger';
         kind: props.strategy.kind !== undefined ? props.strategy.kind : undefined,
         spec: props.strategy.spec !== undefined ? props.strategy.spec : undefined,
         backtestJobId: props.strategy.backtestJobId !== undefined ? props.strategy.backtestJobId : undefined,
+        backtestSpecHash: props.strategy.backtestSpecHash !== undefined ? props.strategy.backtestSpecHash : undefined,
         desk: props.strategy.desk !== undefined ? props.strategy.desk : undefined,
         deletedAt: props.strategy.deletedAt !== undefined ? props.strategy.deletedAt : undefined,
     owner: props.strategy.owner ? 
@@ -15771,6 +15786,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? {
+                set: item.backtestSpecHash
+              } : undefined,
             desk: item.desk !== undefined ? {
                 set: item.desk
               } : undefined,
@@ -15788,6 +15806,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -16630,6 +16649,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -18699,6 +18719,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -19304,6 +19325,9 @@ import { logger } from './utils/logger';
         spec: props.strategy.spec !== undefined ? props.strategy.spec : undefined,
         backtestJobId: props.strategy.backtestJobId !== undefined ? {
             set: props.strategy.backtestJobId
+          } : undefined,
+        backtestSpecHash: props.strategy.backtestSpecHash !== undefined ? {
+            set: props.strategy.backtestSpecHash
           } : undefined,
         desk: props.strategy.desk !== undefined ? {
             set: props.strategy.desk
@@ -21875,6 +21899,7 @@ import { logger } from './utils/logger';
         kind: props.strategy.kind !== undefined ? props.strategy.kind : undefined,
         spec: props.strategy.spec !== undefined ? props.strategy.spec : undefined,
         backtestJobId: props.strategy.backtestJobId !== undefined ? props.strategy.backtestJobId : undefined,
+        backtestSpecHash: props.strategy.backtestSpecHash !== undefined ? props.strategy.backtestSpecHash : undefined,
         desk: props.strategy.desk !== undefined ? props.strategy.desk : undefined,
         deletedAt: props.strategy.deletedAt !== undefined ? props.strategy.deletedAt : undefined,
     owner: props.strategy.owner ? 
@@ -24744,6 +24769,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? {
+                set: item.backtestSpecHash
+              } : undefined,
             desk: item.desk !== undefined ? {
                 set: item.desk
               } : undefined,
@@ -24761,6 +24789,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -25603,6 +25632,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -27672,6 +27702,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -28277,6 +28308,9 @@ import { logger } from './utils/logger';
         spec: prop.strategy.spec !== undefined ? prop.strategy.spec : undefined,
         backtestJobId: prop.strategy.backtestJobId !== undefined ? {
             set: prop.strategy.backtestJobId
+          } : undefined,
+        backtestSpecHash: prop.strategy.backtestSpecHash !== undefined ? {
+            set: prop.strategy.backtestSpecHash
           } : undefined,
         desk: prop.strategy.desk !== undefined ? {
             set: prop.strategy.desk
@@ -30848,6 +30882,7 @@ import { logger } from './utils/logger';
         kind: prop.strategy.kind !== undefined ? prop.strategy.kind : undefined,
         spec: prop.strategy.spec !== undefined ? prop.strategy.spec : undefined,
         backtestJobId: prop.strategy.backtestJobId !== undefined ? prop.strategy.backtestJobId : undefined,
+        backtestSpecHash: prop.strategy.backtestSpecHash !== undefined ? prop.strategy.backtestSpecHash : undefined,
         desk: prop.strategy.desk !== undefined ? prop.strategy.desk : undefined,
         deletedAt: prop.strategy.deletedAt !== undefined ? prop.strategy.deletedAt : undefined,
     owner: prop.strategy.owner ? 

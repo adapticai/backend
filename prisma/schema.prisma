@@ -7662,7 +7662,16 @@ model Strategy {
   spec Json?
 
   /// Identifier of the backtest job run against `spec`. NULL means none has run.
+  /// Recorded for a user's draft only by `recordStrategyDraftBacktest`, which
+  /// stamps `backtestSpecHash` with it, and cleared by `saveStrategyDraft`
+  /// whenever the spec changes.
   backtestJobId String?
+
+  /// SHA-256 (hex) of the canonical JSON of the `spec` the backtest in
+  /// `backtestJobId` was run against (`src/resolvers/custom/strategy-spec-hash.ts`).
+  /// A backtest attests a spec only while this equals the hash of the stored
+  /// spec. NULL means no backtest is recorded against any spec.
+  backtestSpecHash String? @db.VarChar(64)
 
   /// The agent desk this strategy trades under. NULL means no operator has
   /// assigned it yet: a strategy is never placed on a desk by default, because

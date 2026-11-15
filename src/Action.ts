@@ -166,6 +166,7 @@ import { logger } from './utils/logger';
           kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
           spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
+          backtestSpecHash: props.trade.strategyRef.backtestSpecHash !== undefined ? props.trade.strategyRef.backtestSpecHash : undefined,
           desk: props.trade.strategyRef.desk !== undefined ? props.trade.strategyRef.desk : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
@@ -788,6 +789,9 @@ import { logger } from './utils/logger';
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? {
               set: props.trade.strategyRef.backtestJobId
             } : undefined,
+          backtestSpecHash: props.trade.strategyRef.backtestSpecHash !== undefined ? {
+              set: props.trade.strategyRef.backtestSpecHash
+            } : undefined,
           desk: props.trade.strategyRef.desk !== undefined ? {
               set: props.trade.strategyRef.desk
             } : undefined,
@@ -966,6 +970,7 @@ import { logger } from './utils/logger';
           kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
           spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
+          backtestSpecHash: props.trade.strategyRef.backtestSpecHash !== undefined ? props.trade.strategyRef.backtestSpecHash : undefined,
           desk: props.trade.strategyRef.desk !== undefined ? props.trade.strategyRef.desk : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
@@ -1101,6 +1106,7 @@ import { logger } from './utils/logger';
           kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
           spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
+          backtestSpecHash: props.trade.strategyRef.backtestSpecHash !== undefined ? props.trade.strategyRef.backtestSpecHash : undefined,
           desk: props.trade.strategyRef.desk !== undefined ? props.trade.strategyRef.desk : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
@@ -1435,6 +1441,7 @@ import { logger } from './utils/logger';
           kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
           spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
+          backtestSpecHash: props.trade.strategyRef.backtestSpecHash !== undefined ? props.trade.strategyRef.backtestSpecHash : undefined,
           desk: props.trade.strategyRef.desk !== undefined ? props.trade.strategyRef.desk : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
@@ -1735,6 +1742,9 @@ import { logger } from './utils/logger';
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? {
               set: props.trade.strategyRef.backtestJobId
             } : undefined,
+          backtestSpecHash: props.trade.strategyRef.backtestSpecHash !== undefined ? {
+              set: props.trade.strategyRef.backtestSpecHash
+            } : undefined,
           desk: props.trade.strategyRef.desk !== undefined ? {
               set: props.trade.strategyRef.desk
             } : undefined,
@@ -1913,6 +1923,7 @@ import { logger } from './utils/logger';
           kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
           spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
+          backtestSpecHash: props.trade.strategyRef.backtestSpecHash !== undefined ? props.trade.strategyRef.backtestSpecHash : undefined,
           desk: props.trade.strategyRef.desk !== undefined ? props.trade.strategyRef.desk : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
@@ -2048,6 +2059,7 @@ import { logger } from './utils/logger';
           kind: props.trade.strategyRef.kind !== undefined ? props.trade.strategyRef.kind : undefined,
           spec: props.trade.strategyRef.spec !== undefined ? props.trade.strategyRef.spec : undefined,
           backtestJobId: props.trade.strategyRef.backtestJobId !== undefined ? props.trade.strategyRef.backtestJobId : undefined,
+          backtestSpecHash: props.trade.strategyRef.backtestSpecHash !== undefined ? props.trade.strategyRef.backtestSpecHash : undefined,
           desk: props.trade.strategyRef.desk !== undefined ? props.trade.strategyRef.desk : undefined,
           deletedAt: props.trade.strategyRef.deletedAt !== undefined ? props.trade.strategyRef.deletedAt : undefined,
       owner: props.trade.strategyRef.owner ? 
@@ -2511,6 +2523,9 @@ import { logger } from './utils/logger';
           backtestJobId: prop.trade.strategyRef.backtestJobId !== undefined ? {
               set: prop.trade.strategyRef.backtestJobId
             } : undefined,
+          backtestSpecHash: prop.trade.strategyRef.backtestSpecHash !== undefined ? {
+              set: prop.trade.strategyRef.backtestSpecHash
+            } : undefined,
           desk: prop.trade.strategyRef.desk !== undefined ? {
               set: prop.trade.strategyRef.desk
             } : undefined,
@@ -2689,6 +2704,7 @@ import { logger } from './utils/logger';
           kind: prop.trade.strategyRef.kind !== undefined ? prop.trade.strategyRef.kind : undefined,
           spec: prop.trade.strategyRef.spec !== undefined ? prop.trade.strategyRef.spec : undefined,
           backtestJobId: prop.trade.strategyRef.backtestJobId !== undefined ? prop.trade.strategyRef.backtestJobId : undefined,
+          backtestSpecHash: prop.trade.strategyRef.backtestSpecHash !== undefined ? prop.trade.strategyRef.backtestSpecHash : undefined,
           desk: prop.trade.strategyRef.desk !== undefined ? prop.trade.strategyRef.desk : undefined,
           deletedAt: prop.trade.strategyRef.deletedAt !== undefined ? prop.trade.strategyRef.deletedAt : undefined,
       owner: prop.trade.strategyRef.owner ? 
@@ -2824,6 +2840,7 @@ import { logger } from './utils/logger';
           kind: prop.trade.strategyRef.kind !== undefined ? prop.trade.strategyRef.kind : undefined,
           spec: prop.trade.strategyRef.spec !== undefined ? prop.trade.strategyRef.spec : undefined,
           backtestJobId: prop.trade.strategyRef.backtestJobId !== undefined ? prop.trade.strategyRef.backtestJobId : undefined,
+          backtestSpecHash: prop.trade.strategyRef.backtestSpecHash !== undefined ? prop.trade.strategyRef.backtestSpecHash : undefined,
           desk: prop.trade.strategyRef.desk !== undefined ? prop.trade.strategyRef.desk : undefined,
           deletedAt: prop.trade.strategyRef.deletedAt !== undefined ? prop.trade.strategyRef.deletedAt : undefined,
       owner: prop.trade.strategyRef.owner ? 

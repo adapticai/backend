@@ -979,6 +979,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -2421,6 +2422,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -3176,6 +3178,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -7521,6 +7524,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? {
+                set: item.backtestSpecHash
+              } : undefined,
             desk: item.desk !== undefined ? {
                 set: item.desk
               } : undefined,
@@ -7538,6 +7544,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -8387,6 +8394,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -10572,6 +10580,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -13103,6 +13112,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? {
+                set: item.backtestSpecHash
+              } : undefined,
             desk: item.desk !== undefined ? {
                 set: item.desk
               } : undefined,
@@ -13120,6 +13132,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -13966,6 +13979,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -15333,6 +15347,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? {
+                set: item.backtestSpecHash
+              } : undefined,
             desk: item.desk !== undefined ? {
                 set: item.desk
               } : undefined,
@@ -15350,6 +15367,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -16196,6 +16214,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -20157,6 +20176,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -20912,6 +20932,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -26345,6 +26366,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -27787,6 +27809,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -28542,6 +28565,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -32556,6 +32580,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? {
+                set: item.backtestSpecHash
+              } : undefined,
             desk: item.desk !== undefined ? {
                 set: item.desk
               } : undefined,
@@ -32573,6 +32600,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -33422,6 +33450,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -35607,6 +35636,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -38138,6 +38168,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? {
+                set: item.backtestSpecHash
+              } : undefined,
             desk: item.desk !== undefined ? {
                 set: item.desk
               } : undefined,
@@ -38155,6 +38188,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -39001,6 +39035,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -40368,6 +40403,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? {
+                set: item.backtestSpecHash
+              } : undefined,
             desk: item.desk !== undefined ? {
                 set: item.desk
               } : undefined,
@@ -40385,6 +40423,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -41231,6 +41270,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -45192,6 +45232,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -45947,6 +45988,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -52518,6 +52560,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? {
+                set: item.backtestSpecHash
+              } : undefined,
             desk: item.desk !== undefined ? {
                 set: item.desk
               } : undefined,
@@ -52535,6 +52580,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -53384,6 +53430,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -55569,6 +55616,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -58100,6 +58148,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? {
+                set: item.backtestSpecHash
+              } : undefined,
             desk: item.desk !== undefined ? {
                 set: item.desk
               } : undefined,
@@ -58117,6 +58168,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -58963,6 +59015,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -60330,6 +60383,9 @@ import { logger } from './utils/logger';
             backtestJobId: item.backtestJobId !== undefined ? {
                 set: item.backtestJobId
               } : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? {
+                set: item.backtestSpecHash
+              } : undefined,
             desk: item.desk !== undefined ? {
                 set: item.desk
               } : undefined,
@@ -60347,6 +60403,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -61193,6 +61250,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -65154,6 +65212,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
@@ -65909,6 +65968,7 @@ import { logger } from './utils/logger';
             kind: item.kind !== undefined ? item.kind : undefined,
             spec: item.spec !== undefined ? item.spec : undefined,
             backtestJobId: item.backtestJobId !== undefined ? item.backtestJobId : undefined,
+            backtestSpecHash: item.backtestSpecHash !== undefined ? item.backtestSpecHash : undefined,
             desk: item.desk !== undefined ? item.desk : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
