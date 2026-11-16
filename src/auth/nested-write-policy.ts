@@ -33,6 +33,10 @@
  *     root's tenant check reads exactly that connect); re-tenanting an
  *     existing row is refused;
  *   - into the caller's own `User` row while the parent is being created;
+ *   - into any `User` row as the member of a root `OrgMembership` or
+ *     `FundAssignment` create: adding a person to a team is what those
+ *     creates are for, and the root decision reads that connect and requires
+ *     authority over the tenant (`./membership-write-authority.ts`);
  *   - into `AlpacaAccount` only as the policy's own account on a root
  *     TradingPolicy create, whose ownership check reads that connect.
  * - **Content writes into an owned model** (account, policy, user row) are
@@ -100,11 +104,28 @@ function nestedPolicyOf(model: string): UserWritePolicy {
   return policy === 'mandate_tenant' ? 'authenticated' : policy;
 }
 
+/**
+ * Whether a connect names the member of a root entitlement-row create. The
+ * root's own decision reads the member from this connect and holds the
+ * caller to authority over the tenant, so the hop needs no check of its own.
+ */
+function isRootMemberConnect(write: NestedWrite): boolean {
+  return (
+    write.depth === 1 &&
+    write.parentMode === 'create' &&
+    write.relation === 'user' &&
+    ENTITLEMENT_MODELS.has(write.parentModel) &&
+    write.connectIds !== null &&
+    write.connectIds.length === 1
+  );
+}
+
 function connectAllowed(write: NestedWrite, callerId: string, relations: RelationFacts): boolean {
   if (relations.fkOnParent(write.parentModel, write.relation) !== true) return false;
   const policy = nestedPolicyOf(write.model);
   switch (policy) {
     case 'self':
+      if (isRootMemberConnect(write)) return true;
       return (
         write.parentMode === 'create' &&
         write.connectIds !== null &&

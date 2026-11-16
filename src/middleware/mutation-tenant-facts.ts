@@ -1,7 +1,9 @@
 /**
  * The mutation guard's own tenancy check for a user principal's write to a
- * tenancy-governed model (Organization, OrgMembership, Fund, FundAssignment,
- * BrokerageAccount, Notification*).
+ * tenancy-governed model (Organization, Fund, BrokerageAccount,
+ * Notification*, the desk models). The entitlement rows themselves,
+ * OrgMembership and FundAssignment, need more than tenancy: the guard decides
+ * them on the caller's role (`./mutation-membership-facts.ts`).
  *
  * The tenancy-scoping middleware applies the same scope, but only as strongly
  * as `TENANCY_SCOPING_MODE` (default `shadow`) and only on root fields. The
