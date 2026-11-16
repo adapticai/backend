@@ -44,7 +44,10 @@ const ENTITLEMENT: Entitlement = {
   fundIds: [FUND_A1],
 };
 
-function makeInfo(parentTypeName: string, fieldName: string): GraphQLResolveInfo {
+function makeInfo(
+  parentTypeName: string,
+  fieldName: string
+): GraphQLResolveInfo {
   return {
     parentType: { name: parentTypeName },
     fieldName,
@@ -57,7 +60,9 @@ function makeInfo(parentTypeName: string, fieldName: string): GraphQLResolveInfo
  */
 function explodingPrisma(): unknown {
   const boom = () => {
-    throw new Error('entitlement resolution must not run for bypassed principal');
+    throw new Error(
+      'entitlement resolution must not run for bypassed principal'
+    );
   };
   return {
     orgMembership: { findMany: boom },
@@ -217,9 +222,9 @@ describe('tenancy-scoping middleware — enforce mode (mutations)', () => {
       entitlement: ENTITLEMENT,
     });
     expect(result.nextCalls).toBe(0);
-    expect((result.error as { extensions?: { code?: string } })?.extensions?.code).toBe(
-      'FORBIDDEN'
-    );
+    expect(
+      (result.error as { extensions?: { code?: string } })?.extensions?.code
+    ).toBe('FORBIDDEN');
   });
 
   it('allows an in-scope create', async () => {
@@ -243,9 +248,9 @@ describe('tenancy-scoping middleware — enforce mode (mutations)', () => {
       prisma: undefined,
     });
     expect(result.nextCalls).toBe(0);
-    expect((result.error as { extensions?: { code?: string } })?.extensions?.code).toBe(
-      'FORBIDDEN'
-    );
+    expect(
+      (result.error as { extensions?: { code?: string } })?.extensions?.code
+    ).toBe('FORBIDDEN');
   });
 });
 
@@ -325,5 +330,76 @@ describe('tenancy-scoping middleware — field/parent gating', () => {
     expect(result.nextCalls).toBe(1);
     expect(result.error).toBeUndefined();
     expect(args.where).toEqual({ organizationId: ORG_B });
+  });
+});
+
+describe('tenancy-scoping middleware — authored strategies (G-STR-06)', () => {
+  const STRATEGY_SCOPE = {
+    OR: [{ kind: { equals: null } }, { fundId: { in: [FUND_A1] } }],
+  };
+
+  it.each(['off', 'shadow', 'enforce'] as const)(
+    'scopes a user read of strategies to SYSTEM rows and the caller funds in %s mode',
+    async (mode) => {
+      for (const fieldName of [
+        'strategies',
+        'strategy',
+        'findFirstStrategy',
+        'aggregateStrategy',
+      ]) {
+        const args: Record<string, unknown> = {
+          where: { id: { equals: 'draft-1' } },
+        };
+        const result = await run({
+          mode,
+          fieldName,
+          args,
+          entitlement: ENTITLEMENT,
+        });
+        expect(result.error).toBeUndefined();
+        expect(result.nextCalls).toBe(1);
+        expect(args.where).toEqual({
+          id: { equals: 'draft-1' },
+          AND: [STRATEGY_SCOPE],
+        });
+      }
+    }
+  );
+
+  it('holds an unauthenticated read to the SYSTEM strategies', async () => {
+    const args: Record<string, unknown> = {};
+    const result = await run({
+      mode: 'off',
+      principal: null,
+      fieldName: 'strategies',
+      args,
+    });
+    expect(result.error).toBeUndefined();
+    expect(result.nextCalls).toBe(1);
+    expect(args.where).toEqual({ AND: [{ kind: { equals: null } }] });
+  });
+
+  it('never scopes the service principal', async () => {
+    const args: Record<string, unknown> = { where: { key: { equals: 'k' } } };
+    const result = await run({
+      mode: 'enforce',
+      principal: SERVER_PRINCIPAL,
+      fieldName: 'strategies',
+      args,
+    });
+    expect(result.nextCalls).toBe(1);
+    expect(args.where).toEqual({ key: { equals: 'k' } });
+  });
+
+  it('classifies no Strategy write: those stay with the mutation guard (service_only for a user)', async () => {
+    const args: Record<string, unknown> = { where: { id: 'x' }, data: {} };
+    const result = await run({
+      mode: 'enforce',
+      parentTypeName: 'Mutation',
+      fieldName: 'updateManyStrategy',
+      args,
+    });
+    expect(result.nextCalls).toBe(1);
+    expect(args.where).toEqual({ id: 'x' });
   });
 });

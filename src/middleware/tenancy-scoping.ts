@@ -42,6 +42,7 @@ import type { MiddlewareFn } from 'type-graphql';
 import { GraphQLError } from 'graphql';
 import type { BackendPrincipal } from '../auth/token-verifier';
 import {
+  anonymousScopeWhere,
   buildScopeWhere,
   buildWriteScopeWhere,
   classifyGovernedField,
@@ -173,10 +174,25 @@ export function createTenancyScopingMiddleware(
     if (mode === 'off') return proceed();
 
     // Principal gate: service/admin callers are NEVER scoped. An
-    // unauthenticated caller carries no identity to scope by: it passes on the
-    // staged models and is refused on the always-enforced ones.
+    // unauthenticated caller carries no identity to scope by: a model with an
+    // anonymous scope (the SYSTEM strategies) narrows it to that scope, the
+    // staged models pass it, and the always-enforced ones refuse it.
     const principal = context.principal;
     if (!principal) {
+      const anonymousScope = anonymousScopeWhere(governed.model);
+      if (anonymousScope !== null && governed.opKind === 'whereScope') {
+        tenancyScopingDecisionsTotal.inc({
+          mode,
+          model: governed.model,
+          operation: info.fieldName,
+          decision: 'restrict',
+        });
+        (args as { where?: unknown }).where = injectScopeWhere(
+          (args.where as WhereFragment | undefined) ?? undefined,
+          anonymousScope
+        );
+        return proceed();
+      }
       if (alwaysEnforced) {
         tenancyScopingDecisionsTotal.inc({
           mode,

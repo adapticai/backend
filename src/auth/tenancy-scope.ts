@@ -99,6 +99,35 @@ export const DESK_MODELS = [
 ] as const;
 
 /**
+ * Models scoped on READ only: the middleware classifies their read fields and
+ * none of their writes.
+ *
+ * `Strategy` holds two kinds of row. A SYSTEM strategy (`kind` NULL) is the
+ * platform's catalog and stays readable as it always was. An authored
+ * strategy (`kind` set, written by the strategy builder) belongs to one fund
+ * (`fundId`) and is readable only by that fund's members, so a draft never
+ * reaches a person outside the fund it was written in.
+ *
+ * Writes are decided elsewhere, and more narrowly: every generated `Strategy`
+ * mutation is `service_only` for a user in the mutation guard, and the draft
+ * mutations hold the author and the fund themselves
+ * (`src/resolvers/custom/strategy-draft-service.ts`, through
+ * {@link buildWriteScopeWhere}). The model is kept out of
+ * {@link GOVERNED_MODELS} on purpose: that list also gives each model a
+ * `tenant_scoped` user-write rule (`src/auth/mutation-authorization.ts`),
+ * which would make the generated `Strategy` writes user-writable.
+ *
+ * Scoped in every mode ({@link ALWAYS_ENFORCED_MODELS}): the predicate leaves
+ * every SYSTEM row exactly as readable as before, so a staged rollout has no
+ * existing reader to protect, and holding it in shadow would serve every
+ * fund's drafts to any signed-in user.
+ */
+export const READ_SCOPED_MODELS = ['Strategy'] as const;
+
+/** A model scoped on read only (see {@link READ_SCOPED_MODELS}). */
+export type ReadScopedModel = (typeof READ_SCOPED_MODELS)[number];
+
+/**
  * The tenancy, notification and desk models subject to row-level scoping.
  * Everything else (AlpacaAccount, Trade, User, …) is intentionally out of
  * scope for this change — see the SP2-G7 gap and the follow-ups in the
@@ -129,15 +158,21 @@ export const GOVERNED_MODELS = [
  * user's conversations, push endpoints and second-factor state to whoever
  * asks while the shadow series accumulated.
  */
-export const ALWAYS_ENFORCED_MODELS: ReadonlySet<string> = new Set<string>(DESK_MODELS);
+export const ALWAYS_ENFORCED_MODELS: ReadonlySet<string> = new Set<string>([
+  ...DESK_MODELS,
+  ...READ_SCOPED_MODELS,
+]);
 
 /** Whether a governed model is scoped in every mode (see {@link ALWAYS_ENFORCED_MODELS}). */
 export function isAlwaysEnforced(model: string): boolean {
   return ALWAYS_ENFORCED_MODELS.has(model);
 }
 
-/** A model name subject to row-level tenancy scoping. */
+/** A model name subject to row-level tenancy scoping on reads and writes. */
 export type GovernedModel = (typeof GOVERNED_MODELS)[number];
+
+/** Any model the tenancy middleware scopes: governed, or read-scoped only. */
+export type ScopedModel = GovernedModel | ReadScopedModel;
 
 /**
  * Operation family for a governed resolver field:
@@ -155,7 +190,7 @@ export type GovernedOpKind = 'whereScope' | 'createScope' | 'upsertScope';
 
 /** Resolution of a resolver field name onto its governed model + op kind. */
 export interface GovernedField {
-  readonly model: GovernedModel;
+  readonly model: ScopedModel;
   readonly opKind: GovernedOpKind;
 }
 
@@ -165,7 +200,7 @@ export interface GovernedField {
  * the 8 governed models so classification is exact and drift-proof; the
  * singular (findUnique) field name is the lower-camel model name.
  */
-const PLURAL_FIELD: Record<GovernedModel, string> = {
+const PLURAL_FIELD: Record<ScopedModel, string> = {
   Organization: 'organizations',
   OrgMembership: 'orgMemberships',
   Fund: 'funds',
@@ -182,7 +217,21 @@ const PLURAL_FIELD: Record<GovernedModel, string> = {
   UserTotp: 'userTotps',
   DeskDecision: 'deskDecisions',
   FeatureFlagOverride: 'featureFlagOverrides',
+  Strategy: 'strategies',
 };
+
+/** The read fields typegraphql-prisma generates for a model. */
+function readFieldsOf(model: ScopedModel): string[] {
+  return [
+    PLURAL_FIELD[model], // findMany
+    lowerFirst(model), // findUnique
+    `get${model}`, // findUniqueOrThrow
+    `findFirst${model}`,
+    `findFirst${model}OrThrow`,
+    `aggregate${model}`,
+    `groupBy${model}`,
+  ];
+}
 
 /** Lower-camel the first character of a model name (e.g. `Fund` → `fund`). */
 function lowerFirst(value: string): string {
@@ -196,16 +245,14 @@ function lowerFirst(value: string): string {
  */
 const GOVERNED_FIELD_MAP: ReadonlyMap<string, GovernedField> = (() => {
   const map = new Map<string, GovernedField>();
+  for (const model of READ_SCOPED_MODELS) {
+    for (const field of readFieldsOf(model)) {
+      map.set(field, { model, opKind: 'whereScope' });
+    }
+  }
   for (const model of GOVERNED_MODELS) {
-    const singular = lowerFirst(model);
     const whereScopeFields = [
-      PLURAL_FIELD[model], // findMany
-      singular, // findUnique
-      `get${model}`, // findUniqueOrThrow
-      `findFirst${model}`,
-      `findFirst${model}OrThrow`,
-      `aggregate${model}`,
-      `groupBy${model}`,
+      ...readFieldsOf(model),
       `updateOne${model}`,
       `updateMany${model}`,
       `deleteOne${model}`,
@@ -332,6 +379,15 @@ export async function resolveEntitlement(
 /** A Prisma `where`-fragment object. */
 export type WhereFragment = Record<string, unknown>;
 
+/**
+ * The Strategy rows a user may READ: every SYSTEM strategy (no authoring
+ * kind), and an authored strategy only in a fund they belong to. An authored
+ * row with no fund belongs to no fund, so no user reads it.
+ */
+function strategyReadScope(fundIds: string[]): WhereFragment {
+  return { OR: [{ kind: { equals: null } }, { fundId: { in: fundIds } }] };
+}
+
 /** The AdaConversation rows a user may READ: their own, and shared ones in an entitled fund. */
 function adaConversationReadScope(ent: Entitlement, fundIds: string[]): WhereFragment {
   return {
@@ -373,7 +429,7 @@ function eq(value: string): { equals: string } {
  * @returns A Prisma `where` fragment.
  */
 export function buildScopeWhere(
-  model: GovernedModel,
+  model: ScopedModel,
   ent: Entitlement
 ): WhereFragment {
   const orgIds = [...ent.orgIds];
@@ -415,6 +471,8 @@ export function buildScopeWhere(
       return { conversation: { is: adaConversationReadScope(ent, fundIds) } };
     case 'FeatureFlagOverride':
       return { OR: [{ userId: eq(ent.userId) }, { organizationId: { in: orgIds } }] };
+    case 'Strategy':
+      return strategyReadScope(fundIds);
   }
 }
 
@@ -422,19 +480,41 @@ export function buildScopeWhere(
  * The scope a WRITE (update, upsert, delete) must stay inside. Identical to
  * {@link buildScopeWhere} except for Ada conversations: a conversation shared
  * with the organization is readable by its members but writable only by its
- * author, and the same holds for its messages.
+ * author, and the same holds for its messages. A Strategy is written by a
+ * user only as their own authored draft, in a fund they belong to; a SYSTEM
+ * strategy is never in a user's write scope.
  *
  * @param model - The governed model.
  * @param ent - The caller's entitlement.
  * @returns A Prisma `where` fragment.
  */
 export function buildWriteScopeWhere(
-  model: GovernedModel,
+  model: ScopedModel,
   ent: Entitlement
 ): WhereFragment {
+  if (model === 'Strategy') {
+    return {
+      kind: { not: null },
+      ownerUserId: eq(ent.userId),
+      fundId: { in: [...ent.fundIds] },
+    };
+  }
   if (model === 'AdaConversation') return { userId: eq(ent.userId) };
   if (model === 'AdaMessage') return { conversation: { is: { userId: eq(ent.userId) } } };
   return buildScopeWhere(model, ent);
+}
+
+/**
+ * The scope an UNAUTHENTICATED read of a model is held to, or `null` when the
+ * model has none (it is then passed or refused by the middleware's mode
+ * rules). A caller with no identity belongs to no fund, so it reads only the
+ * SYSTEM strategies and never an authored one.
+ *
+ * @param model - The scoped model.
+ * @returns A Prisma `where` fragment, or `null`.
+ */
+export function anonymousScopeWhere(model: ScopedModel): WhereFragment | null {
+  return model === 'Strategy' ? { kind: { equals: null } } : null;
 }
 
 /**
@@ -491,7 +571,7 @@ function readConnectId(
 
 /** Whether a single create payload lands in a tenant the caller is entitled to. */
 function singleDataInScope(
-  model: GovernedModel,
+  model: ScopedModel,
   data: Record<string, unknown>,
   ent: Entitlement
 ): boolean {
@@ -568,6 +648,10 @@ function singleDataInScope(
       // by id: it cannot be proven from the payload alone. The callers that can
       // read the database resolve it with {@link parentScopedCreateInScope}.
       return false;
+    case 'Strategy':
+      // No create is classified for Strategy: a user creates one only through
+      // createStrategyDraft, which checks the fund itself.
+      return false;
   }
 }
 
@@ -578,7 +662,7 @@ interface CreateParent {
   readonly relationField: string;
 }
 
-const CREATE_PARENTS: Partial<Record<GovernedModel, CreateParent>> = {
+const CREATE_PARENTS: Partial<Record<ScopedModel, CreateParent>> = {
   AdaMessage: { model: 'AdaConversation', scalarField: 'conversationId', relationField: 'conversation' },
 };
 
@@ -593,7 +677,7 @@ export interface ParentScopePrismaClient {
 }
 
 /** Whether a model's create is scoped by a parent row (see {@link parentScopedCreateInScope}). */
-export function hasCreateParent(model: GovernedModel): boolean {
+export function hasCreateParent(model: ScopedModel): boolean {
   return CREATE_PARENTS[model] !== undefined;
 }
 
@@ -611,7 +695,7 @@ export function hasCreateParent(model: GovernedModel): boolean {
  */
 export async function parentScopedCreateInScope(
   prisma: ParentScopePrismaClient,
-  model: GovernedModel,
+  model: ScopedModel,
   data: unknown,
   ent: Entitlement
 ): Promise<boolean> {
@@ -648,7 +732,7 @@ export async function parentScopedCreateInScope(
  * @returns `true` when every element lands in an entitled tenant.
  */
 export function dataInScope(
-  model: GovernedModel,
+  model: ScopedModel,
   data: unknown,
   ent: Entitlement
 ): boolean {
@@ -734,7 +818,7 @@ function isSubset(values: string[], allowed: readonly string[]): boolean {
  * false "already scoped" (which would hide a real cross-tenant access).
  */
 function readAlreadyScoped(
-  model: GovernedModel,
+  model: ScopedModel,
   where: WhereFragment | undefined,
   ent: Entitlement
 ): boolean {
@@ -780,6 +864,8 @@ function readAlreadyScoped(
       return isSelf('userId') || inOrg('organizationId');
     case 'AdaMessage':
       return false;
+    case 'Strategy':
+      return inFund('fundId');
   }
 }
 
