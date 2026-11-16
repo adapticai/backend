@@ -162,6 +162,7 @@ describe('StrategySubscription: opting in twice is unrepresentable', () => {
     // would drag User (a wide model) or recurse back through subscriptions.
     const relations = model('Strategy').fields.filter((f) => f.kind === 'object');
     expect(relations.map((f) => f.name).sort()).toEqual([
+      'fund',
       'owner',
       'subscriptions',
       'trades',

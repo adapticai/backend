@@ -4,7 +4,7 @@
  *
  * These are the only way a signed-in user writes a `Strategy` row; the
  * generated `Strategy` mutations stay service-only for a user. The rules —
- * the author only, the DRAFT state only, no operator-governed column, and a
+ * the author only, in a fund the author belongs to, the DRAFT state only, no operator-governed column, and a
  * revision compare-and-set in one statement — live in
  * `./strategy-draft-service.ts` and hold in every `MUTATION_AUTH_MODE`; the
  * mutation guard lists these fields as `resolver_authorized` so it defers to
@@ -42,7 +42,7 @@ export enum StrategyDraftWriteStatus {
 TypeGraphQL.registerEnumType(StrategyDraftWriteStatus, {
   name: 'StrategyDraftWriteStatus',
   description:
-    "WRITTEN: the write landed. NOT_FOUND: not the caller's draft. NOT_DRAFT: submitted or running. STALE: the draft moved since the revision named. SPEC_MISMATCH: the hash is not the stored spec's.",
+    "WRITTEN: the write landed. NOT_FOUND: not the caller's draft in a fund they belong to. NOT_DRAFT: submitted or running. STALE: the draft moved since the revision named. SPEC_MISMATCH: the hash is not the stored spec's.",
 });
 
 /** The outcome of a draft write. */
@@ -107,9 +107,10 @@ function prismaOf(ctx: DraftContext): StrategyDraftPrisma {
 export class StrategyDraftResolver {
   @TypeGraphQL.Mutation((_returns) => StrategyDraftWrite, {
     description:
-      'Create a strategy draft owned by the caller, in DRAFT, with no desk.',
+      'Create a strategy draft owned by the caller, in DRAFT, with no desk, in a fund the caller belongs to (FORBIDDEN otherwise). The fund never changes afterwards.',
   })
   async createStrategyDraft(
+    @TypeGraphQL.Arg('fundId', (_type) => String) fundId: string,
     @TypeGraphQL.Arg('kind', (_type) => StrategyKind) kind: StrategyKind,
     @TypeGraphQL.Arg('displayName', (_type) => String) displayName: string,
     @TypeGraphQL.Arg('spec', (_type) => GraphQLScalars.JSONResolver)
@@ -118,6 +119,7 @@ export class StrategyDraftResolver {
   ): Promise<StrategyDraftWrite> {
     return run(() =>
       createStrategyDraft(prismaOf(ctx), ctx.principal, {
+        fundId,
         kind,
         displayName,
         spec,

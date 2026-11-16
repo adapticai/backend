@@ -24,6 +24,7 @@ import { logger } from './utils/logger';
   backtestSpecHash
   desk
   ownerUserId
+  fundId
   createdAt
   updatedAt
   deletedAt
@@ -3752,6 +3753,7 @@ import { logger } from './utils/logger';
   backtestSpecHash: prop.backtestSpecHash !== undefined ? prop.backtestSpecHash : undefined,
   desk: prop.desk !== undefined ? prop.desk : undefined,
   ownerUserId: prop.ownerUserId !== undefined ? prop.ownerUserId : undefined,
+  fundId: prop.fundId !== undefined ? prop.fundId : undefined,
   deletedAt: prop.deletedAt !== undefined ? prop.deletedAt : undefined,
       })),
           ...(options?.skipDuplicates ? { skipDuplicates: true } : {}),
