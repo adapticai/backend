@@ -52,6 +52,18 @@ const U_OTHER = '44444444-4444-4444-8444-444444444444';
 const FUND_1 = '55555555-5555-4555-8555-555555555555';
 const FUND_2 = '77777777-7777-4777-8777-777777777777';
 const ORG_2 = '88888888-8888-4888-8888-888888888888';
+const ORG_1 = 'org-1';
+/** An organization its creator has just written: no members, no funds. */
+const ORG_NEW = '99999999-9999-4999-8999-999999999999';
+/** An organization that admits sign-ups from one email domain. */
+const ORG_DOMAIN = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+const U_ORG_OWNER = 'b0000000-0000-4000-8000-000000000001';
+const U_ORG_ADMIN = 'b0000000-0000-4000-8000-000000000002';
+const U_ORG_MEMBER = 'b0000000-0000-4000-8000-000000000003';
+const U_FUND_MANAGER = 'b0000000-0000-4000-8000-000000000004';
+const U_FUND_TRADER = 'b0000000-0000-4000-8000-000000000005';
+const U_FOUNDER = 'b0000000-0000-4000-8000-000000000006';
+const U_JOINER = 'b0000000-0000-4000-8000-000000000007';
 
 const ACCOUNTS: Record<string, { id: string; userId: string; type: string; brokerageAccount: { fundId: string } | null }> = {
   a1: { id: 'a1', userId: U_OWNER, type: 'LIVE', brokerageAccount: null },
@@ -67,17 +79,34 @@ const POLICIES: Record<string, { id: string; alpacaAccountId: string }> = {
 
 type Row = Record<string, unknown>;
 
-/** The tenancy rows: U_FUND is assigned FUND_1; FUND_2 (ORG_2) bridges the LIVE account a3. */
+/**
+ * The tenancy rows: U_FUND is assigned FUND_1 (org-1) as a VIEWER; FUND_2
+ * (ORG_2) bridges the LIVE account a3. org-1 has an OWNER, an ADMIN and a
+ * MEMBER, and FUND_1 a MANAGER and a TRADER.
+ */
 const TENANCY: Record<string, Row[]> = {
-  organization: [{ id: ORG_2 }],
-  orgMembership: [{ id: 'om2', organizationId: ORG_2, userId: U_OTHER }],
+  organization: [
+    { id: ORG_1, deletedAt: null, emailDomains: [] },
+    { id: ORG_2, deletedAt: null, emailDomains: [] },
+    { id: ORG_NEW, deletedAt: null, emailDomains: [] },
+    { id: ORG_DOMAIN, deletedAt: null, emailDomains: ['join.example'] },
+  ],
+  orgMembership: [
+    { id: 'om2', organizationId: ORG_2, userId: U_OTHER, role: 'MEMBER' },
+    { id: 'om-owner', organizationId: ORG_1, userId: U_ORG_OWNER, role: 'OWNER' },
+    { id: 'om-admin', organizationId: ORG_1, userId: U_ORG_ADMIN, role: 'ADMIN' },
+    { id: 'om-member', organizationId: ORG_1, userId: U_ORG_MEMBER, role: 'MEMBER' },
+    { id: 'om-domain', organizationId: ORG_DOMAIN, userId: U_OTHER, role: 'OWNER' },
+  ],
   fund: [
-    { id: FUND_1, organizationId: 'org-1' },
+    { id: FUND_1, organizationId: ORG_1 },
     { id: FUND_2, organizationId: ORG_2 },
   ],
   fundAssignment: [
-    { id: 'fa1', fundId: FUND_1, userId: U_FUND },
-    { id: 'fa2', fundId: FUND_2, userId: U_OTHER },
+    { id: 'fa1', fundId: FUND_1, userId: U_FUND, role: 'VIEWER' },
+    { id: 'fa2', fundId: FUND_2, userId: U_OTHER, role: 'MANAGER' },
+    { id: 'fa-manager', fundId: FUND_1, userId: U_FUND_MANAGER, role: 'MANAGER' },
+    { id: 'fa-trader', fundId: FUND_1, userId: U_FUND_TRADER, role: 'TRADER' },
   ],
   brokerageAccount: [
     { id: 'ba1', fundId: FUND_1, engineAccountId: 'a2' },
@@ -96,8 +125,36 @@ function matches(row: Row, where: Row): boolean {
     if (condition !== null && typeof condition === 'object' && 'in' in condition) {
       return (condition as { in: unknown[] }).in.includes(row[key]);
     }
+    if (condition !== null && typeof condition === 'object' && 'equals' in condition) {
+      return row[key] === (condition as { equals: unknown }).equals;
+    }
+    // A compound unique selector (`organizationId_userId: { organizationId, userId }`).
+    if (condition !== null && typeof condition === 'object' && !(key in row)) {
+      return matches(row, condition as Row);
+    }
     return row[key] === condition;
   });
+}
+
+/** Project a fixture row onto a Prisma `select`, including `_count` and a to-one relation. */
+function project(delegate: string, row: Row, select: Row | undefined): Row {
+  if (!select) return { id: row.id };
+  const out: Row = {};
+  for (const [key, wanted] of Object.entries(select)) {
+    if (key === '_count') {
+      const counted = (wanted as { select: Row }).select;
+      const counts: Row = {};
+      if ('members' in counted) counts.members = TENANCY.orgMembership.filter((m) => m.organizationId === row.id).length;
+      if ('funds' in counted) counts.funds = TENANCY.fund.filter((f) => f.organizationId === row.id).length;
+      out._count = counts;
+    } else if (delegate === 'fundAssignment' && key === 'fund') {
+      const fund = TENANCY.fund.find((f) => f.id === row.fundId);
+      out.fund = fund ? project('fund', fund, (wanted as { select: Row }).select) : null;
+    } else {
+      out[key] = row[key];
+    }
+  }
+  return out;
 }
 
 const PRINCIPALS: Record<string, BackendPrincipal | null> = {
@@ -108,6 +165,15 @@ const PRINCIPALS: Record<string, BackendPrincipal | null> = {
   owner: { kind: 'user', sub: U_OWNER, email: 'owner@example.test', roles: [] },
   stranger: { kind: 'user', sub: U_STRANGER, roles: [] },
   fundUser: { kind: 'user', sub: U_FUND, roles: [] },
+  orgOwner: { kind: 'user', sub: U_ORG_OWNER, roles: [] },
+  orgAdmin: { kind: 'user', sub: U_ORG_ADMIN, roles: [] },
+  // The token claims a role the caller does not hold: authority is read from
+  // the database, never from the claim.
+  orgMember: { kind: 'user', sub: U_ORG_MEMBER, roles: ['fund_operator'] },
+  fundManager: { kind: 'user', sub: U_FUND_MANAGER, roles: [] },
+  fundTrader: { kind: 'user', sub: U_FUND_TRADER, roles: [] },
+  founder: { kind: 'user', sub: U_FOUNDER, roles: [] },
+  joiner: { kind: 'user', sub: U_JOINER, roles: [] },
 };
 
 const FLIP_LIVE =
@@ -137,6 +203,22 @@ const RETENANT_ASSIGNMENT = `mutation { updateOneFundAssignment(where: { id: "fa
 const BROKER_LABEL = (id: string): string => `mutation { updateOneBrokerageAccount(where: { id: "${id}" }, data: { label: { set: "x" } }) { id } }`;
 const ARM_UNDER_USER = (userId: string, accountId: string): string =>
   `mutation { updateOneUser(where: { id: "${userId}" }, data: { alpacaAccounts: { update: [{ where: { id: "${accountId}" }, data: { tradingPolicy: ${ARM} } }] } }) { id } }`;
+
+// Entitlement rows: who may write a membership or a fund assignment.
+const SET_MEMBERSHIP_ROLE = (id: string, role: string): string =>
+  `mutation { updateOneOrgMembership(where: { id: "${id}" }, data: { role: { set: ${role} } }) { id } }`;
+const DELETE_MEMBERSHIP = (id: string): string => `mutation { deleteOneOrgMembership(where: { id: "${id}" }) { id } }`;
+const CREATE_MEMBERSHIP = (orgId: string, userId: string, role: string): string =>
+  `mutation { createOneOrgMembership(data: { organization: { connect: { id: "${orgId}" } }, user: { connect: { id: "${userId}" } }, role: ${role} }) { id } }`;
+const CREATE_ASSIGNMENT = (fundId: string, userId: string, role: string): string =>
+  `mutation { createOneFundAssignment(data: { fund: { connect: { id: "${fundId}" } }, user: { connect: { id: "${userId}" } }, role: ${role} }) { id } }`;
+const SET_ASSIGNMENT_ROLE = (id: string, role: string): string =>
+  `mutation { updateOneFundAssignment(where: { id: "${id}" }, data: { role: { set: ${role} } }) { id } }`;
+const SET_MEMBERSHIP_ROLE_BY_PAIR = (orgId: string, userId: string, role: string): string =>
+  `mutation { updateOneOrgMembership(where: { organizationId_userId: { organizationId: "${orgId}", userId: "${userId}" } }, data: { role: { set: ${role} } }) { id } }`;
+/** The platform's fund-creation payload: the creator as operator and as the fund's first MANAGER. */
+const CREATE_FUND_WITH_MANAGER = (userId: string): string =>
+  `mutation { createOneFund(data: { name: "F", slug: "f", organization: { connect: { id: "${ORG_1}" } }, operator: { connect: { id: "${userId}" } }, assignments: { create: [{ user: { connect: { id: "${userId}" } }, role: MANAGER }] } }) { id } }`;
 
 // Blocker 2: walks that leave the root's rows.
 const ACCOUNT_CHAIN = 'mutation { updateOneAlpacaAccount(where: { id: "a1" }, data: { brokerageAccount: { update: { data: { fund: { update: { data: { name: { set: "x" } } } } } } } }) { id } }';
@@ -194,6 +276,8 @@ export interface Scenario {
   auditDown?: boolean;
   /** The credential-field guard's mode; defaults to `enforce`, production's setting. */
   credentialMode?: CredentialFieldGuardMode;
+  /** Make every OrgMembership and FundAssignment `findUnique` fail. */
+  membershipReadsDown?: boolean;
 }
 
 export const SCENARIOS: Scenario[] = [
@@ -238,6 +322,48 @@ export const SCENARIOS: Scenario[] = [
     enforcedModels: ['TradingPolicy', 'AlpacaAccount'],
   },
   { name: 'b1/rootAssignment/fundUser/enforce', query: ROOT_ASSIGNMENT_OWN_FUND, principal: 'fundUser', mode: 'enforce' },
+  { name: 'b1/rootAssignment/fundUser/shadow', query: ROOT_ASSIGNMENT_OWN_FUND, principal: 'fundUser', mode: 'shadow' },
+
+  // A member's own promotion, under both modes.
+  { name: 'mem/promoteSelf/orgMember/enforce', query: SET_MEMBERSHIP_ROLE('om-member', 'OWNER'), principal: 'orgMember', mode: 'enforce' },
+  { name: 'mem/promoteSelf/orgMember/shadow', query: SET_MEMBERSHIP_ROLE('om-member', 'OWNER'), principal: 'orgMember', mode: 'shadow' },
+  { name: 'mem/promoteSelfByPair/orgMember/enforce', query: SET_MEMBERSHIP_ROLE_BY_PAIR(ORG_1, U_ORG_MEMBER, 'ADMIN'), principal: 'orgMember', mode: 'enforce' },
+  { name: 'mem/selfManager/orgMember/enforce', query: CREATE_ASSIGNMENT(FUND_1, U_ORG_MEMBER, 'MANAGER'), principal: 'orgMember', mode: 'enforce' },
+  { name: 'mem/selfManager/orgMember/shadow', query: CREATE_ASSIGNMENT(FUND_1, U_ORG_MEMBER, 'MANAGER'), principal: 'orgMember', mode: 'shadow' },
+  { name: 'mem/selfManager/fundUser/enforce', query: SET_ASSIGNMENT_ROLE('fa1', 'MANAGER'), principal: 'fundUser', mode: 'enforce' },
+  // OWNER and ADMIN manage the organization's memberships; only OWNER touches an OWNER row.
+  { name: 'mem/ownerSetsRole/orgOwner/enforce', query: SET_MEMBERSHIP_ROLE('om-member', 'ADMIN'), principal: 'orgOwner', mode: 'enforce' },
+  { name: 'mem/ownerGrantsOwner/orgOwner/enforce', query: SET_MEMBERSHIP_ROLE('om-admin', 'OWNER'), principal: 'orgOwner', mode: 'enforce' },
+  { name: 'mem/ownerRemoves/orgOwner/enforce', query: DELETE_MEMBERSHIP('om-member'), principal: 'orgOwner', mode: 'enforce' },
+  { name: 'mem/adminSetsRole/orgAdmin/enforce', query: SET_MEMBERSHIP_ROLE('om-member', 'AUDITOR'), principal: 'orgAdmin', mode: 'enforce' },
+  { name: 'mem/adminGrantsOwner/orgAdmin/enforce', query: SET_MEMBERSHIP_ROLE('om-admin', 'OWNER'), principal: 'orgAdmin', mode: 'enforce' },
+  { name: 'mem/adminDemotesOwner/orgAdmin/enforce', query: SET_MEMBERSHIP_ROLE('om-owner', 'MEMBER'), principal: 'orgAdmin', mode: 'enforce' },
+  { name: 'mem/adminRemovesOwner/orgAdmin/enforce', query: DELETE_MEMBERSHIP('om-owner'), principal: 'orgAdmin', mode: 'enforce' },
+  { name: 'mem/adminAddsMember/orgAdmin/enforce', query: CREATE_MEMBERSHIP(ORG_1, U_STRANGER, 'COMPLIANCE_OFFICER'), principal: 'orgAdmin', mode: 'enforce' },
+  { name: 'mem/otherOrg/orgOwner/enforce', query: SET_MEMBERSHIP_ROLE('om2', 'OWNER'), principal: 'orgOwner', mode: 'enforce' },
+  { name: 'mem/missingRow/orgOwner/enforce', query: SET_MEMBERSHIP_ROLE('om-none', 'ADMIN'), principal: 'orgOwner', mode: 'enforce' },
+  // Self-service: the creator of an empty organization. A domain join made as the
+  // joiner carries no proof the backend can read (the email is the caller's own column).
+  { name: 'mem/firstOwner/founder/enforce', query: CREATE_MEMBERSHIP(ORG_NEW, U_FOUNDER, 'OWNER'), principal: 'founder', mode: 'enforce' },
+  { name: 'mem/claimOccupied/founder/enforce', query: CREATE_MEMBERSHIP(ORG_1, U_FOUNDER, 'OWNER'), principal: 'founder', mode: 'enforce' },
+  { name: 'mem/firstOwnerForOther/founder/enforce', query: CREATE_MEMBERSHIP(ORG_NEW, U_STRANGER, 'OWNER'), principal: 'founder', mode: 'enforce' },
+  { name: 'mem/domainJoin/joiner/enforce', query: CREATE_MEMBERSHIP(ORG_DOMAIN, U_JOINER, 'MEMBER'), principal: 'joiner', mode: 'enforce' },
+  // An invitation's acceptance carries no proof the backend can read.
+  { name: 'mem/inviteAccept/stranger/enforce', query: CREATE_MEMBERSHIP(ORG_1, U_STRANGER, 'ADMIN'), principal: 'stranger', mode: 'enforce' },
+  // Fund assignments: org OWNER/ADMIN, or the fund's own MANAGER.
+  { name: 'mem/ownerAssigns/orgOwner/enforce', query: CREATE_ASSIGNMENT(FUND_1, U_STRANGER, 'MANAGER'), principal: 'orgOwner', mode: 'enforce' },
+  { name: 'mem/adminAssigns/orgAdmin/enforce', query: CREATE_ASSIGNMENT(FUND_1, U_STRANGER, 'TRADER'), principal: 'orgAdmin', mode: 'enforce' },
+  { name: 'mem/managerAssigns/fundManager/enforce', query: CREATE_ASSIGNMENT(FUND_1, U_STRANGER, 'ANALYST'), principal: 'fundManager', mode: 'enforce' },
+  { name: 'mem/managerSetsRole/fundManager/enforce', query: SET_ASSIGNMENT_ROLE('fa1', 'ANALYST'), principal: 'fundManager', mode: 'enforce' },
+  { name: 'mem/managerOtherFund/fundManager/enforce', query: CREATE_ASSIGNMENT(FUND_2, U_STRANGER, 'ANALYST'), principal: 'fundManager', mode: 'enforce' },
+  { name: 'mem/managerOtherFundRow/fundManager/enforce', query: SET_ASSIGNMENT_ROLE('fa2', 'VIEWER'), principal: 'fundManager', mode: 'enforce' },
+  { name: 'mem/traderAssigns/fundTrader/enforce', query: CREATE_ASSIGNMENT(FUND_1, U_STRANGER, 'ANALYST'), principal: 'fundTrader', mode: 'enforce' },
+  // The authority read fails: refused, and only observed in shadow.
+  { name: 'mem/readDown/orgOwner/enforce', query: SET_MEMBERSHIP_ROLE('om-member', 'ADMIN'), principal: 'orgOwner', mode: 'enforce', membershipReadsDown: true },
+  { name: 'mem/readDown/orgOwner/shadow', query: SET_MEMBERSHIP_ROLE('om-member', 'ADMIN'), principal: 'orgOwner', mode: 'shadow', membershipReadsDown: true },
+  // The platform's fund creation writes the creator's MANAGER assignment nested.
+  { name: 'mem/fundCreate/orgOwner/enforce', query: CREATE_FUND_WITH_MANAGER(U_ORG_OWNER), principal: 'orgOwner', mode: 'enforce' },
+  { name: 'mem/ownerSetsRole/server/enforce', query: SET_MEMBERSHIP_ROLE('om-member', 'OWNER'), principal: 'server', mode: 'enforce' },
   { name: 'b1/retenantAssignment/fundUser/enforce', query: RETENANT_ASSIGNMENT, principal: 'fundUser', mode: 'enforce' },
   { name: 'b1/crossTenantBroker/stranger/enforce', query: BROKER_LABEL('ba2'), principal: 'stranger', mode: 'enforce' },
   { name: 'b1/tenantBroker/fundUser/enforce', query: BROKER_LABEL('ba1'), principal: 'fundUser', mode: 'enforce' },
@@ -377,15 +503,21 @@ function policyFacts(p: { id: string; alpacaAccountId: string }): Record<string,
  */
 function tenancyDelegates(
   write: (name: string, value: unknown) => Promise<unknown>,
-  read: <T>(name: string, value: T) => Promise<T>
+  read: <T>(name: string, value: T) => Promise<T>,
+  reads: { push(name: string): void },
+  membershipReadsDown: () => boolean
 ): Record<string, Record<string, unknown>> {
   const out: Record<string, Record<string, unknown>> = {};
   for (const [delegate, rows] of Object.entries(TENANCY)) {
     out[delegate] = {
       findMany: ({ where }: { where: Row }) => read(`${delegate}.findMany`, rows.filter((r) => matches(r, where))),
-      findUnique: ({ where }: { where: Row }) => {
+      findUnique: ({ where, select }: { where: Row; select?: Row }) => {
+        if (membershipReadsDown() && (delegate === 'orgMembership' || delegate === 'fundAssignment')) {
+          reads.push(`${delegate}.findUnique`);
+          return Promise.reject(new Error('membership table unavailable'));
+        }
         const row = rows.find((r) => matches(r, where));
-        return read(`${delegate}.findUnique`, row ? { id: row.id } : null);
+        return read(`${delegate}.findUnique`, row ? project(delegate, row, select) : null);
       },
       create: () => write(`${delegate}.create`, { id: `${delegate}-new` }),
       update: ({ where }: { where: Row }) => write(`${delegate}.update`, { id: where.id }),
@@ -401,6 +533,7 @@ async function main(): Promise<void> {
   let enforcedModels: ReadonlySet<string> = new Set();
   let auditDown = false;
   let credentialMode: CredentialFieldGuardMode = 'enforce';
+  let membershipReadsDown = false;
   let writes: string[] = [];
   let reads: string[] = [];
   let audit: Array<Record<string, unknown>> = [];
@@ -435,7 +568,7 @@ async function main(): Promise<void> {
     user: {
       update: ({ where }: { where: Where }) => write('user.update', { id: where.id }),
     },
-    ...tenancyDelegates(write, read),
+    ...tenancyDelegates(write, read, { push: (name: string) => reads.push(name) }, () => membershipReadsDown),
     auditLog: {
       create: ({ data }: { data: Record<string, unknown> }) => {
         if (auditDown) return Promise.reject(new Error('audit table unavailable'));
@@ -483,6 +616,7 @@ async function main(): Promise<void> {
     enforcedModels = new Set(scenario.enforcedModels ?? []);
     auditDown = scenario.auditDown === true;
     credentialMode = scenario.credentialMode ?? 'enforce';
+    membershipReadsDown = scenario.membershipReadsDown === true;
     writes = [];
     reads = [];
     audit = [];

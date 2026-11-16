@@ -4,8 +4,10 @@
  * policy or account row, that account.
  *
  * The decision itself lives in `src/auth/mutation-authorization.ts` (pure);
- * this module installs it on the built schema, resolves the ownership facts a
- * user principal's write needs, counts and logs every decision, and writes the
+ * this module installs it on the built schema, resolves the ownership,
+ * tenancy and membership-role facts a user principal's write needs (read
+ * from the database for the mutation, never from the token), counts and logs
+ * every decision, and writes the
  * attributed TradingPolicy audit rows (`./trading-policy-audit.ts`).
  *
  * ## Why it wraps the Mutation fields instead of being a global middleware
@@ -72,6 +74,7 @@ import {
   type MutationFacts,
   type MutationTarget,
 } from '../auth/mutation-authorization';
+import { isMembershipModel } from '../auth/membership-write-authority';
 import { findNestedWrites, type NestedWrite } from '../auth/nested-write-inspector';
 import { firstNestedRefusal, writesNestedModelRows, type RelationFacts } from '../auth/nested-write-policy';
 import { GOVERNED_MODELS, type GovernedModel } from '../auth/tenancy-scope';
@@ -93,6 +96,7 @@ import {
   type MutationAuthPrisma,
   type TouchedAccounts,
 } from './mutation-account-facts';
+import { membershipWriteVerdict, type MembershipFactsPrisma } from './mutation-membership-facts';
 import { mandateVersionScopeOf, tenantScopeOf } from './mutation-tenant-facts';
 import {
   actorFor,
@@ -282,6 +286,9 @@ function logCredentialRefusal(
   });
 }
 
+/** The database client slice the guard reads its facts through. */
+type GuardPrisma = MutationAuthPrisma & MembershipFactsPrisma;
+
 /** Decide one mutation, resolving database facts only when the decision needs them. */
 async function decide(
   principal: BackendPrincipal | null,
@@ -289,7 +296,7 @@ async function decide(
   nested: readonly NestedWrite[],
   args: Record<string, unknown>,
   touched: () => Promise<TouchedAccounts>,
-  prisma: MutationAuthPrisma | undefined,
+  prisma: GuardPrisma | undefined,
   relations: RelationFacts
 ): Promise<MutationAuthEvaluation> {
   const nestedModels = nested.map((n) => n.model);
@@ -310,6 +317,20 @@ async function decide(
       return evaluateMutationAccess(principal, target, { ...facts, ownership });
     } catch (error: unknown) {
       logger.error('[mutation-auth] account ownership could not be read; refusing as unresolved', {
+        mutation: target.fieldName,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return first;
+    }
+  }
+
+  if (first.reason === 'membership_authority_unresolved' && isMembershipModel(target.model)) {
+    try {
+      const membership = await membershipWriteVerdict(prisma, target.model, target, args, principal.sub);
+      const membershipAuthority = membership.kind === 'decided' ? membership.verdict : 'unresolved';
+      return evaluateMutationAccess(principal, target, { ...facts, membershipAuthority });
+    } catch (error: unknown) {
+      logger.error('[mutation-auth] membership authority could not be read; refusing as unresolved', {
         mutation: target.fieldName,
         error: error instanceof Error ? error.message : String(error),
       });
@@ -413,7 +434,7 @@ function createMutationGuard(
     const argRecord = (args ?? {}) as Record<string, unknown>;
     // Cast justified: the context's `prisma` is the server's PrismaClient, whose
     // delegates satisfy this structural slice; tests supply a fake of it.
-    const prisma = context.prisma as MutationAuthPrisma | undefined;
+    const prisma = context.prisma as GuardPrisma | undefined;
 
     // First, before any fact or before-state read and before any audit row:
     // nothing below may execute the caller's `where` if it names a credential.

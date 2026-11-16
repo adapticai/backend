@@ -338,8 +338,12 @@ describe('fund entitlement cannot be minted by the caller it authorises', () => 
   it('checks a root entitlement write against the caller\'s own tenants, whatever TENANCY_SCOPING_MODE says', () => {
     expectRefused('b1/rootAssignment/stranger/enforce', 'tenant_out_of_scope');
     expectRefused('b1/crossTenantBroker/stranger/enforce', 'tenant_out_of_scope');
-    expect(scenario('b1/rootAssignment/fundUser/enforce').writes).toEqual(['fundAssignment.create']);
     expect(scenario('b1/tenantBroker/fundUser/enforce').writes).toEqual(['brokerageAccount.update']);
+  });
+
+  it('does not let a fund VIEWER add themselves to the fund they can already see', () => {
+    expectRefused('b1/rootAssignment/fundUser/enforce', 'membership_role_insufficient');
+    expectRefused('mem/selfManager/fundUser/enforce', 'membership_role_insufficient');
   });
 
   it('refuses re-pointing an entitled row into another tenant', () => {
@@ -531,5 +535,99 @@ describe('a credential predicate in a mutation\'s arguments', () => {
     const r = scenario('cred/bulk/none/shadow+credShadow');
     expect(r.codes).toEqual([]);
     expect(r.writes).toEqual(['tradingPolicy.updateMany']);
+  });
+});
+
+/** An admitted write: it reached the resolver, counted under the given reason. */
+function expectAdmitted(name: string, field: string, reason: string, write: string): void {
+  const r = scenario(name);
+  expect(r.codes, name).toEqual([]);
+  expect(r.writes, name).toEqual([write]);
+  expect(r.counterDelta, name).toEqual({ [`${field}|user|allowed|${reason}`]: 1 });
+}
+
+describe('an entitlement row is written only with authority over its tenant', () => {
+  it('refuses a MEMBER promoting themselves, by id or by the organization/user pair', () => {
+    expectRefused('mem/promoteSelf/orgMember/enforce', 'membership_role_insufficient');
+    expectRefused('mem/promoteSelfByPair/orgMember/enforce', 'membership_role_insufficient');
+  });
+
+  it('refuses a MEMBER creating a MANAGER assignment for themselves', () => {
+    expectRefused('mem/selfManager/orgMember/enforce', 'membership_role_insufficient');
+  });
+
+  it('admits an OWNER changing, granting OWNER to and removing members', () => {
+    expectAdmitted('mem/ownerSetsRole/orgOwner/enforce', 'updateOneOrgMembership', 'membership_org_admin', 'orgMembership.update');
+    expectAdmitted('mem/ownerGrantsOwner/orgOwner/enforce', 'updateOneOrgMembership', 'membership_org_admin', 'orgMembership.update');
+    expectAdmitted('mem/ownerRemoves/orgOwner/enforce', 'deleteOneOrgMembership', 'membership_org_admin', 'orgMembership.delete');
+  });
+
+  it('admits an ADMIN managing non-owner rows, including adding a person, but never an OWNER row', () => {
+    expectAdmitted('mem/adminSetsRole/orgAdmin/enforce', 'updateOneOrgMembership', 'membership_org_admin', 'orgMembership.update');
+    expectAdmitted('mem/adminAddsMember/orgAdmin/enforce', 'createOneOrgMembership', 'membership_org_admin', 'orgMembership.create');
+    for (const name of [
+      'mem/adminGrantsOwner/orgAdmin/enforce',
+      'mem/adminDemotesOwner/orgAdmin/enforce',
+      'mem/adminRemovesOwner/orgAdmin/enforce',
+    ]) {
+      expectRefused(name, 'membership_owner_requires_owner');
+    }
+  });
+
+  it('refuses an OWNER in another organization, and a row that does not exist, with the same answer', () => {
+    expectRefused('mem/otherOrg/orgOwner/enforce', 'tenant_out_of_scope');
+    expectRefused('mem/missingRow/orgOwner/enforce', 'tenant_out_of_scope');
+  });
+
+  it('admits the creator of an empty organization as its first OWNER, and nothing near it', () => {
+    expectAdmitted('mem/firstOwner/founder/enforce', 'createOneOrgMembership', 'membership_first_owner', 'orgMembership.create');
+    expectRefused('mem/claimOccupied/founder/enforce', 'tenant_out_of_scope');
+    expectRefused('mem/firstOwnerForOther/founder/enforce', 'tenant_out_of_scope');
+  });
+
+  it('refuses an invitation acceptance or a domain join written as the joiner, which carries no proof the backend can read', () => {
+    expectRefused('mem/inviteAccept/stranger/enforce', 'tenant_out_of_scope');
+    expectRefused('mem/domainJoin/joiner/enforce', 'tenant_out_of_scope');
+  });
+
+  it("admits fund assignments by the organization's OWNER or ADMIN and by the fund's own MANAGER", () => {
+    expectAdmitted('mem/ownerAssigns/orgOwner/enforce', 'createOneFundAssignment', 'membership_org_admin', 'fundAssignment.create');
+    expectAdmitted('mem/adminAssigns/orgAdmin/enforce', 'createOneFundAssignment', 'membership_org_admin', 'fundAssignment.create');
+    expectAdmitted('mem/managerAssigns/fundManager/enforce', 'createOneFundAssignment', 'membership_fund_manager', 'fundAssignment.create');
+    expectAdmitted('mem/managerSetsRole/fundManager/enforce', 'updateOneFundAssignment', 'membership_fund_manager', 'fundAssignment.update');
+  });
+
+  it("refuses a MANAGER on another fund, and a fund role below MANAGER", () => {
+    expectRefused('mem/managerOtherFund/fundManager/enforce', 'tenant_out_of_scope');
+    expectRefused('mem/managerOtherFundRow/fundManager/enforce', 'tenant_out_of_scope');
+    expectRefused('mem/traderAssigns/fundTrader/enforce', 'membership_role_insufficient');
+  });
+
+  it('refuses, with a reason, when the authority read fails', () => {
+    expectRefused('mem/readDown/orgOwner/enforce', 'membership_authority_unresolved');
+  });
+
+  it('admits but counts as would-deny under shadow, so the rule is measured before it refuses', () => {
+    for (const [name, field, write] of [
+      ['mem/promoteSelf/orgMember/shadow', 'updateOneOrgMembership', 'orgMembership.update'],
+      ['mem/selfManager/orgMember/shadow', 'createOneFundAssignment', 'fundAssignment.create'],
+      ['b1/rootAssignment/fundUser/shadow', 'createOneFundAssignment', 'fundAssignment.create'],
+    ] as const) {
+      const r = scenario(name);
+      expect(r.status, name).toBe(200);
+      expect(r.writes, name).toEqual([write]);
+      expect(r.counterDelta, name).toEqual({ [`${field}|user|would_deny|membership_role_insufficient`]: 1 });
+    }
+    const down = scenario('mem/readDown/orgOwner/shadow');
+    expect(down.writes).toEqual(['orgMembership.update']);
+    expect(down.counterDelta).toEqual({ 'updateOneOrgMembership|user|would_deny|membership_authority_unresolved': 1 });
+  });
+
+  it('leaves the service principal unrestricted', () => {
+    expect(scenario('mem/ownerSetsRole/server/enforce').writes).toEqual(['orgMembership.update']);
+  });
+
+  it("still refuses the creator's nested MANAGER assignment on fund creation (unchanged by this rule)", () => {
+    expectRefused('mem/fundCreate/orgOwner/enforce', 'nested_entitlement_write');
   });
 });

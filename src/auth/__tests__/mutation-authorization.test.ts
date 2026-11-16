@@ -171,11 +171,22 @@ describe('evaluateMutationAccess', () => {
   });
 
   it('admits a tenant-scoped write only when the guard proved it in scope', () => {
-    const models = new Set(['FundAssignment']);
-    const fa = classifyMutationField('createOneFundAssignment', models);
-    expect(evaluateMutationAccess(USER, fa).reason).toBe('tenant_unresolved');
-    expect(evaluateMutationAccess(USER, fa, { tenantScope: 'in_scope' }).allowed).toBe(true);
-    expect(evaluateMutationAccess(USER, fa, { tenantScope: 'out_of_scope' }).reason).toBe('tenant_out_of_scope');
+    const models = new Set(['BrokerageAccount']);
+    const ba = classifyMutationField('createOneBrokerageAccount', models);
+    expect(evaluateMutationAccess(USER, ba).reason).toBe('tenant_unresolved');
+    expect(evaluateMutationAccess(USER, ba, { tenantScope: 'in_scope' }).allowed).toBe(true);
+    expect(evaluateMutationAccess(USER, ba, { tenantScope: 'out_of_scope' }).reason).toBe('tenant_out_of_scope');
+  });
+
+  it('does not admit an entitlement-row write on tenant scope alone', () => {
+    const models = new Set(['FundAssignment', 'OrgMembership']);
+    for (const field of ['createOneFundAssignment', 'updateOneOrgMembership']) {
+      const t = classifyMutationField(field, models);
+      expect(evaluateMutationAccess(USER, t, { tenantScope: 'in_scope' }), field).toMatchObject({
+        allowed: false,
+        reason: 'membership_authority_unresolved',
+      });
+    }
   });
 
   it('confines self-policy writes to the caller', () => {
@@ -226,6 +237,16 @@ const nw = (over: Partial<NestedWrite> & Pick<NestedWrite, 'model' | 'parentMode
 describe('nestedWriteRefusalForUser', () => {
   const me = 'u-1';
   const refusal = (w: NestedWrite): string | null => nestedWriteRefusalForUser(w, me, RELATIONS);
+
+  it("admits another person as the member of a root entitlement-row create, and nowhere else", () => {
+    const member = { model: 'User', relation: 'user', operations: ['connect'], connectIds: ['u-2'], parentMode: 'create' } as const;
+    expect(refusal(nw({ ...member, parentModel: 'FundAssignment' }))).toBeNull();
+    expect(refusal(nw({ ...member, parentModel: 'FundAssignment', depth: 2 }))).toBe('nested_write_not_user_writable');
+    expect(refusal(nw({ ...member, parentModel: 'FundAssignment', parentMode: 'update' }))).toBe(
+      'nested_write_not_user_writable'
+    );
+    expect(refusal(nw({ ...member, parentModel: 'AlpacaAccount' }))).toBe('nested_write_not_user_writable');
+  });
 
   it('admits the owned-content edges whose target is the root row\'s own counterpart, at depth 1 only', () => {
     expect(refusal(nw({ model: 'TradingPolicy', parentModel: 'AlpacaAccount', relation: 'tradingPolicy' }))).toBeNull();
