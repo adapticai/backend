@@ -28,3 +28,8 @@ export {
   UserTotpResult,
   UserTotpVerification,
 } from './UserTotpResolver';
+export {
+  StrategyDraftResolver,
+  StrategyDraftWrite,
+  StrategyDraftWriteStatus,
+} from './StrategyDraftResolver';

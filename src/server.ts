@@ -24,6 +24,7 @@ import {
   AccountEquityCurveResolver,
   BrokerageAccountCredentialStatusResolver,
   OptionsGreeksHistoryCustomResolver,
+  StrategyDraftResolver,
   TradingSettingsResolver,
   UserTotpResolver,
 } from './resolvers/custom';
@@ -177,6 +178,7 @@ const startServer = async () => {
       BrokerageAccountCredentialStatusResolver,
       AccountEquityCurveResolver,
       UserTotpResolver,
+      StrategyDraftResolver,
     ],
     validate: false,
     // Row-level tenancy scoping (SP2-G7 / SOC2). Applies ONLY to user-scoped

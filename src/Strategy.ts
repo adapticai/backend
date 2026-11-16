@@ -21,6 +21,7 @@ import { logger } from './utils/logger';
   kind
   spec
   backtestJobId
+  backtestSpecHash
   desk
   ownerUserId
   createdAt
@@ -82,6 +83,7 @@ import { logger } from './utils/logger';
   kind: props.kind !== undefined ? props.kind : undefined,
   spec: props.spec !== undefined ? props.spec : undefined,
   backtestJobId: props.backtestJobId !== undefined ? props.backtestJobId : undefined,
+  backtestSpecHash: props.backtestSpecHash !== undefined ? props.backtestSpecHash : undefined,
   desk: props.desk !== undefined ? props.desk : undefined,
   deletedAt: props.deletedAt !== undefined ? props.deletedAt : undefined,
   owner: props.owner ? 
@@ -3747,6 +3749,7 @@ import { logger } from './utils/logger';
   kind: prop.kind !== undefined ? prop.kind : undefined,
   spec: prop.spec !== undefined ? prop.spec : undefined,
   backtestJobId: prop.backtestJobId !== undefined ? prop.backtestJobId : undefined,
+  backtestSpecHash: prop.backtestSpecHash !== undefined ? prop.backtestSpecHash : undefined,
   desk: prop.desk !== undefined ? prop.desk : undefined,
   ownerUserId: prop.ownerUserId !== undefined ? prop.ownerUserId : undefined,
   deletedAt: prop.deletedAt !== undefined ? prop.deletedAt : undefined,
@@ -3928,6 +3931,9 @@ import { logger } from './utils/logger';
   spec: props.spec !== undefined ? props.spec : undefined,
   backtestJobId: props.backtestJobId !== undefined ? {
             set: props.backtestJobId 
+           } : undefined,
+  backtestSpecHash: props.backtestSpecHash !== undefined ? {
+            set: props.backtestSpecHash 
            } : undefined,
   desk: props.desk !== undefined ? {
             set: props.desk 
@@ -17864,6 +17870,7 @@ import { logger } from './utils/logger';
   kind: props.kind !== undefined ? props.kind : undefined,
   spec: props.spec !== undefined ? props.spec : undefined,
   backtestJobId: props.backtestJobId !== undefined ? props.backtestJobId : undefined,
+  backtestSpecHash: props.backtestSpecHash !== undefined ? props.backtestSpecHash : undefined,
   desk: props.desk !== undefined ? props.desk : undefined,
   deletedAt: props.deletedAt !== undefined ? props.deletedAt : undefined,
   owner: props.owner ? 
@@ -21393,6 +21400,9 @@ import { logger } from './utils/logger';
   spec: props.spec !== undefined ? props.spec : undefined,
   backtestJobId: props.backtestJobId !== undefined ? {
             set: props.backtestJobId 
+           } : undefined,
+  backtestSpecHash: props.backtestSpecHash !== undefined ? {
+            set: props.backtestSpecHash 
            } : undefined,
   desk: props.desk !== undefined ? {
             set: props.desk 
@@ -35338,6 +35348,9 @@ import { logger } from './utils/logger';
   spec: prop.spec !== undefined ? prop.spec : undefined,
   backtestJobId: prop.backtestJobId !== undefined ? {
             set: prop.backtestJobId 
+           } : undefined,
+  backtestSpecHash: prop.backtestSpecHash !== undefined ? {
+            set: prop.backtestSpecHash 
            } : undefined,
   desk: prop.desk !== undefined ? {
             set: prop.desk 

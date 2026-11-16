@@ -45,7 +45,8 @@
  *     must belong to an organization the caller is a member of or a fund they
  *     are entitled to. Nested writes treat it as `authenticated`, as before.
  *   - `resolver_authorized` — custom mutations whose resolver performs its own
- *     authorization.
+ *     authorization, among them the strategy-draft mutations: the only user
+ *     writes to `Strategy`, which is otherwise `service_only`.
  *   - everything else is `service_only`.
  * - `UserTotp` and the TOTP custom mutations are service-principal only:
  *   not even an admin may write a user's second factor through GraphQL
@@ -291,6 +292,14 @@ export interface ModelWriteRule {
   readonly userActions?: ReadonlySet<MutationAction | 'custom'>;
 }
 
+/** The strategy-draft custom mutations (`src/resolvers/custom/StrategyDraftResolver.ts`), as classified targets. */
+export const STRATEGY_DRAFT_MUTATIONS: readonly string[] = [
+  'custom:createStrategyDraft',
+  'custom:saveStrategyDraft',
+  'custom:deleteStrategyDraft',
+  'custom:recordStrategyDraftBacktest',
+];
+
 const ONLY = (...actions: Array<MutationAction | 'custom'>): ReadonlySet<MutationAction | 'custom'> =>
   new Set(actions);
 
@@ -331,6 +340,14 @@ export const MODEL_WRITE_RULES: ReadonlyMap<string, ModelWriteRule> = new Map<
   ['InvestorTransaction', { policy: 'authenticated', userActions: ONLY('update') }],
   ['custom:updateOrgTradingDefaults', { policy: 'resolver_authorized' }],
   ['custom:updateFundTradingOverrides', { policy: 'resolver_authorized' }],
+  // Strategy itself stays service_only: its generated inputs carry the
+  // operator-governed columns (desk, lifecycleState, origin). A user writes
+  // only their own DRAFT through these, which take no such column and
+  // enforce author + state + revision in one statement
+  // (`src/resolvers/custom/strategy-draft-service.ts`).
+  ...STRATEGY_DRAFT_MUTATIONS.map(
+    (field): [string, ModelWriteRule] => [field, { policy: 'resolver_authorized' }]
+  ),
 ]);
 
 const SERVICE_ONLY: ModelWriteRule = { policy: 'service_only' };

@@ -10,6 +10,8 @@ The engine attributes an order to the desk of the strategy that produced it (`Tr
 
 Who may write it: the existing Strategy rule. Strategy is not in `MODEL_WRITE_RULES` (`src/auth/mutation-authorization.ts`), so it is `service_only` for a signed-in user, and only an admin principal (an operator) or the engine's service principal may set it. Strategy has no organization or fund column, so there is no tenant to scope a user write by. Strategy writes are decided in the guard's configured `MUTATION_AUTH_MODE`, like every model that had writers before the guard.
 
+A signed-in user's own drafts are the one exception, and they cannot reach `desk`: the strategy-draft mutations (`createStrategyDraft`, `saveStrategyDraft`, `deleteStrategyDraft`, `recordStrategyDraftBacktest` in `src/resolvers/custom/StrategyDraftResolver.ts`, G-STR-08) take only a kind, a name, a spec and a backtest record. A create stamps the owner from the principal, `origin` USER, `lifecycleState` DRAFT and no desk; every other write matches the author, the DRAFT state and the revision (`updatedAt`) in one conditional statement and answers `STALE` when it matches nothing. A save that changes the spec clears `backtestJobId` and `backtestSpecHash`; a backtest record must name the hash of the stored spec (`src/resolvers/custom/strategy-spec-hash.ts`). They are `resolver_authorized` in the guard and decide the same way in every mode.
+
 ## MandateRule machine keys
 
 | Field       | Type                      | Meaning                                                                                                                                                                                                          |
