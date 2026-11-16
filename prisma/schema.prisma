@@ -6259,6 +6259,10 @@ model Fund {
   /// @TypeGraphQL.omit(output: true)
   deskDecisions DeskDecision[]
 
+  /// Strategies authored in this fund. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.strategy.* resolvers, which scope an authored strategy to the members of its fund. Omitted from every GraphQL type and input: a nested write through a fund must not create or re-home a strategy.
+  /// @TypeGraphQL.omit(output: true, input: true)
+  strategies Strategy[]
+
   /// Timestamp when the fund was created. TYPESTRING.SKIP=true
   createdAt DateTime @default(now())
 
@@ -7695,6 +7699,23 @@ model Strategy {
   /// TYPESTRING.SKIP=true GQL.SKIP=true
   owner User? @relation("StrategyOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
 
+  /// The fund an authored strategy belongs to. Stamped once, from the
+  /// author's request, by `createStrategyDraft`, which admits only a member of
+  /// that fund; no write changes it afterwards, so a draft never moves
+  /// between funds. A signed-in user reads an authored strategy only in a fund
+  /// they belong to (`src/auth/tenancy-scope.ts`). NULL for SYSTEM strategies,
+  /// which belong to the platform rather than to any fund.
+  fundId String? @db.Uuid
+
+  /// Relation to the owning Fund. Restrict: a fund that still holds authored
+  /// strategies is not hard-deleted out from under them. Omitted from every
+  /// GraphQL type and input, so no generated write can set or change
+  /// `fundId` (the checked inputs carry a foreign key only through its
+  /// relation); filter on the `fundId` scalar instead.
+  /// TYPESTRING.SKIP=true GQL.SKIP=true
+  /// @TypeGraphQL.omit(output: true, input: true)
+  fund Fund? @relation(fields: [fundId], references: [id], onDelete: Restrict)
+
   /// Per-account opt-ins into this strategy. TYPESTRING.SKIP=true GQL.SKIP=true
   subscriptions StrategySubscription[]
 
@@ -7713,6 +7734,7 @@ model Strategy {
   @@index([lifecycleState])
   @@index([ownerUserId])
   @@index([desk])
+  @@index([fundId])
   @@map(name: "strategies")
 }
 

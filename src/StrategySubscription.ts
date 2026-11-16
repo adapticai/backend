@@ -28,6 +28,7 @@ import { logger } from './utils/logger';
     backtestSpecHash
     desk
     ownerUserId
+    fundId
     createdAt
     updatedAt
     deletedAt
@@ -4495,6 +4496,9 @@ import { logger } from './utils/logger';
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -8034,6 +8038,9 @@ import { logger } from './utils/logger';
           } : undefined,
         ownerUserId: props.strategy.ownerUserId !== undefined ? {
             equals: props.strategy.ownerUserId
+          } : undefined,
+        fundId: props.strategy.fundId !== undefined ? {
+            equals: props.strategy.fundId
           } : undefined,
       },
       update: {
@@ -15756,6 +15763,9 @@ import { logger } from './utils/logger';
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -19295,6 +19305,9 @@ import { logger } from './utils/logger';
           } : undefined,
         ownerUserId: props.strategy.ownerUserId !== undefined ? {
             equals: props.strategy.ownerUserId
+          } : undefined,
+        fundId: props.strategy.fundId !== undefined ? {
+            equals: props.strategy.fundId
           } : undefined,
       },
       update: {
@@ -24739,6 +24752,9 @@ import { logger } from './utils/logger';
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -28278,6 +28294,9 @@ import { logger } from './utils/logger';
           } : undefined,
         ownerUserId: prop.strategy.ownerUserId !== undefined ? {
             equals: prop.strategy.ownerUserId
+          } : undefined,
+        fundId: prop.strategy.fundId !== undefined ? {
+            equals: prop.strategy.fundId
           } : undefined,
       },
       update: {

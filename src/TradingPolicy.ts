@@ -3741,6 +3741,9 @@ import { logger } from './utils/logger';
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -5743,6 +5746,9 @@ import { logger } from './utils/logger';
               } : undefined,
             ownerUserId: item.strategy.ownerUserId !== undefined ? {
                 equals: item.strategy.ownerUserId
+              } : undefined,
+            fundId: item.strategy.fundId !== undefined ? {
+                equals: item.strategy.fundId
               } : undefined,
           },
           update: {
@@ -11810,6 +11816,9 @@ import { logger } from './utils/logger';
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -13812,6 +13821,9 @@ import { logger } from './utils/logger';
               } : undefined,
             ownerUserId: item.strategy.ownerUserId !== undefined ? {
                 equals: item.strategy.ownerUserId
+              } : undefined,
+            fundId: item.strategy.fundId !== undefined ? {
+                equals: item.strategy.fundId
               } : undefined,
           },
           update: {
@@ -18218,6 +18230,9 @@ import { logger } from './utils/logger';
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -20220,6 +20235,9 @@ import { logger } from './utils/logger';
               } : undefined,
             ownerUserId: item.strategy.ownerUserId !== undefined ? {
                 equals: item.strategy.ownerUserId
+              } : undefined,
+            fundId: item.strategy.fundId !== undefined ? {
+                equals: item.strategy.fundId
               } : undefined,
           },
           update: {

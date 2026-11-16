@@ -15,6 +15,7 @@ import {
   evaluateMutationAccess,
   STRATEGY_DRAFT_MUTATIONS,
 } from '../../../auth/mutation-authorization';
+import { buildScopeWhere, type Entitlement } from '../../../auth/tenancy-scope';
 import type { BackendPrincipal } from '../../../auth/token-verifier';
 import { StrategyDraftResolver } from '../StrategyDraftResolver';
 import {
@@ -33,6 +34,25 @@ const ALICE: BackendPrincipal = { kind: 'user', sub: ALICE_ID, roles: [] };
 const BOB: BackendPrincipal = { kind: 'user', sub: BOB_ID, roles: [] };
 const SERVICE: BackendPrincipal = { kind: 'server' };
 
+/**
+ * Two funds. ALICE belongs to fund A through her organization; BOB is
+ * assigned to both funds directly, so the author rule (not only the fund) is
+ * what keeps him out of ALICE's drafts in fund A.
+ */
+const ORG_A = '00000000-0000-4000-8000-0000000000a0';
+const ORG_B = '00000000-0000-4000-8000-0000000000b0';
+const FUND_A = '00000000-0000-4000-8000-00000000fa00';
+const FUND_B = '00000000-0000-4000-8000-00000000fb00';
+const MEMBERSHIPS = [{ userId: ALICE_ID, organizationId: ORG_A }];
+const FUNDS = [
+  { id: FUND_A, organizationId: ORG_A },
+  { id: FUND_B, organizationId: ORG_B },
+];
+const ASSIGNMENTS = [
+  { userId: BOB_ID, fundId: FUND_A },
+  { userId: BOB_ID, fundId: FUND_B },
+];
+
 const REV = new Date('2026-11-15T10:00:00.000Z');
 const LATER = new Date('2026-11-15T10:05:00.000Z');
 const SPEC = { thesis: 'Grid capex', allocationPct: 5 };
@@ -48,22 +68,36 @@ interface Row {
   spec: unknown;
   desk: string | null;
   ownerUserId: string | null;
+  fundId: string | null;
   backtestJobId: string | null;
   backtestSpecHash: string | null;
   updatedAt: Date;
   deletedAt: Date | null;
 }
 
-/** Whether a row satisfies the subset of `StrategyWhereInput` the service sends. */
+/**
+ * Whether a row satisfies the subset of `StrategyWhereInput` the service and
+ * the tenancy scope send: equality, `not`, `equals`, `in`, `AND` and `OR`.
+ */
 function matches(row: Row, where: Record<string, unknown>): boolean {
   return Object.entries(where).every(([field, condition]) => {
+    if (field === 'AND' || field === 'OR') {
+      const parts = condition as Array<Record<string, unknown>>;
+      return field === 'AND'
+        ? parts.every((part) => matches(row, part))
+        : parts.some((part) => matches(row, part));
+    }
     const value = (row as unknown as Record<string, unknown>)[field];
     if (condition instanceof Date)
       return value instanceof Date && value.getTime() === condition.getTime();
     if (condition !== null && typeof condition === 'object') {
-      const ops = condition as Record<string, unknown>;
-      if ('not' in ops) return value !== ops.not;
-      throw new Error(`fake table: unsupported filter on ${field}`);
+      const ops = Object.entries(condition as Record<string, unknown>);
+      return ops.every(([op, operand]) => {
+        if (op === 'not') return value !== operand;
+        if (op === 'equals') return value === operand;
+        if (op === 'in') return (operand as unknown[]).includes(value);
+        throw new Error(`fake table: unsupported filter ${op} on ${field}`);
+      });
     }
     return value === condition;
   });
@@ -80,6 +114,27 @@ function table(seed: Row[]): {
   const writes: Array<Record<string, unknown>> = [];
   const betweenReadAndWrite: { run: (() => void) | null } = { run: null };
   const prisma: StrategyDraftPrisma = {
+    orgMembership: {
+      async findMany({ where }) {
+        return MEMBERSHIPS.filter((m) => m.userId === where.userId).map(
+          (m) => ({ organizationId: m.organizationId })
+        );
+      },
+    },
+    fund: {
+      async findMany({ where }) {
+        return FUNDS.filter((f) =>
+          where.organizationId.in.includes(f.organizationId)
+        ).map((f) => ({ id: f.id }));
+      },
+    },
+    fundAssignment: {
+      async findMany({ where }) {
+        return ASSIGNMENTS.filter((a) => a.userId === where.userId).map(
+          (a) => ({ fundId: a.fundId })
+        );
+      },
+    },
     strategy: {
       async findFirst({ where }) {
         const row = rows.find((candidate) =>
@@ -108,6 +163,7 @@ function table(seed: Row[]): {
           spec: data.spec,
           desk: (data.desk as string | undefined) ?? null,
           ownerUserId: (data.ownerUserId as string | undefined) ?? null,
+          fundId: (data.fundId as string | undefined) ?? null,
           backtestJobId: null,
           backtestSpecHash: null,
           updatedAt: REV,
@@ -140,6 +196,7 @@ function draft(overrides: Partial<Row> = {}): Row {
     spec: SPEC,
     desk: null,
     ownerUserId: ALICE_ID,
+    fundId: FUND_A,
     backtestJobId: null,
     backtestSpecHash: null,
     updatedAt: REV,
@@ -172,6 +229,7 @@ describe('createStrategyDraft', () => {
   it('stamps the owner from the principal, origin USER, DRAFT, and no desk', async () => {
     const t = table([]);
     const out = await createStrategyDraft(t.prisma, ALICE, {
+      fundId: FUND_A,
       kind: 'thematic',
       displayName: '  Grid  ',
       spec: SPEC,
@@ -184,10 +242,12 @@ describe('createStrategyDraft', () => {
       kind: 'thematic',
       displayName: 'Grid',
       desk: null,
+      fundId: FUND_A,
     });
     expect(Object.keys(t.writes[0]).sort()).toEqual(
       [
         'displayName',
+        'fundId',
         'key',
         'kind',
         'lifecycleState',
@@ -202,6 +262,7 @@ describe('createStrategyDraft', () => {
     const t = table([]);
     await expect(
       createStrategyDraft(t.prisma, null, {
+        fundId: FUND_A,
         kind: 'signal',
         displayName: 'x',
         spec: {},
@@ -211,6 +272,7 @@ describe('createStrategyDraft', () => {
     });
     await expect(
       createStrategyDraft(t.prisma, SERVICE, {
+        fundId: FUND_A,
         kind: 'signal',
         displayName: 'x',
         spec: {},
@@ -223,6 +285,7 @@ describe('createStrategyDraft', () => {
     const t = table([]);
     await expect(
       createStrategyDraft(t.prisma, ALICE, {
+        fundId: FUND_A,
         kind: 'signal',
         displayName: 'x',
         spec: [1],
@@ -512,6 +575,152 @@ describe('recordStrategyDraftBacktest', () => {
   });
 });
 
+describe('fund tenancy (G-STR-06)', () => {
+  const ALICE_ENT: Entitlement = {
+    userId: ALICE_ID,
+    orgIds: [ORG_A],
+    fundIds: [FUND_A],
+  };
+
+  it('stamps the fund the author names, and refuses a fund the author does not belong to', async () => {
+    const t = table([]);
+    await expect(
+      createStrategyDraft(t.prisma, ALICE, {
+        fundId: FUND_B,
+        kind: 'thematic',
+        displayName: 'Grid',
+        spec: SPEC,
+      })
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    await expect(
+      createStrategyDraft(t.prisma, ALICE, {
+        fundId: 'not-a-fund',
+        kind: 'thematic',
+        displayName: 'Grid',
+        spec: SPEC,
+      })
+    ).rejects.toMatchObject({ code: 'BAD_USER_INPUT' });
+    expect(t.rows).toHaveLength(0);
+
+    const out = await createStrategyDraft(t.prisma, ALICE, {
+      fundId: ` ${FUND_A} `,
+      kind: 'thematic',
+      displayName: 'Grid',
+      spec: SPEC,
+    });
+    expect(out.status).toBe('WRITTEN');
+    expect(t.rows[0].fundId).toBe(FUND_A);
+    // BOB reaches the same funds by assignment rather than by organization.
+    const bob = await createStrategyDraft(t.prisma, BOB, {
+      fundId: FUND_B,
+      kind: 'signal',
+      displayName: 'Momentum',
+      spec: SPEC,
+    });
+    expect(bob.status).toBe('WRITTEN');
+    expect(t.rows[1].fundId).toBe(FUND_B);
+  });
+
+  it("cannot save, delete or record a backtest on the author's own draft in a fund the author is not in", async () => {
+    const t = table([draft({ fundId: FUND_B })]);
+    const saved = await saveStrategyDraft(
+      t.prisma,
+      ALICE,
+      { id: 'draft-1', expectedRevision: REV, displayName: 'x', spec: EDITED },
+      clock
+    );
+    const deleted = await deleteStrategyDraft(
+      t.prisma,
+      ALICE,
+      { id: 'draft-1', expectedRevision: REV },
+      clock
+    );
+    const recorded = await recordStrategyDraftBacktest(
+      t.prisma,
+      ALICE,
+      {
+        id: 'draft-1',
+        expectedRevision: REV,
+        jobId: 'job-1',
+        specHash: specHash(SPEC),
+      },
+      clock
+    );
+    expect([saved.status, deleted.status, recorded.status]).toEqual([
+      'NOT_FOUND',
+      'NOT_FOUND',
+      'NOT_FOUND',
+    ]);
+    expect(t.writes).toHaveLength(0);
+    expect(t.rows[0]).toMatchObject({
+      spec: SPEC,
+      deletedAt: null,
+      backtestJobId: null,
+      fundId: FUND_B,
+    });
+  });
+
+  it('the write itself names the fund: a draft moved out of the fund between the read and the write is not written', async () => {
+    const t = table([draft()]);
+    t.betweenReadAndWrite.run = () => {
+      t.rows[0].fundId = FUND_B;
+    };
+    const out = await saveStrategyDraft(
+      t.prisma,
+      ALICE,
+      { id: 'draft-1', expectedRevision: REV, displayName: 'x', spec: EDITED },
+      clock
+    );
+    expect(out.status).toBe('STALE');
+    expect(t.rows[0].spec).toEqual(SPEC);
+  });
+
+  it('no draft write sets the fund again, so a draft never moves', async () => {
+    const t = table([draft()]);
+    const saved = await saveStrategyDraft(
+      t.prisma,
+      ALICE,
+      { id: 'draft-1', expectedRevision: REV, displayName: 'x', spec: EDITED },
+      clock
+    );
+    await recordStrategyDraftBacktest(
+      t.prisma,
+      ALICE,
+      {
+        id: 'draft-1',
+        expectedRevision: saved.revision as Date,
+        jobId: 'job-1',
+        specHash: specHash(EDITED),
+      },
+      clock
+    );
+    expect(t.writes.length).toBe(2);
+    for (const write of t.writes) expect(write).not.toHaveProperty('fundId');
+    expect(t.rows[0].fundId).toBe(FUND_A);
+  });
+
+  it('a member of fund A reads the drafts of fund A and the SYSTEM strategies, never a draft in fund B', () => {
+    const rows = [
+      draft({ id: 'mine-in-a' }),
+      draft({ id: 'bobs-in-a', ownerUserId: BOB_ID }),
+      draft({ id: 'mine-in-b', fundId: FUND_B }),
+      draft({ id: 'bobs-in-b', ownerUserId: BOB_ID, fundId: FUND_B }),
+      draft({ id: 'fundless-draft', fundId: null }),
+      draft({
+        id: 'system',
+        kind: null,
+        origin: 'SYSTEM',
+        ownerUserId: null,
+        fundId: null,
+      }),
+    ];
+    const scope = buildScopeWhere('Strategy', ALICE_ENT);
+    expect(
+      rows.filter((row) => matches(row, scope)).map((row) => row.id)
+    ).toEqual(['mine-in-a', 'bobs-in-a', 'system']);
+  });
+});
+
 describe('the spec hash', () => {
   it('matches the fixed vector the platform also carries (spec-hash.test.ts)', () => {
     const vector = {
@@ -547,7 +756,7 @@ describe('the GraphQL surface', () => {
       ])
     );
     expect(args).toEqual({
-      createStrategyDraft: ['displayName', 'kind', 'spec'],
+      createStrategyDraft: ['displayName', 'fundId', 'kind', 'spec'],
       saveStrategyDraft: ['displayName', 'expectedRevision', 'id', 'spec'],
       deleteStrategyDraft: ['expectedRevision', 'id'],
       recordStrategyDraftBacktest: [
@@ -560,7 +769,7 @@ describe('the GraphQL surface', () => {
     const result = await graphql({
       schema,
       source:
-        'mutation { createStrategyDraft(kind: thematic, displayName: "x", spec: {}, desk: THEMATIC) { status } }',
+        `mutation { createStrategyDraft(fundId: "${FUND_A}", kind: thematic, displayName: "x", spec: {}, desk: THEMATIC) { status } }`,
       contextValue: { principal: ALICE, prisma: table([]).prisma },
     });
     expect(result.errors?.[0]?.message).toMatch(/Unknown argument "desk"/);

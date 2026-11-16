@@ -1613,6 +1613,9 @@ import { logger } from './utils/logger';
         ownerUserId: props.strategyRef.ownerUserId !== undefined ? {
             equals: props.strategyRef.ownerUserId
           } : undefined,
+        fundId: props.strategyRef.fundId !== undefined ? {
+            equals: props.strategyRef.fundId
+          } : undefined,
       },
       update: {
         id: props.strategyRef.id !== undefined ? {
@@ -6329,6 +6332,9 @@ import { logger } from './utils/logger';
         ownerUserId: props.strategyRef.ownerUserId !== undefined ? {
             equals: props.strategyRef.ownerUserId
           } : undefined,
+        fundId: props.strategyRef.fundId !== undefined ? {
+            equals: props.strategyRef.fundId
+          } : undefined,
       },
       update: {
         id: props.strategyRef.id !== undefined ? {
@@ -10093,6 +10099,9 @@ import { logger } from './utils/logger';
           } : undefined,
         ownerUserId: prop.strategyRef.ownerUserId !== undefined ? {
             equals: prop.strategyRef.ownerUserId
+          } : undefined,
+        fundId: prop.strategyRef.fundId !== undefined ? {
+            equals: prop.strategyRef.fundId
           } : undefined,
       },
       update: {

@@ -13,12 +13,17 @@
  *
  * - `createStrategyDraft` stamps `ownerUserId` from the principal, `origin`
  *   USER and `lifecycleState` DRAFT, and leaves `desk` null (an operator
- *   assigns the desk, because the desk picks the autonomy matrix).
+ *   assigns the desk, because the desk picks the autonomy matrix). It stamps
+ *   the fund the author names, and only a member of that fund may name it
+ *   (G-STR-06). No write here sets `fundId` again, so a draft never moves
+ *   between funds.
  * - `saveStrategyDraft`, `deleteStrategyDraft` and `recordStrategyDraftBacktest`
- *   each write in ONE conditional statement whose filter is the author, the
- *   DRAFT state, the undeleted row and the revision (`updatedAt`) the editor
- *   read. A write that matches nothing — another write, a submission or a
- *   delete got there first — changes nothing and answers `STALE`. This is the
+ *   each write in ONE conditional statement whose filter is the author, a
+ *   fund the author still belongs to, the DRAFT state, the undeleted row and
+ *   the revision (`updatedAt`) the editor read. An author who has left the
+ *   draft's fund no longer reaches it. A write that matches nothing —
+ *   another write, a submission or a delete got there first — changes
+ *   nothing and answers `STALE`. This is the
  *   compare-and-set the generated `updateMany` gave the platform, run here
  *   under a service-side filter the caller cannot widen.
  * - A save that changes the spec clears the recorded backtest, so a backtest
@@ -36,6 +41,13 @@ import { randomUUID } from 'node:crypto';
 
 import type { Prisma } from '@prisma/client';
 
+import {
+  buildWriteScopeWhere,
+  injectScopeWhere,
+  resolveEntitlement,
+  type Entitlement,
+  type EntitlementPrismaClient,
+} from '../../auth/tenancy-scope';
 import type { BackendPrincipal } from '../../auth/token-verifier';
 import { canonicalJson, specHash } from './strategy-spec-hash';
 
@@ -50,6 +62,9 @@ export const MAX_DISPLAY_NAME = 128;
 
 /** Longest backtest job id stored. */
 export const MAX_JOB_ID = 128;
+
+/** A fund id: `Fund.id` is a UUID column. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Largest canonical spec accepted, in UTF-16 code units. */
 export const MAX_SPEC_CHARS = 65_536;
@@ -84,8 +99,11 @@ interface DraftFacts {
   readonly updatedAt: Date;
 }
 
-/** The slice of the Prisma client the drafts use. */
-export interface StrategyDraftPrisma {
+/**
+ * The slice of the Prisma client the drafts use: the strategies, and the
+ * membership rows the caller's funds are read from.
+ */
+export interface StrategyDraftPrisma extends EntitlementPrismaClient {
   readonly strategy: {
     findFirst(args: {
       where: Prisma.StrategyWhereInput;
@@ -168,9 +186,33 @@ function specOf(raw: unknown): Prisma.InputJsonObject {
   return raw as Prisma.InputJsonObject;
 }
 
-/** The filter that finds an author's own undeleted authored strategy. */
-function ownWhere(id: string, authorId: string): Prisma.StrategyWhereInput {
-  return { id, ownerUserId: authorId, deletedAt: null, kind: { not: null } };
+/**
+ * The filter that finds the author's own undeleted authored strategy, in a
+ * fund they belong to (the Strategy write scope in `tenancy-scope.ts`).
+ */
+function ownWhere(id: string, ent: Entitlement): Prisma.StrategyWhereInput {
+  return injectScopeWhere(
+    { id, deletedAt: null },
+    buildWriteScopeWhere('Strategy', ent)
+  ) as Prisma.StrategyWhereInput;
+}
+
+/** The fund a new draft is written in, or a refusal. */
+function fundOf(raw: string, ent: Entitlement): string {
+  const fundId = raw.trim();
+  if (!UUID_RE.test(fundId)) {
+    throw new StrategyDraftRefusal(
+      'BAD_USER_INPUT',
+      'A draft is written in a fund, named by its id.'
+    );
+  }
+  if (!ent.fundIds.includes(fundId)) {
+    throw new StrategyDraftRefusal(
+      'FORBIDDEN',
+      'A strategy draft is written only in a fund you belong to.'
+    );
+  }
+  return fundId;
 }
 
 /** A stamp strictly later than the revision a write matched. */
@@ -188,14 +230,14 @@ function nextStamp(clock: Clock, revision: Date): Date {
 async function draftAtRevision(
   prisma: StrategyDraftPrisma,
   id: string,
-  authorId: string,
+  ent: Entitlement,
   revision: Date
 ): Promise<
   | { facts: DraftFacts; refusal?: undefined }
   | { facts?: undefined; refusal: DraftWriteOutcome }
 > {
   const facts = await prisma.strategy.findFirst({
-    where: ownWhere(id, authorId),
+    where: ownWhere(id, ent),
     select: { id: true, lifecycleState: true, spec: true, updatedAt: true },
   });
   if (facts === null)
@@ -210,13 +252,13 @@ async function draftAtRevision(
 /** Write `data` to the row only while it is still the author's draft at `revision`. */
 async function writeIfAtRevision(
   prisma: StrategyDraftPrisma,
-  input: { id: string; authorId: string; revision: Date; clock: Clock },
+  input: { id: string; ent: Entitlement; revision: Date; clock: Clock },
   data: Prisma.StrategyUncheckedUpdateManyInput
 ): Promise<DraftWriteOutcome> {
   const stamp = nextStamp(input.clock, input.revision);
   const result = await prisma.strategy.updateMany({
     where: {
-      ...ownWhere(input.id, input.authorId),
+      ...ownWhere(input.id, input.ent),
       lifecycleState: DRAFT_STATE,
       updatedAt: input.revision,
     },
@@ -228,21 +270,24 @@ async function writeIfAtRevision(
 }
 
 /**
- * Create a draft owned by the caller.
+ * Create a draft owned by the caller, in a fund the caller belongs to.
  *
  * @param prisma - The client.
  * @param principal - The caller.
- * @param input - The kind, name and spec.
+ * @param input - The fund, kind, name and spec.
  * @returns `WRITTEN` with the new id and revision.
+ * @throws {StrategyDraftRefusal} `FORBIDDEN` when the caller is not a member
+ *   of the fund.
  */
 export async function createStrategyDraft(
   prisma: StrategyDraftPrisma,
   principal: BackendPrincipal | null | undefined,
-  input: { kind: DraftKind; displayName: string; spec: unknown }
+  input: { fundId: string; kind: DraftKind; displayName: string; spec: unknown }
 ): Promise<DraftWriteOutcome> {
   const authorId = draftAuthor(principal);
   const displayName = displayNameOf(input.displayName);
   const spec = specOf(input.spec);
+  const fundId = fundOf(input.fundId, await resolveEntitlement(prisma, authorId));
   const row = await prisma.strategy.create({
     data: {
       key: `desk-${input.kind}-${randomUUID()}`,
@@ -252,6 +297,7 @@ export async function createStrategyDraft(
       kind: input.kind,
       spec,
       ownerUserId: authorId,
+      fundId,
     },
     select: { id: true, updatedAt: true },
   });
@@ -279,13 +325,13 @@ export async function saveStrategyDraft(
   },
   clock: Clock = () => new Date()
 ): Promise<DraftWriteOutcome> {
-  const authorId = draftAuthor(principal);
+  const ent = await resolveEntitlement(prisma, draftAuthor(principal));
   const displayName = displayNameOf(input.displayName);
   const spec = specOf(input.spec);
   const read = await draftAtRevision(
     prisma,
     input.id,
-    authorId,
+    ent,
     input.expectedRevision
   );
   if (read.refusal) return read.refusal;
@@ -293,7 +339,7 @@ export async function saveStrategyDraft(
     read.facts.spec === null || specHash(read.facts.spec) !== specHash(spec);
   return writeIfAtRevision(
     prisma,
-    { id: input.id, authorId, revision: input.expectedRevision, clock },
+    { id: input.id, ent, revision: input.expectedRevision, clock },
     specChanged
       ? { displayName, spec, backtestJobId: null, backtestSpecHash: null }
       : { displayName, spec }
@@ -315,17 +361,17 @@ export async function deleteStrategyDraft(
   input: { id: string; expectedRevision: Date },
   clock: Clock = () => new Date()
 ): Promise<DraftWriteOutcome> {
-  const authorId = draftAuthor(principal);
+  const ent = await resolveEntitlement(prisma, draftAuthor(principal));
   const read = await draftAtRevision(
     prisma,
     input.id,
-    authorId,
+    ent,
     input.expectedRevision
   );
   if (read.refusal) return read.refusal;
   return writeIfAtRevision(
     prisma,
-    { id: input.id, authorId, revision: input.expectedRevision, clock },
+    { id: input.id, ent, revision: input.expectedRevision, clock },
     { deletedAt: clock() }
   );
 }
@@ -353,7 +399,7 @@ export async function recordStrategyDraftBacktest(
   },
   clock: Clock = () => new Date()
 ): Promise<DraftWriteOutcome> {
-  const authorId = draftAuthor(principal);
+  const ent = await resolveEntitlement(prisma, draftAuthor(principal));
   const jobId = input.jobId.trim();
   if (jobId.length === 0 || jobId.length > MAX_JOB_ID) {
     throw new StrategyDraftRefusal(
@@ -364,7 +410,7 @@ export async function recordStrategyDraftBacktest(
   const read = await draftAtRevision(
     prisma,
     input.id,
-    authorId,
+    ent,
     input.expectedRevision
   );
   if (read.refusal) return read.refusal;
@@ -376,7 +422,7 @@ export async function recordStrategyDraftBacktest(
   }
   return writeIfAtRevision(
     prisma,
-    { id: input.id, authorId, revision: input.expectedRevision, clock },
+    { id: input.id, ent, revision: input.expectedRevision, clock },
     { backtestJobId: jobId, backtestSpecHash: input.specHash }
   );
 }

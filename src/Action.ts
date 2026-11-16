@@ -759,6 +759,9 @@ import { logger } from './utils/logger';
           ownerUserId: props.trade.strategyRef.ownerUserId !== undefined ? {
               equals: props.trade.strategyRef.ownerUserId
             } : undefined,
+          fundId: props.trade.strategyRef.fundId !== undefined ? {
+              equals: props.trade.strategyRef.fundId
+            } : undefined,
         },
         update: {
           id: props.trade.strategyRef.id !== undefined ? {
@@ -1712,6 +1715,9 @@ import { logger } from './utils/logger';
           ownerUserId: props.trade.strategyRef.ownerUserId !== undefined ? {
               equals: props.trade.strategyRef.ownerUserId
             } : undefined,
+          fundId: props.trade.strategyRef.fundId !== undefined ? {
+              equals: props.trade.strategyRef.fundId
+            } : undefined,
         },
         update: {
           id: props.trade.strategyRef.id !== undefined ? {
@@ -2492,6 +2498,9 @@ import { logger } from './utils/logger';
             } : undefined,
           ownerUserId: prop.trade.strategyRef.ownerUserId !== undefined ? {
               equals: prop.trade.strategyRef.ownerUserId
+            } : undefined,
+          fundId: prop.trade.strategyRef.fundId !== undefined ? {
+              equals: prop.trade.strategyRef.fundId
             } : undefined,
         },
         update: {
