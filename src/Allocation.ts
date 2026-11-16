@@ -3578,6 +3578,9 @@ import { assertValidAllocation } from './validators/allocation-validator';
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -5580,6 +5583,9 @@ import { assertValidAllocation } from './validators/allocation-validator';
               } : undefined,
             ownerUserId: item.strategy.ownerUserId !== undefined ? {
                 equals: item.strategy.ownerUserId
+              } : undefined,
+            fundId: item.strategy.fundId !== undefined ? {
+                equals: item.strategy.fundId
               } : undefined,
           },
           update: {
@@ -10629,6 +10635,9 @@ import { assertValidAllocation } from './validators/allocation-validator';
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -12631,6 +12640,9 @@ import { assertValidAllocation } from './validators/allocation-validator';
               } : undefined,
             ownerUserId: item.strategy.ownerUserId !== undefined ? {
                 equals: item.strategy.ownerUserId
+              } : undefined,
+            fundId: item.strategy.fundId !== undefined ? {
+                equals: item.strategy.fundId
               } : undefined,
           },
           update: {
@@ -16267,6 +16279,9 @@ import { assertValidAllocation } from './validators/allocation-validator';
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -18269,6 +18284,9 @@ import { assertValidAllocation } from './validators/allocation-validator';
               } : undefined,
             ownerUserId: item.strategy.ownerUserId !== undefined ? {
                 equals: item.strategy.ownerUserId
+              } : undefined,
+            fundId: item.strategy.fundId !== undefined ? {
+                equals: item.strategy.fundId
               } : undefined,
           },
           update: {

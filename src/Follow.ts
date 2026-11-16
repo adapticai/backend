@@ -13873,6 +13873,9 @@ import { logger } from './utils/logger';
           ownerUserId: item.ownerUserId !== undefined ? {
               equals: item.ownerUserId
             } : undefined,
+          fundId: item.fundId !== undefined ? {
+              equals: item.fundId
+            } : undefined,
         },
         update: {
           id: item.id !== undefined ? {
@@ -19799,6 +19802,9 @@ import { logger } from './utils/logger';
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -22033,6 +22039,9 @@ import { logger } from './utils/logger';
               } : undefined,
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
               } : undefined,
           },
           update: {
@@ -42667,6 +42676,9 @@ import { logger } from './utils/logger';
           ownerUserId: item.ownerUserId !== undefined ? {
               equals: item.ownerUserId
             } : undefined,
+          fundId: item.fundId !== undefined ? {
+              equals: item.fundId
+            } : undefined,
         },
         update: {
           id: item.id !== undefined ? {
@@ -48593,6 +48605,9 @@ import { logger } from './utils/logger';
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -50827,6 +50842,9 @@ import { logger } from './utils/logger';
               } : undefined,
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
               } : undefined,
           },
           update: {
@@ -65617,6 +65635,9 @@ import { logger } from './utils/logger';
           ownerUserId: item.ownerUserId !== undefined ? {
               equals: item.ownerUserId
             } : undefined,
+          fundId: item.fundId !== undefined ? {
+              equals: item.fundId
+            } : undefined,
         },
         update: {
           id: item.id !== undefined ? {
@@ -71543,6 +71564,9 @@ import { logger } from './utils/logger';
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
               } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -73777,6 +73801,9 @@ import { logger } from './utils/logger';
               } : undefined,
             ownerUserId: item.ownerUserId !== undefined ? {
                 equals: item.ownerUserId
+              } : undefined,
+            fundId: item.fundId !== undefined ? {
+                equals: item.fundId
               } : undefined,
           },
           update: {
