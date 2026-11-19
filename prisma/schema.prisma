@@ -1360,7 +1360,7 @@ model User {
   openaiAPIKey String?
 
   /// OpenAI API Language model selected by the user
-  openaiModel OpenaiModel? @default(GPT_5_MINI)
+  openaiModel OpenaiModel?
 
   /// List of linked authentication providers. TYPESTRING.INCLUDE=['id','provider','email'] GQL.EXCLUDE=['user']
   linkedProviders LinkedProvider[]
@@ -1453,7 +1453,7 @@ model LlmConfiguration {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   /// Default provider used for all tiers unless overridden
-  defaultProvider LlmProvider @default(OPENAI)
+  defaultProvider LlmProvider @default(DEEPINFRA)
 
   /// Per-tier provider overrides (null = inherit from defaultProvider)
   miniProvider     LlmProvider?
