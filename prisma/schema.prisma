@@ -1359,8 +1359,11 @@ model User {
   /// OpenAI API key for the user.
   openaiAPIKey String?
 
-  /// OpenAI API Language model selected by the user
-  openaiModel OpenaiModel? @default(GPT_5_MINI)
+  /// OpenAI API Language model selected by the user. Deliberately has NO column
+  /// default: a default is the selector every unset row inherits, so it states a
+  /// choice the user never made. Unset means unset, and a reader resolves it
+  /// through its own order.
+  openaiModel OpenaiModel?
 
   /// List of linked authentication providers. TYPESTRING.INCLUDE=['id','provider','email'] GQL.EXCLUDE=['user']
   linkedProviders LinkedProvider[]
@@ -1452,8 +1455,11 @@ model LlmConfiguration {
   /// Relation to the User model. GQL.SKIP=true
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  /// Default provider used for all tiers unless overridden
-  defaultProvider LlmProvider @default(OPENAI)
+  /// Default provider used for all tiers unless overridden. Names the inference
+  /// host that serves the routing aliases, so a row nobody has edited selects a
+  /// provider the system can actually reach — a default naming an unreachable
+  /// provider is a route in itself, taken by every row and chosen by nobody.
+  defaultProvider LlmProvider @default(DEEPINFRA)
 
   /// Per-tier provider overrides (null = inherit from defaultProvider)
   miniProvider     LlmProvider?
