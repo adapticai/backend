@@ -5470,6 +5470,26 @@ model TradingPolicy {
   /// Enforce intraday-only trading (auto-close all positions before EOD). Default: false.
   dayTradeOnly                  Boolean  @default(false)
 
+  /// Per-account opt-in for the multi-lane intraday order path. The engine reads
+  /// it as one of the conjuncts that must all hold before a lane may submit an
+  /// order for this account, so false keeps every lane disarmed here. The
+  /// column is NOT NULL with a false default, which means adding it leaves
+  /// every existing account disarmed, and an engine reader that meets an absent
+  /// value treats it as false.
+  laneTradingEnabled            Boolean  @default(false)
+
+  /// Maximum lane entries (flat-to-position crossings) per symbol per session
+  /// for this account. NULL means no cap has been set, and a lane refuses to
+  /// arm on an account without one: there is deliberately no default number,
+  /// because the cap is a calibration that only the account's owner decides.
+  laneMaxEntriesPerSymbolPerDay Int?
+
+  /// Per-account multi-lane intraday preferences, validated at the engine's
+  /// read boundary by the strict IntradayLanePrefs schema in @adaptic/utils
+  /// (trading-policy/schemas). NULL, or a value that fails that schema, means
+  /// the lanes are disarmed for this account.
+  intradayLanePrefs             Json?
+
   riskBudgetPrefs           Json?
 
   signalConsumptionPrefs    Json?

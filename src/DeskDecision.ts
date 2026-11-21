@@ -3077,6 +3077,9 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.account.tradingPolicy.maxOrdersPerWindow !== undefined ? props.account.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.account.tradingPolicy.orderWindowSeconds !== undefined ? props.account.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.account.tradingPolicy.dayTradeOnly !== undefined ? props.account.tradingPolicy.dayTradeOnly : undefined,
+          laneTradingEnabled: props.account.tradingPolicy.laneTradingEnabled !== undefined ? props.account.tradingPolicy.laneTradingEnabled : undefined,
+          laneMaxEntriesPerSymbolPerDay: props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+          intradayLanePrefs: props.account.tradingPolicy.intradayLanePrefs !== undefined ? props.account.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.account.tradingPolicy.riskBudgetPrefs !== undefined ? props.account.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.account.tradingPolicy.signalConsumptionPrefs !== undefined ? props.account.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.account.tradingPolicy.executionPrefs !== undefined ? props.account.tradingPolicy.executionPrefs : undefined,
@@ -16054,6 +16057,13 @@ import { logger } from './utils/logger';
           dayTradeOnly: props.account.tradingPolicy.dayTradeOnly !== undefined ? {
               set: props.account.tradingPolicy.dayTradeOnly
             } : undefined,
+          laneTradingEnabled: props.account.tradingPolicy.laneTradingEnabled !== undefined ? {
+              set: props.account.tradingPolicy.laneTradingEnabled
+            } : undefined,
+          laneMaxEntriesPerSymbolPerDay: props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
+              set: props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay
+            } : undefined,
+          intradayLanePrefs: props.account.tradingPolicy.intradayLanePrefs !== undefined ? props.account.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.account.tradingPolicy.riskBudgetPrefs !== undefined ? props.account.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.account.tradingPolicy.signalConsumptionPrefs !== undefined ? props.account.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.account.tradingPolicy.executionPrefs !== undefined ? props.account.tradingPolicy.executionPrefs : undefined,
@@ -16263,6 +16273,9 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.account.tradingPolicy.maxOrdersPerWindow !== undefined ? props.account.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.account.tradingPolicy.orderWindowSeconds !== undefined ? props.account.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.account.tradingPolicy.dayTradeOnly !== undefined ? props.account.tradingPolicy.dayTradeOnly : undefined,
+          laneTradingEnabled: props.account.tradingPolicy.laneTradingEnabled !== undefined ? props.account.tradingPolicy.laneTradingEnabled : undefined,
+          laneMaxEntriesPerSymbolPerDay: props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+          intradayLanePrefs: props.account.tradingPolicy.intradayLanePrefs !== undefined ? props.account.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.account.tradingPolicy.riskBudgetPrefs !== undefined ? props.account.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.account.tradingPolicy.signalConsumptionPrefs !== undefined ? props.account.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.account.tradingPolicy.executionPrefs !== undefined ? props.account.tradingPolicy.executionPrefs : undefined,
@@ -19729,6 +19742,9 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.account.tradingPolicy.maxOrdersPerWindow !== undefined ? props.account.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.account.tradingPolicy.orderWindowSeconds !== undefined ? props.account.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.account.tradingPolicy.dayTradeOnly !== undefined ? props.account.tradingPolicy.dayTradeOnly : undefined,
+          laneTradingEnabled: props.account.tradingPolicy.laneTradingEnabled !== undefined ? props.account.tradingPolicy.laneTradingEnabled : undefined,
+          laneMaxEntriesPerSymbolPerDay: props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+          intradayLanePrefs: props.account.tradingPolicy.intradayLanePrefs !== undefined ? props.account.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.account.tradingPolicy.riskBudgetPrefs !== undefined ? props.account.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.account.tradingPolicy.signalConsumptionPrefs !== undefined ? props.account.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.account.tradingPolicy.executionPrefs !== undefined ? props.account.tradingPolicy.executionPrefs : undefined,
@@ -24101,6 +24117,9 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.account.tradingPolicy.maxOrdersPerWindow !== undefined ? props.account.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.account.tradingPolicy.orderWindowSeconds !== undefined ? props.account.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.account.tradingPolicy.dayTradeOnly !== undefined ? props.account.tradingPolicy.dayTradeOnly : undefined,
+          laneTradingEnabled: props.account.tradingPolicy.laneTradingEnabled !== undefined ? props.account.tradingPolicy.laneTradingEnabled : undefined,
+          laneMaxEntriesPerSymbolPerDay: props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+          intradayLanePrefs: props.account.tradingPolicy.intradayLanePrefs !== undefined ? props.account.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.account.tradingPolicy.riskBudgetPrefs !== undefined ? props.account.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.account.tradingPolicy.signalConsumptionPrefs !== undefined ? props.account.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.account.tradingPolicy.executionPrefs !== undefined ? props.account.tradingPolicy.executionPrefs : undefined,
@@ -36749,6 +36768,13 @@ import { logger } from './utils/logger';
           dayTradeOnly: props.account.tradingPolicy.dayTradeOnly !== undefined ? {
               set: props.account.tradingPolicy.dayTradeOnly
             } : undefined,
+          laneTradingEnabled: props.account.tradingPolicy.laneTradingEnabled !== undefined ? {
+              set: props.account.tradingPolicy.laneTradingEnabled
+            } : undefined,
+          laneMaxEntriesPerSymbolPerDay: props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
+              set: props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay
+            } : undefined,
+          intradayLanePrefs: props.account.tradingPolicy.intradayLanePrefs !== undefined ? props.account.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.account.tradingPolicy.riskBudgetPrefs !== undefined ? props.account.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.account.tradingPolicy.signalConsumptionPrefs !== undefined ? props.account.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.account.tradingPolicy.executionPrefs !== undefined ? props.account.tradingPolicy.executionPrefs : undefined,
@@ -36958,6 +36984,9 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.account.tradingPolicy.maxOrdersPerWindow !== undefined ? props.account.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.account.tradingPolicy.orderWindowSeconds !== undefined ? props.account.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.account.tradingPolicy.dayTradeOnly !== undefined ? props.account.tradingPolicy.dayTradeOnly : undefined,
+          laneTradingEnabled: props.account.tradingPolicy.laneTradingEnabled !== undefined ? props.account.tradingPolicy.laneTradingEnabled : undefined,
+          laneMaxEntriesPerSymbolPerDay: props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+          intradayLanePrefs: props.account.tradingPolicy.intradayLanePrefs !== undefined ? props.account.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.account.tradingPolicy.riskBudgetPrefs !== undefined ? props.account.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.account.tradingPolicy.signalConsumptionPrefs !== undefined ? props.account.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.account.tradingPolicy.executionPrefs !== undefined ? props.account.tradingPolicy.executionPrefs : undefined,
@@ -40424,6 +40453,9 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.account.tradingPolicy.maxOrdersPerWindow !== undefined ? props.account.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.account.tradingPolicy.orderWindowSeconds !== undefined ? props.account.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.account.tradingPolicy.dayTradeOnly !== undefined ? props.account.tradingPolicy.dayTradeOnly : undefined,
+          laneTradingEnabled: props.account.tradingPolicy.laneTradingEnabled !== undefined ? props.account.tradingPolicy.laneTradingEnabled : undefined,
+          laneMaxEntriesPerSymbolPerDay: props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+          intradayLanePrefs: props.account.tradingPolicy.intradayLanePrefs !== undefined ? props.account.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.account.tradingPolicy.riskBudgetPrefs !== undefined ? props.account.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.account.tradingPolicy.signalConsumptionPrefs !== undefined ? props.account.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.account.tradingPolicy.executionPrefs !== undefined ? props.account.tradingPolicy.executionPrefs : undefined,
@@ -53235,6 +53267,13 @@ import { logger } from './utils/logger';
           dayTradeOnly: prop.account.tradingPolicy.dayTradeOnly !== undefined ? {
               set: prop.account.tradingPolicy.dayTradeOnly
             } : undefined,
+          laneTradingEnabled: prop.account.tradingPolicy.laneTradingEnabled !== undefined ? {
+              set: prop.account.tradingPolicy.laneTradingEnabled
+            } : undefined,
+          laneMaxEntriesPerSymbolPerDay: prop.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
+              set: prop.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay
+            } : undefined,
+          intradayLanePrefs: prop.account.tradingPolicy.intradayLanePrefs !== undefined ? prop.account.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.account.tradingPolicy.riskBudgetPrefs !== undefined ? prop.account.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.account.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.account.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: prop.account.tradingPolicy.executionPrefs !== undefined ? prop.account.tradingPolicy.executionPrefs : undefined,
@@ -53444,6 +53483,9 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: prop.account.tradingPolicy.maxOrdersPerWindow !== undefined ? prop.account.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: prop.account.tradingPolicy.orderWindowSeconds !== undefined ? prop.account.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: prop.account.tradingPolicy.dayTradeOnly !== undefined ? prop.account.tradingPolicy.dayTradeOnly : undefined,
+          laneTradingEnabled: prop.account.tradingPolicy.laneTradingEnabled !== undefined ? prop.account.tradingPolicy.laneTradingEnabled : undefined,
+          laneMaxEntriesPerSymbolPerDay: prop.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? prop.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+          intradayLanePrefs: prop.account.tradingPolicy.intradayLanePrefs !== undefined ? prop.account.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.account.tradingPolicy.riskBudgetPrefs !== undefined ? prop.account.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.account.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.account.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: prop.account.tradingPolicy.executionPrefs !== undefined ? prop.account.tradingPolicy.executionPrefs : undefined,
@@ -56910,6 +56952,9 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: prop.account.tradingPolicy.maxOrdersPerWindow !== undefined ? prop.account.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: prop.account.tradingPolicy.orderWindowSeconds !== undefined ? prop.account.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: prop.account.tradingPolicy.dayTradeOnly !== undefined ? prop.account.tradingPolicy.dayTradeOnly : undefined,
+          laneTradingEnabled: prop.account.tradingPolicy.laneTradingEnabled !== undefined ? prop.account.tradingPolicy.laneTradingEnabled : undefined,
+          laneMaxEntriesPerSymbolPerDay: prop.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? prop.account.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+          intradayLanePrefs: prop.account.tradingPolicy.intradayLanePrefs !== undefined ? prop.account.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.account.tradingPolicy.riskBudgetPrefs !== undefined ? prop.account.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.account.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.account.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: prop.account.tradingPolicy.executionPrefs !== undefined ? prop.account.tradingPolicy.executionPrefs : undefined,

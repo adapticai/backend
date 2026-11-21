@@ -96,6 +96,9 @@ import { logger } from './utils/logger';
     maxOrdersPerWindow
     orderWindowSeconds
     dayTradeOnly
+    laneTradingEnabled
+    laneMaxEntriesPerSymbolPerDay
+    intradayLanePrefs
     riskBudgetPrefs
     signalConsumptionPrefs
     executionPrefs
@@ -358,6 +361,9 @@ import { logger } from './utils/logger';
         maxOrdersPerWindow: props.tradingPolicy.maxOrdersPerWindow !== undefined ? props.tradingPolicy.maxOrdersPerWindow : undefined,
         orderWindowSeconds: props.tradingPolicy.orderWindowSeconds !== undefined ? props.tradingPolicy.orderWindowSeconds : undefined,
         dayTradeOnly: props.tradingPolicy.dayTradeOnly !== undefined ? props.tradingPolicy.dayTradeOnly : undefined,
+        laneTradingEnabled: props.tradingPolicy.laneTradingEnabled !== undefined ? props.tradingPolicy.laneTradingEnabled : undefined,
+        laneMaxEntriesPerSymbolPerDay: props.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+        intradayLanePrefs: props.tradingPolicy.intradayLanePrefs !== undefined ? props.tradingPolicy.intradayLanePrefs : undefined,
         riskBudgetPrefs: props.tradingPolicy.riskBudgetPrefs !== undefined ? props.tradingPolicy.riskBudgetPrefs : undefined,
         signalConsumptionPrefs: props.tradingPolicy.signalConsumptionPrefs !== undefined ? props.tradingPolicy.signalConsumptionPrefs : undefined,
         executionPrefs: props.tradingPolicy.executionPrefs !== undefined ? props.tradingPolicy.executionPrefs : undefined,
@@ -3364,6 +3370,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.activatedPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -3552,6 +3561,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -5520,6 +5532,13 @@ import { logger } from './utils/logger';
         dayTradeOnly: props.tradingPolicy.dayTradeOnly !== undefined ? {
             set: props.tradingPolicy.dayTradeOnly
           } : undefined,
+        laneTradingEnabled: props.tradingPolicy.laneTradingEnabled !== undefined ? {
+            set: props.tradingPolicy.laneTradingEnabled
+          } : undefined,
+        laneMaxEntriesPerSymbolPerDay: props.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
+            set: props.tradingPolicy.laneMaxEntriesPerSymbolPerDay
+          } : undefined,
+        intradayLanePrefs: props.tradingPolicy.intradayLanePrefs !== undefined ? props.tradingPolicy.intradayLanePrefs : undefined,
         riskBudgetPrefs: props.tradingPolicy.riskBudgetPrefs !== undefined ? props.tradingPolicy.riskBudgetPrefs : undefined,
         signalConsumptionPrefs: props.tradingPolicy.signalConsumptionPrefs !== undefined ? props.tradingPolicy.signalConsumptionPrefs : undefined,
         executionPrefs: props.tradingPolicy.executionPrefs !== undefined ? props.tradingPolicy.executionPrefs : undefined,
@@ -5994,6 +6013,9 @@ import { logger } from './utils/logger';
         maxOrdersPerWindow: props.tradingPolicy.maxOrdersPerWindow !== undefined ? props.tradingPolicy.maxOrdersPerWindow : undefined,
         orderWindowSeconds: props.tradingPolicy.orderWindowSeconds !== undefined ? props.tradingPolicy.orderWindowSeconds : undefined,
         dayTradeOnly: props.tradingPolicy.dayTradeOnly !== undefined ? props.tradingPolicy.dayTradeOnly : undefined,
+        laneTradingEnabled: props.tradingPolicy.laneTradingEnabled !== undefined ? props.tradingPolicy.laneTradingEnabled : undefined,
+        laneMaxEntriesPerSymbolPerDay: props.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+        intradayLanePrefs: props.tradingPolicy.intradayLanePrefs !== undefined ? props.tradingPolicy.intradayLanePrefs : undefined,
         riskBudgetPrefs: props.tradingPolicy.riskBudgetPrefs !== undefined ? props.tradingPolicy.riskBudgetPrefs : undefined,
         signalConsumptionPrefs: props.tradingPolicy.signalConsumptionPrefs !== undefined ? props.tradingPolicy.signalConsumptionPrefs : undefined,
         executionPrefs: props.tradingPolicy.executionPrefs !== undefined ? props.tradingPolicy.executionPrefs : undefined,
@@ -16586,6 +16608,13 @@ import { logger } from './utils/logger';
             dayTradeOnly: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? {
                 set: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly
               } : undefined,
+            laneTradingEnabled: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? {
+                set: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled
+              } : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
+                set: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay
+              } : undefined,
+            intradayLanePrefs: item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.activatedPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -16714,6 +16743,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.activatedPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -16932,6 +16964,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.activatedPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -17265,6 +17300,13 @@ import { logger } from './utils/logger';
             dayTradeOnly: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? {
                 set: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly
               } : undefined,
+            laneTradingEnabled: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? {
+                set: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled
+              } : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
+                set: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay
+              } : undefined,
+            intradayLanePrefs: item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -17393,6 +17435,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -17614,6 +17659,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -17819,6 +17867,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.activatedPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -18007,6 +18058,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -23220,6 +23274,9 @@ import { logger } from './utils/logger';
         maxOrdersPerWindow: props.tradingPolicy.maxOrdersPerWindow !== undefined ? props.tradingPolicy.maxOrdersPerWindow : undefined,
         orderWindowSeconds: props.tradingPolicy.orderWindowSeconds !== undefined ? props.tradingPolicy.orderWindowSeconds : undefined,
         dayTradeOnly: props.tradingPolicy.dayTradeOnly !== undefined ? props.tradingPolicy.dayTradeOnly : undefined,
+        laneTradingEnabled: props.tradingPolicy.laneTradingEnabled !== undefined ? props.tradingPolicy.laneTradingEnabled : undefined,
+        laneMaxEntriesPerSymbolPerDay: props.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+        intradayLanePrefs: props.tradingPolicy.intradayLanePrefs !== undefined ? props.tradingPolicy.intradayLanePrefs : undefined,
         riskBudgetPrefs: props.tradingPolicy.riskBudgetPrefs !== undefined ? props.tradingPolicy.riskBudgetPrefs : undefined,
         signalConsumptionPrefs: props.tradingPolicy.signalConsumptionPrefs !== undefined ? props.tradingPolicy.signalConsumptionPrefs : undefined,
         executionPrefs: props.tradingPolicy.executionPrefs !== undefined ? props.tradingPolicy.executionPrefs : undefined,
@@ -26226,6 +26283,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.activatedPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -26414,6 +26474,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -28044,6 +28107,13 @@ import { logger } from './utils/logger';
         dayTradeOnly: props.tradingPolicy.dayTradeOnly !== undefined ? {
             set: props.tradingPolicy.dayTradeOnly
           } : undefined,
+        laneTradingEnabled: props.tradingPolicy.laneTradingEnabled !== undefined ? {
+            set: props.tradingPolicy.laneTradingEnabled
+          } : undefined,
+        laneMaxEntriesPerSymbolPerDay: props.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
+            set: props.tradingPolicy.laneMaxEntriesPerSymbolPerDay
+          } : undefined,
+        intradayLanePrefs: props.tradingPolicy.intradayLanePrefs !== undefined ? props.tradingPolicy.intradayLanePrefs : undefined,
         riskBudgetPrefs: props.tradingPolicy.riskBudgetPrefs !== undefined ? props.tradingPolicy.riskBudgetPrefs : undefined,
         signalConsumptionPrefs: props.tradingPolicy.signalConsumptionPrefs !== undefined ? props.tradingPolicy.signalConsumptionPrefs : undefined,
         executionPrefs: props.tradingPolicy.executionPrefs !== undefined ? props.tradingPolicy.executionPrefs : undefined,
@@ -28518,6 +28588,9 @@ import { logger } from './utils/logger';
         maxOrdersPerWindow: props.tradingPolicy.maxOrdersPerWindow !== undefined ? props.tradingPolicy.maxOrdersPerWindow : undefined,
         orderWindowSeconds: props.tradingPolicy.orderWindowSeconds !== undefined ? props.tradingPolicy.orderWindowSeconds : undefined,
         dayTradeOnly: props.tradingPolicy.dayTradeOnly !== undefined ? props.tradingPolicy.dayTradeOnly : undefined,
+        laneTradingEnabled: props.tradingPolicy.laneTradingEnabled !== undefined ? props.tradingPolicy.laneTradingEnabled : undefined,
+        laneMaxEntriesPerSymbolPerDay: props.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+        intradayLanePrefs: props.tradingPolicy.intradayLanePrefs !== undefined ? props.tradingPolicy.intradayLanePrefs : undefined,
         riskBudgetPrefs: props.tradingPolicy.riskBudgetPrefs !== undefined ? props.tradingPolicy.riskBudgetPrefs : undefined,
         signalConsumptionPrefs: props.tradingPolicy.signalConsumptionPrefs !== undefined ? props.tradingPolicy.signalConsumptionPrefs : undefined,
         executionPrefs: props.tradingPolicy.executionPrefs !== undefined ? props.tradingPolicy.executionPrefs : undefined,
@@ -39110,6 +39183,13 @@ import { logger } from './utils/logger';
             dayTradeOnly: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? {
                 set: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly
               } : undefined,
+            laneTradingEnabled: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? {
+                set: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled
+              } : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
+                set: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay
+              } : undefined,
+            intradayLanePrefs: item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.activatedPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -39238,6 +39318,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.activatedPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -39456,6 +39539,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.activatedPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -39789,6 +39875,13 @@ import { logger } from './utils/logger';
             dayTradeOnly: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? {
                 set: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly
               } : undefined,
+            laneTradingEnabled: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? {
+                set: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled
+              } : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
+                set: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay
+              } : undefined,
+            intradayLanePrefs: item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -39917,6 +40010,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -40138,6 +40234,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -40343,6 +40442,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.activatedPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -40531,6 +40633,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -45939,6 +46044,13 @@ import { logger } from './utils/logger';
         dayTradeOnly: prop.tradingPolicy.dayTradeOnly !== undefined ? {
             set: prop.tradingPolicy.dayTradeOnly
           } : undefined,
+        laneTradingEnabled: prop.tradingPolicy.laneTradingEnabled !== undefined ? {
+            set: prop.tradingPolicy.laneTradingEnabled
+          } : undefined,
+        laneMaxEntriesPerSymbolPerDay: prop.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
+            set: prop.tradingPolicy.laneMaxEntriesPerSymbolPerDay
+          } : undefined,
+        intradayLanePrefs: prop.tradingPolicy.intradayLanePrefs !== undefined ? prop.tradingPolicy.intradayLanePrefs : undefined,
         riskBudgetPrefs: prop.tradingPolicy.riskBudgetPrefs !== undefined ? prop.tradingPolicy.riskBudgetPrefs : undefined,
         signalConsumptionPrefs: prop.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.tradingPolicy.signalConsumptionPrefs : undefined,
         executionPrefs: prop.tradingPolicy.executionPrefs !== undefined ? prop.tradingPolicy.executionPrefs : undefined,
@@ -46413,6 +46525,9 @@ import { logger } from './utils/logger';
         maxOrdersPerWindow: prop.tradingPolicy.maxOrdersPerWindow !== undefined ? prop.tradingPolicy.maxOrdersPerWindow : undefined,
         orderWindowSeconds: prop.tradingPolicy.orderWindowSeconds !== undefined ? prop.tradingPolicy.orderWindowSeconds : undefined,
         dayTradeOnly: prop.tradingPolicy.dayTradeOnly !== undefined ? prop.tradingPolicy.dayTradeOnly : undefined,
+        laneTradingEnabled: prop.tradingPolicy.laneTradingEnabled !== undefined ? prop.tradingPolicy.laneTradingEnabled : undefined,
+        laneMaxEntriesPerSymbolPerDay: prop.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? prop.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+        intradayLanePrefs: prop.tradingPolicy.intradayLanePrefs !== undefined ? prop.tradingPolicy.intradayLanePrefs : undefined,
         riskBudgetPrefs: prop.tradingPolicy.riskBudgetPrefs !== undefined ? prop.tradingPolicy.riskBudgetPrefs : undefined,
         signalConsumptionPrefs: prop.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.tradingPolicy.signalConsumptionPrefs : undefined,
         executionPrefs: prop.tradingPolicy.executionPrefs !== undefined ? prop.tradingPolicy.executionPrefs : undefined,
@@ -57005,6 +57120,13 @@ import { logger } from './utils/logger';
             dayTradeOnly: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? {
                 set: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly
               } : undefined,
+            laneTradingEnabled: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? {
+                set: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled
+              } : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
+                set: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay
+              } : undefined,
+            intradayLanePrefs: item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.activatedPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -57133,6 +57255,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.activatedPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -57351,6 +57476,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.activatedPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -57684,6 +57812,13 @@ import { logger } from './utils/logger';
             dayTradeOnly: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? {
                 set: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly
               } : undefined,
+            laneTradingEnabled: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? {
+                set: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled
+              } : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
+                set: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay
+              } : undefined,
+            intradayLanePrefs: item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -57812,6 +57947,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -58033,6 +58171,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -58238,6 +58379,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.activatedPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.activatedPolicyOverlay.tradingPolicy.executionPrefs : undefined,
@@ -58426,6 +58570,9 @@ import { logger } from './utils/logger';
             maxOrdersPerWindow: item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
             orderWindowSeconds: item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
             dayTradeOnly: item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
+            laneTradingEnabled: item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
+            laneMaxEntriesPerSymbolPerDay: item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
+            intradayLanePrefs: item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
             riskBudgetPrefs: item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
             signalConsumptionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
             executionPrefs: item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs !== undefined ? item.triggeredByPolicyOverlay.tradingPolicy.executionPrefs : undefined,
