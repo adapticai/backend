@@ -132,7 +132,6 @@ import { logger } from './utils/logger';
       maxOrdersPerWindow
       orderWindowSeconds
       dayTradeOnly
-      intradayLanePrefs
       riskBudgetPrefs
       signalConsumptionPrefs
       executionPrefs

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { Prisma } from '@prisma/client';
@@ -78,17 +78,38 @@ async function capturedVariables(
   return seen[0];
 }
 
-describe('selection sets carry the lane carrier', () => {
-  it('adaptic.tradingPolicy selects it and none of the dropped columns', () => {
-    const fields = fieldsOf(selectionSetOf('TradingPolicy'));
-    expect(fields).toEqual(expect.arrayContaining([...LANE_FIELDS]));
-    for (const dropped of DROPPED_FIELDS) expect(fields).not.toContain(dropped);
+describe('no generated selection set carries the lane carrier', () => {
+  // A server whose schema predates the column rejects every operation that
+  // selects it. The TradingPolicy and AlpacaAccount selection sets carry the
+  // engine's order-chokepoint and broker-credential reads, so the field stays
+  // out of every generated read (GQL.SKIP) and is read by readIntradayLanePrefs.
+  const crudFiles = readdirSync(SRC_DIR).filter(
+    (file) => /^[A-Z]\w*\.ts$/.test(file) && readFileSync(join(SRC_DIR, file), 'utf8').includes('const selectionSet = `')
+  );
+
+  it('finds the CRUD files it scans', () => {
+    expect(crudFiles).toEqual(expect.arrayContaining(['TradingPolicy.ts', 'AlpacaAccount.ts']));
   });
 
-  it('adaptic.alpacaAccount selects it on its nested tradingPolicy', () => {
-    expect(fieldsOf(nestedTradingPolicy(selectionSetOf('AlpacaAccount')))).toEqual(
-      expect.arrayContaining([...LANE_FIELDS])
+  it('adaptic.tradingPolicy selects neither the carrier nor a dropped column', () => {
+    const fields = fieldsOf(selectionSetOf('TradingPolicy'));
+    expect(fields).toContain('realtimeTradingEnabled');
+    for (const field of [...LANE_FIELDS, ...DROPPED_FIELDS]) expect(fields).not.toContain(field);
+  });
+
+  it('adaptic.alpacaAccount does not select it on its nested tradingPolicy', () => {
+    const fields = fieldsOf(nestedTradingPolicy(selectionSetOf('AlpacaAccount')));
+    expect(fields).toContain('realtimeTradingEnabled');
+    for (const field of [...LANE_FIELDS, ...DROPPED_FIELDS]) expect(fields).not.toContain(field);
+  });
+
+  it('no CRUD file selects it anywhere', () => {
+    const selecting = crudFiles.filter((file) =>
+      fieldsOf(selectionSetOf(file.replace(/\.ts$/, ''))).some((field) =>
+        ([...LANE_FIELDS, ...DROPPED_FIELDS] as readonly string[]).includes(field)
+      )
     );
+    expect(selecting).toEqual([]);
   });
 });
 
