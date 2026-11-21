@@ -258,6 +258,7 @@ describe('TradingPolicy audit trail', () => {
           paperTradingOnly: false,
           killSwitchEnabled: false,
           autonomyMode: 'ADVISORY_ONLY',
+          intradayLanePrefs: null,
         },
       },
     ]);
@@ -416,6 +417,7 @@ describe('nested TradingPolicy writes are attributed to the account they reach',
           paperTradingOnly: false,
           killSwitchEnabled: false,
           autonomyMode: 'ADVISORY_ONLY',
+          intradayLanePrefs: null,
         },
       },
     ]);
@@ -478,6 +480,18 @@ describe('disarm writes during an AuditLog outage', () => {
     expect(r.codes).toEqual([]);
     expect(r.writes).toEqual(['tradingPolicy.update']);
     expect(r.auditBypassDelta).toBe(1);
+  });
+
+  it('admits a kill that also disarms the lanes, as it admits the kill alone', () => {
+    const r = scenario('m/disarmLanesAuditDown/server/enforce');
+    expect(r.codes).toEqual([]);
+    expect(r.writes).toEqual(['tradingPolicy.update']);
+    expect(r.auditBypassDelta).toBe(1);
+  });
+
+  it('refuses a write arming the lanes that it cannot attribute', () => {
+    expect(scenario('m/armLanesAuditDown/server/enforce').codes).toEqual(['AUDIT_UNAVAILABLE']);
+    expect(scenario('m/armLanesAuditDown/server/enforce').auditBypassDelta).toBe(0);
   });
 
   it('still refuses an arming write it cannot attribute (control)', () => {
