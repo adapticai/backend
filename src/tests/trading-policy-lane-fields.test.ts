@@ -7,15 +7,15 @@ import type { TradingPolicy as TradingPolicyType } from '../generated/typegraphq
 import type { ApolloClientType, NormalizedCacheObject } from '../client';
 
 /**
- * The multi-lane intraday controls on TradingPolicy: the `laneTradingEnabled`
- * opt-in, the `laneMaxEntriesPerSymbolPerDay` cap and the `intradayLanePrefs`
- * carrier. Surface and migration assertions only, no database; the columns
- * themselves are exercised against Postgres by
- * `trading-policy-lane-fields-roundtrip.test.ts`.
+ * The multi-lane intraday carrier on TradingPolicy: `intradayLanePrefs`, the
+ * one home of the lane opt-in and the per-lane caps (architecture §0: one
+ * carrier, no separate opt-in or cap column). Surface and migration
+ * assertions only, no database; the column itself is exercised against
+ * Postgres by `trading-policy-lane-fields-roundtrip.test.ts`.
  *
- * Every field must leave an existing account disarmed: the opt-in defaults to
- * false, and the cap and the carrier are nullable with no default, so a NULL
- * reaches the engine as "unset" rather than as an invented number or object.
+ * The carrier must leave an existing account disarmed: it is nullable with no
+ * default, so a NULL reaches the engine as "unset" rather than as an invented
+ * object.
  */
 
 const SRC_DIR = join(__dirname, '..');
@@ -27,7 +27,10 @@ const MIGRATION = join(
   '20261121130000_trading_policy_lane_fields',
   'migration.sql'
 );
-const LANE_FIELDS = ['laneTradingEnabled', 'laneMaxEntriesPerSymbolPerDay', 'intradayLanePrefs'] as const;
+const LANE_FIELDS = ['intradayLanePrefs'] as const;
+
+/** The columns architecture §0 dropped; nothing generated may carry them. */
+const DROPPED_FIELDS = ['laneTradingEnabled', 'laneMaxEntriesPerSymbolPerDay'] as const;
 
 /** Field names in a selection-set string, one per line, nesting braces dropped. */
 function fieldsOf(selection: string): string[] {
@@ -75,12 +78,14 @@ async function capturedVariables(
   return seen[0];
 }
 
-describe('selection sets carry the lane fields', () => {
-  it('adaptic.tradingPolicy selects all three', () => {
-    expect(fieldsOf(selectionSetOf('TradingPolicy'))).toEqual(expect.arrayContaining([...LANE_FIELDS]));
+describe('selection sets carry the lane carrier', () => {
+  it('adaptic.tradingPolicy selects it and none of the dropped columns', () => {
+    const fields = fieldsOf(selectionSetOf('TradingPolicy'));
+    expect(fields).toEqual(expect.arrayContaining([...LANE_FIELDS]));
+    for (const dropped of DROPPED_FIELDS) expect(fields).not.toContain(dropped);
   });
 
-  it('adaptic.alpacaAccount selects them on its nested tradingPolicy, the engine read path', () => {
+  it('adaptic.alpacaAccount selects it on its nested tradingPolicy', () => {
     expect(fieldsOf(nestedTradingPolicy(selectionSetOf('AlpacaAccount')))).toEqual(
       expect.arrayContaining([...LANE_FIELDS])
     );
@@ -95,13 +100,8 @@ describe('the generated model', () => {
     return found;
   };
 
-  it('laneTradingEnabled is a required Boolean defaulting to false', () => {
-    expect(field('laneTradingEnabled')).toMatchObject({ type: 'Boolean', isRequired: true, default: false });
-  });
-
-  it('laneMaxEntriesPerSymbolPerDay is a nullable Int with no default', () => {
-    expect(field('laneMaxEntriesPerSymbolPerDay')).toMatchObject({ type: 'Int', isRequired: false });
-    expect(field('laneMaxEntriesPerSymbolPerDay').hasDefaultValue).toBe(false);
+  it('carries neither dropped column', () => {
+    for (const dropped of DROPPED_FIELDS) expect(model?.fields.some((f) => f.name === dropped)).toBe(false);
   });
 
   it('intradayLanePrefs is nullable Json with no default', () => {
@@ -109,7 +109,7 @@ describe('the generated model', () => {
     expect(field('intradayLanePrefs').hasDefaultValue).toBe(false);
   });
 
-  it('the published GraphQL type declares the cap and the carrier nullable and the opt-in not', () => {
+  it('the published GraphQL type declares the carrier nullable', () => {
     const source = readFileSync(
       join(SRC_DIR, 'generated', 'typegraphql-prisma', 'models', 'TradingPolicy.ts'),
       'utf8'
@@ -122,20 +122,14 @@ describe('the generated model', () => {
       if (!nullable) throw new Error(`no nullability on ${name}`);
       return `${nullable[1]} ${property[1]}`;
     };
-    expect(declared('laneTradingEnabled')).toBe('false boolean');
-    expect(declared('laneMaxEntriesPerSymbolPerDay')).toBe('true number | null');
     expect(declared('intradayLanePrefs')).toBe('true Prisma.JsonValue | null');
   });
 });
 
 describe('generated writes', () => {
-  const lanes = {
-    laneTradingEnabled: true,
-    laneMaxEntriesPerSymbolPerDay: 3,
-    intradayLanePrefs: { armed: true },
-  };
+  const lanes = { intradayLanePrefs: { armed: true, perLaneTradesPerDay: 3 } };
 
-  it('adaptic.tradingPolicy.create sends the lane fields', async () => {
+  it('adaptic.tradingPolicy.create sends the carrier', async () => {
     const variables = await capturedVariables(
       (client) =>
         adaptic.tradingPolicy.create(
@@ -147,7 +141,7 @@ describe('generated writes', () => {
     expect(variables.data).toMatchObject(lanes);
   });
 
-  it('adaptic.tradingPolicy.update sends the lane fields as sets', async () => {
+  it('adaptic.tradingPolicy.update sends the carrier as its value', async () => {
     const variables = await capturedVariables(
       (client) =>
         adaptic.tradingPolicy.update(
@@ -157,9 +151,7 @@ describe('generated writes', () => {
       'updateOneTradingPolicy'
     );
     const data = variables.data as Record<string, unknown>;
-    expect(data.laneTradingEnabled).toEqual({ set: true });
-    expect(data.laneMaxEntriesPerSymbolPerDay).toEqual({ set: 3 });
-    expect(data.intradayLanePrefs).toEqual({ armed: true });
+    expect(data.intradayLanePrefs).toEqual({ armed: true, perLaneTradesPerDay: 3 });
   });
 });
 
@@ -175,10 +167,9 @@ describe('the migration is additive and leaves existing rows disarmed', () => {
     expect(sql).not.toMatch(/ALTER\s+COLUMN/i);
   });
 
-  it('adds the opt-in NOT NULL DEFAULT false and the other two nullable with no default', () => {
-    expect(sql).toMatch(/ADD COLUMN\s+"laneTradingEnabled"\s+BOOLEAN NOT NULL DEFAULT false\s*;/);
-    expect(sql).toMatch(/ADD COLUMN\s+"laneMaxEntriesPerSymbolPerDay"\s+INTEGER\s*,/);
-    expect(sql).toMatch(/ADD COLUMN\s+"intradayLanePrefs"\s+JSONB\s*,/);
+  it('adds only the carrier, nullable with no default', () => {
+    expect(sql.match(/ADD COLUMN/g)).toHaveLength(1);
+    expect(sql).toMatch(/ADD COLUMN\s+"intradayLanePrefs"\s+JSONB\s*;/);
   });
 
   it('touches only trading_policies', () => {

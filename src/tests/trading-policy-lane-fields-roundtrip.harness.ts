@@ -1,8 +1,8 @@
 /**
- * Exercises the TradingPolicy lane fields against a real Postgres built from
- * the migration history: a policy created without them reads back disarmed
- * (false, null, null) through the generated GraphQL resolvers, written values
- * round-trip, the opt-in and the cap can be cleared back to false and null, and the
+ * Exercises the TradingPolicy lane-preferences carrier against a real Postgres
+ * built from the migration history: a policy created without it reads back
+ * null (disarmed) through the generated GraphQL resolvers, a written value
+ * round-trips, it can be set to armed:false and cleared back to null, and the
  * migration's own SQL runs down and up again inside a transaction that is
  * rolled back, leaving the database as it was.
  *
@@ -46,16 +46,14 @@ const MIGRATION_SQL = join(
   'migration.sql'
 );
 
-const DOWN_SQL = `ALTER TABLE "trading_policies" DROP COLUMN "intradayLanePrefs",
-  DROP COLUMN "laneMaxEntriesPerSymbolPerDay", DROP COLUMN "laneTradingEnabled"`;
+const DOWN_SQL = `ALTER TABLE "trading_policies" DROP COLUMN "intradayLanePrefs"`;
 
-const LANE_COLUMNS = `('laneTradingEnabled','laneMaxEntriesPerSymbolPerDay','intradayLanePrefs')`;
+const LANE_COLUMNS = `('intradayLanePrefs')`;
 
-const POLICY_FIELDS = 'id laneTradingEnabled laneMaxEntriesPerSymbolPerDay intradayLanePrefs maxOpenPositions';
+const POLICY_FIELDS = 'id intradayLanePrefs maxOpenPositions';
 
-/** Arms the seeded row inside the transaction, so the down limb has values to drop. */
-const ARM_ROW_SQL = `UPDATE trading_policies SET "laneTradingEnabled" = true, "laneMaxEntriesPerSymbolPerDay" = 5,
-  "intradayLanePrefs" = '{"armed": true}'::jsonb WHERE id = $1::uuid`;
+/** Arms the seeded row inside the transaction, so the down limb has a value to drop. */
+const ARM_ROW_SQL = `UPDATE trading_policies SET "intradayLanePrefs" = '{"armed": true}'::jsonb WHERE id = $1::uuid`;
 
 /** Raised to roll the down/up transaction back once its snapshots are taken. */
 class RollbackSignal extends Error {}
@@ -117,19 +115,11 @@ async function main(): Promise<void> {
     }`;
     steps.armed = await run(schema, prisma, UPDATE, {
       id: policyId,
-      data: {
-        laneTradingEnabled: { set: true },
-        laneMaxEntriesPerSymbolPerDay: { set: 3 },
-        intradayLanePrefs: { armed: true, perLaneTradesPerDay: 4 },
-      },
+      data: { intradayLanePrefs: { armed: true, perLaneTradesPerDay: 4 } },
     });
     steps.cleared = await run(schema, prisma, UPDATE, {
       id: policyId,
-      data: {
-        laneTradingEnabled: { set: false },
-        laneMaxEntriesPerSymbolPerDay: { set: null },
-        intradayLanePrefs: { armed: false },
-      },
+      data: { intradayLanePrefs: { armed: false } },
     });
     // The generated update input types a Json? field as InputJsonValue; this
     // proves a GraphQL null still clears the carrier, so an operator can

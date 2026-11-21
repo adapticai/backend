@@ -70,8 +70,6 @@ import { logger } from './utils/logger';
   maxOrdersPerWindow
   orderWindowSeconds
   dayTradeOnly
-  laneTradingEnabled
-  laneMaxEntriesPerSymbolPerDay
   intradayLanePrefs
   riskBudgetPrefs
   signalConsumptionPrefs
@@ -208,8 +206,6 @@ import { logger } from './utils/logger';
   maxOrdersPerWindow: props.maxOrdersPerWindow !== undefined ? props.maxOrdersPerWindow : undefined,
   orderWindowSeconds: props.orderWindowSeconds !== undefined ? props.orderWindowSeconds : undefined,
   dayTradeOnly: props.dayTradeOnly !== undefined ? props.dayTradeOnly : undefined,
-  laneTradingEnabled: props.laneTradingEnabled !== undefined ? props.laneTradingEnabled : undefined,
-  laneMaxEntriesPerSymbolPerDay: props.laneMaxEntriesPerSymbolPerDay !== undefined ? props.laneMaxEntriesPerSymbolPerDay : undefined,
   intradayLanePrefs: props.intradayLanePrefs !== undefined ? props.intradayLanePrefs : undefined,
   riskBudgetPrefs: props.riskBudgetPrefs !== undefined ? props.riskBudgetPrefs : undefined,
   signalConsumptionPrefs: props.signalConsumptionPrefs !== undefined ? props.signalConsumptionPrefs : undefined,
@@ -2024,8 +2020,6 @@ import { logger } from './utils/logger';
   maxOrdersPerWindow: prop.maxOrdersPerWindow !== undefined ? prop.maxOrdersPerWindow : undefined,
   orderWindowSeconds: prop.orderWindowSeconds !== undefined ? prop.orderWindowSeconds : undefined,
   dayTradeOnly: prop.dayTradeOnly !== undefined ? prop.dayTradeOnly : undefined,
-  laneTradingEnabled: prop.laneTradingEnabled !== undefined ? prop.laneTradingEnabled : undefined,
-  laneMaxEntriesPerSymbolPerDay: prop.laneMaxEntriesPerSymbolPerDay !== undefined ? prop.laneMaxEntriesPerSymbolPerDay : undefined,
   intradayLanePrefs: prop.intradayLanePrefs !== undefined ? prop.intradayLanePrefs : undefined,
   riskBudgetPrefs: prop.riskBudgetPrefs !== undefined ? prop.riskBudgetPrefs : undefined,
   signalConsumptionPrefs: prop.signalConsumptionPrefs !== undefined ? prop.signalConsumptionPrefs : undefined,
@@ -2370,12 +2364,6 @@ import { logger } from './utils/logger';
            } : undefined,
   dayTradeOnly: props.dayTradeOnly !== undefined ? {
             set: props.dayTradeOnly 
-           } : undefined,
-  laneTradingEnabled: props.laneTradingEnabled !== undefined ? {
-            set: props.laneTradingEnabled 
-           } : undefined,
-  laneMaxEntriesPerSymbolPerDay: props.laneMaxEntriesPerSymbolPerDay !== undefined ? {
-            set: props.laneMaxEntriesPerSymbolPerDay 
            } : undefined,
   intradayLanePrefs: props.intradayLanePrefs !== undefined ? props.intradayLanePrefs : undefined,
   riskBudgetPrefs: props.riskBudgetPrefs !== undefined ? props.riskBudgetPrefs : undefined,
@@ -8694,8 +8682,6 @@ import { logger } from './utils/logger';
   maxOrdersPerWindow: props.maxOrdersPerWindow !== undefined ? props.maxOrdersPerWindow : undefined,
   orderWindowSeconds: props.orderWindowSeconds !== undefined ? props.orderWindowSeconds : undefined,
   dayTradeOnly: props.dayTradeOnly !== undefined ? props.dayTradeOnly : undefined,
-  laneTradingEnabled: props.laneTradingEnabled !== undefined ? props.laneTradingEnabled : undefined,
-  laneMaxEntriesPerSymbolPerDay: props.laneMaxEntriesPerSymbolPerDay !== undefined ? props.laneMaxEntriesPerSymbolPerDay : undefined,
   intradayLanePrefs: props.intradayLanePrefs !== undefined ? props.intradayLanePrefs : undefined,
   riskBudgetPrefs: props.riskBudgetPrefs !== undefined ? props.riskBudgetPrefs : undefined,
   signalConsumptionPrefs: props.signalConsumptionPrefs !== undefined ? props.signalConsumptionPrefs : undefined,
@@ -10461,12 +10447,6 @@ import { logger } from './utils/logger';
            } : undefined,
   dayTradeOnly: props.dayTradeOnly !== undefined ? {
             set: props.dayTradeOnly 
-           } : undefined,
-  laneTradingEnabled: props.laneTradingEnabled !== undefined ? {
-            set: props.laneTradingEnabled 
-           } : undefined,
-  laneMaxEntriesPerSymbolPerDay: props.laneMaxEntriesPerSymbolPerDay !== undefined ? {
-            set: props.laneMaxEntriesPerSymbolPerDay 
            } : undefined,
   intradayLanePrefs: props.intradayLanePrefs !== undefined ? props.intradayLanePrefs : undefined,
   riskBudgetPrefs: props.riskBudgetPrefs !== undefined ? props.riskBudgetPrefs : undefined,
@@ -16876,12 +16856,6 @@ import { logger } from './utils/logger';
            } : undefined,
   dayTradeOnly: prop.dayTradeOnly !== undefined ? {
             set: prop.dayTradeOnly 
-           } : undefined,
-  laneTradingEnabled: prop.laneTradingEnabled !== undefined ? {
-            set: prop.laneTradingEnabled 
-           } : undefined,
-  laneMaxEntriesPerSymbolPerDay: prop.laneMaxEntriesPerSymbolPerDay !== undefined ? {
-            set: prop.laneMaxEntriesPerSymbolPerDay 
            } : undefined,
   intradayLanePrefs: prop.intradayLanePrefs !== undefined ? prop.intradayLanePrefs : undefined,
   riskBudgetPrefs: prop.riskBudgetPrefs !== undefined ? prop.riskBudgetPrefs : undefined,

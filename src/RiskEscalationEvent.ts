@@ -236,8 +236,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.alpacaAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? props.alpacaAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.alpacaAccount.tradingPolicy.orderWindowSeconds !== undefined ? props.alpacaAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.alpacaAccount.tradingPolicy.dayTradeOnly !== undefined ? props.alpacaAccount.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.alpacaAccount.tradingPolicy.laneTradingEnabled !== undefined ? props.alpacaAccount.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.alpacaAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.alpacaAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.alpacaAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.alpacaAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.alpacaAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.alpacaAccount.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -1527,8 +1525,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? props.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? props.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -1850,8 +1846,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -2770,12 +2764,6 @@ import { logger } from './utils/logger';
           dayTradeOnly: props.alpacaAccount.tradingPolicy.dayTradeOnly !== undefined ? {
               set: props.alpacaAccount.tradingPolicy.dayTradeOnly
             } : undefined,
-          laneTradingEnabled: props.alpacaAccount.tradingPolicy.laneTradingEnabled !== undefined ? {
-              set: props.alpacaAccount.tradingPolicy.laneTradingEnabled
-            } : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
-              set: props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay
-            } : undefined,
           intradayLanePrefs: props.alpacaAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.alpacaAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.alpacaAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.alpacaAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.alpacaAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.alpacaAccount.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -2986,8 +2974,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.alpacaAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? props.alpacaAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.alpacaAccount.tradingPolicy.orderWindowSeconds !== undefined ? props.alpacaAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.alpacaAccount.tradingPolicy.dayTradeOnly !== undefined ? props.alpacaAccount.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.alpacaAccount.tradingPolicy.laneTradingEnabled !== undefined ? props.alpacaAccount.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.alpacaAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.alpacaAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.alpacaAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.alpacaAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.alpacaAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.alpacaAccount.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -6338,8 +6324,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.alpacaAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? props.alpacaAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.alpacaAccount.tradingPolicy.orderWindowSeconds !== undefined ? props.alpacaAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.alpacaAccount.tradingPolicy.dayTradeOnly !== undefined ? props.alpacaAccount.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.alpacaAccount.tradingPolicy.laneTradingEnabled !== undefined ? props.alpacaAccount.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.alpacaAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.alpacaAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.alpacaAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.alpacaAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.alpacaAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.alpacaAccount.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -7774,12 +7758,6 @@ import { logger } from './utils/logger';
           dayTradeOnly: props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? {
               set: props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly
             } : undefined,
-          laneTradingEnabled: props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? {
-              set: props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled
-            } : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
-              set: props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay
-            } : undefined,
           intradayLanePrefs: props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -8032,8 +8010,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? props.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? props.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -8594,8 +8570,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? props.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? props.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -9062,12 +9036,6 @@ import { logger } from './utils/logger';
           dayTradeOnly: props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? {
               set: props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly
             } : undefined,
-          laneTradingEnabled: props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? {
-              set: props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled
-            } : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
-              set: props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay
-            } : undefined,
           intradayLanePrefs: props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -9320,8 +9288,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -9885,8 +9851,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -10416,8 +10380,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.alpacaAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? props.alpacaAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.alpacaAccount.tradingPolicy.orderWindowSeconds !== undefined ? props.alpacaAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.alpacaAccount.tradingPolicy.dayTradeOnly !== undefined ? props.alpacaAccount.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.alpacaAccount.tradingPolicy.laneTradingEnabled !== undefined ? props.alpacaAccount.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.alpacaAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.alpacaAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.alpacaAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.alpacaAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.alpacaAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.alpacaAccount.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -11707,8 +11669,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? props.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? props.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -12030,8 +11990,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -12625,12 +12583,6 @@ import { logger } from './utils/logger';
           dayTradeOnly: props.alpacaAccount.tradingPolicy.dayTradeOnly !== undefined ? {
               set: props.alpacaAccount.tradingPolicy.dayTradeOnly
             } : undefined,
-          laneTradingEnabled: props.alpacaAccount.tradingPolicy.laneTradingEnabled !== undefined ? {
-              set: props.alpacaAccount.tradingPolicy.laneTradingEnabled
-            } : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
-              set: props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay
-            } : undefined,
           intradayLanePrefs: props.alpacaAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.alpacaAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.alpacaAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.alpacaAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.alpacaAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.alpacaAccount.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -12841,8 +12793,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.alpacaAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? props.alpacaAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.alpacaAccount.tradingPolicy.orderWindowSeconds !== undefined ? props.alpacaAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.alpacaAccount.tradingPolicy.dayTradeOnly !== undefined ? props.alpacaAccount.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.alpacaAccount.tradingPolicy.laneTradingEnabled !== undefined ? props.alpacaAccount.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.alpacaAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.alpacaAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.alpacaAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.alpacaAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.alpacaAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.alpacaAccount.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -16193,8 +16143,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.alpacaAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? props.alpacaAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.alpacaAccount.tradingPolicy.orderWindowSeconds !== undefined ? props.alpacaAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.alpacaAccount.tradingPolicy.dayTradeOnly !== undefined ? props.alpacaAccount.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.alpacaAccount.tradingPolicy.laneTradingEnabled !== undefined ? props.alpacaAccount.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.alpacaAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.alpacaAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.alpacaAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.alpacaAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.alpacaAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.alpacaAccount.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -17629,12 +17577,6 @@ import { logger } from './utils/logger';
           dayTradeOnly: props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? {
               set: props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly
             } : undefined,
-          laneTradingEnabled: props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? {
-              set: props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled
-            } : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
-              set: props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay
-            } : undefined,
           intradayLanePrefs: props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -17887,8 +17829,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? props.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? props.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -18449,8 +18389,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? props.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? props.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? props.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? props.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -18917,12 +18855,6 @@ import { logger } from './utils/logger';
           dayTradeOnly: props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? {
               set: props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly
             } : undefined,
-          laneTradingEnabled: props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? {
-              set: props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled
-            } : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
-              set: props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay
-            } : undefined,
           intradayLanePrefs: props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -19175,8 +19107,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -19740,8 +19670,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? props.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -20495,12 +20423,6 @@ import { logger } from './utils/logger';
           dayTradeOnly: prop.alpacaAccount.tradingPolicy.dayTradeOnly !== undefined ? {
               set: prop.alpacaAccount.tradingPolicy.dayTradeOnly
             } : undefined,
-          laneTradingEnabled: prop.alpacaAccount.tradingPolicy.laneTradingEnabled !== undefined ? {
-              set: prop.alpacaAccount.tradingPolicy.laneTradingEnabled
-            } : undefined,
-          laneMaxEntriesPerSymbolPerDay: prop.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
-              set: prop.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay
-            } : undefined,
           intradayLanePrefs: prop.alpacaAccount.tradingPolicy.intradayLanePrefs !== undefined ? prop.alpacaAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.alpacaAccount.tradingPolicy.riskBudgetPrefs !== undefined ? prop.alpacaAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.alpacaAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.alpacaAccount.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -20711,8 +20633,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: prop.alpacaAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? prop.alpacaAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: prop.alpacaAccount.tradingPolicy.orderWindowSeconds !== undefined ? prop.alpacaAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: prop.alpacaAccount.tradingPolicy.dayTradeOnly !== undefined ? prop.alpacaAccount.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: prop.alpacaAccount.tradingPolicy.laneTradingEnabled !== undefined ? prop.alpacaAccount.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: prop.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? prop.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: prop.alpacaAccount.tradingPolicy.intradayLanePrefs !== undefined ? prop.alpacaAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.alpacaAccount.tradingPolicy.riskBudgetPrefs !== undefined ? prop.alpacaAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.alpacaAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.alpacaAccount.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -24063,8 +23983,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: prop.alpacaAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? prop.alpacaAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: prop.alpacaAccount.tradingPolicy.orderWindowSeconds !== undefined ? prop.alpacaAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: prop.alpacaAccount.tradingPolicy.dayTradeOnly !== undefined ? prop.alpacaAccount.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: prop.alpacaAccount.tradingPolicy.laneTradingEnabled !== undefined ? prop.alpacaAccount.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: prop.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? prop.alpacaAccount.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: prop.alpacaAccount.tradingPolicy.intradayLanePrefs !== undefined ? prop.alpacaAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.alpacaAccount.tradingPolicy.riskBudgetPrefs !== undefined ? prop.alpacaAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.alpacaAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.alpacaAccount.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -25499,12 +25417,6 @@ import { logger } from './utils/logger';
           dayTradeOnly: prop.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? {
               set: prop.activatedPolicyOverlay.tradingPolicy.dayTradeOnly
             } : undefined,
-          laneTradingEnabled: prop.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? {
-              set: prop.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled
-            } : undefined,
-          laneMaxEntriesPerSymbolPerDay: prop.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
-              set: prop.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay
-            } : undefined,
           intradayLanePrefs: prop.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -25757,8 +25669,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: prop.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: prop.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: prop.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: prop.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: prop.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: prop.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -26319,8 +26229,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: prop.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: prop.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: prop.activatedPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: prop.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: prop.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: prop.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.activatedPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -26787,12 +26695,6 @@ import { logger } from './utils/logger';
           dayTradeOnly: prop.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? {
               set: prop.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly
             } : undefined,
-          laneTradingEnabled: prop.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? {
-              set: prop.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled
-            } : undefined,
-          laneMaxEntriesPerSymbolPerDay: prop.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? {
-              set: prop.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay
-            } : undefined,
           intradayLanePrefs: prop.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -27045,8 +26947,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: prop.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: prop.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: prop.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: prop.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: prop.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: prop.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
@@ -27610,8 +27510,6 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: prop.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: prop.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: prop.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.dayTradeOnly : undefined,
-          laneTradingEnabled: prop.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.laneTradingEnabled : undefined,
-          laneMaxEntriesPerSymbolPerDay: prop.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.laneMaxEntriesPerSymbolPerDay : undefined,
           intradayLanePrefs: prop.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.triggeredByPolicyOverlay.tradingPolicy.signalConsumptionPrefs : undefined,
