@@ -114,7 +114,8 @@ export const DESK_MODELS = [
  * (`src/resolvers/custom/strategy-draft-service.ts`, through
  * {@link buildWriteScopeWhere}). The model is kept out of
  * {@link GOVERNED_MODELS} on purpose: that list also gives each model a
- * `tenant_scoped` user-write rule (`src/auth/mutation-authorization.ts`),
+ * user-write rule (`tenant_scoped`, or `membership_authority` for the
+ * entitlement rows; `src/auth/mutation-authorization.ts`),
  * which would make the generated `Strategy` writes user-writable.
  *
  * Scoped in every mode ({@link ALWAYS_ENFORCED_MODELS}): the predicate leaves

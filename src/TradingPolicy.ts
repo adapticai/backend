@@ -205,6 +205,7 @@ import { logger } from './utils/logger';
   maxOrdersPerWindow: props.maxOrdersPerWindow !== undefined ? props.maxOrdersPerWindow : undefined,
   orderWindowSeconds: props.orderWindowSeconds !== undefined ? props.orderWindowSeconds : undefined,
   dayTradeOnly: props.dayTradeOnly !== undefined ? props.dayTradeOnly : undefined,
+  intradayLanePrefs: props.intradayLanePrefs !== undefined ? props.intradayLanePrefs : undefined,
   riskBudgetPrefs: props.riskBudgetPrefs !== undefined ? props.riskBudgetPrefs : undefined,
   signalConsumptionPrefs: props.signalConsumptionPrefs !== undefined ? props.signalConsumptionPrefs : undefined,
   executionPrefs: props.executionPrefs !== undefined ? props.executionPrefs : undefined,
@@ -2018,6 +2019,7 @@ import { logger } from './utils/logger';
   maxOrdersPerWindow: prop.maxOrdersPerWindow !== undefined ? prop.maxOrdersPerWindow : undefined,
   orderWindowSeconds: prop.orderWindowSeconds !== undefined ? prop.orderWindowSeconds : undefined,
   dayTradeOnly: prop.dayTradeOnly !== undefined ? prop.dayTradeOnly : undefined,
+  intradayLanePrefs: prop.intradayLanePrefs !== undefined ? prop.intradayLanePrefs : undefined,
   riskBudgetPrefs: prop.riskBudgetPrefs !== undefined ? prop.riskBudgetPrefs : undefined,
   signalConsumptionPrefs: prop.signalConsumptionPrefs !== undefined ? prop.signalConsumptionPrefs : undefined,
   executionPrefs: prop.executionPrefs !== undefined ? prop.executionPrefs : undefined,
@@ -2362,6 +2364,7 @@ import { logger } from './utils/logger';
   dayTradeOnly: props.dayTradeOnly !== undefined ? {
             set: props.dayTradeOnly 
            } : undefined,
+  intradayLanePrefs: props.intradayLanePrefs !== undefined ? props.intradayLanePrefs : undefined,
   riskBudgetPrefs: props.riskBudgetPrefs !== undefined ? props.riskBudgetPrefs : undefined,
   signalConsumptionPrefs: props.signalConsumptionPrefs !== undefined ? props.signalConsumptionPrefs : undefined,
   executionPrefs: props.executionPrefs !== undefined ? props.executionPrefs : undefined,
@@ -8678,6 +8681,7 @@ import { logger } from './utils/logger';
   maxOrdersPerWindow: props.maxOrdersPerWindow !== undefined ? props.maxOrdersPerWindow : undefined,
   orderWindowSeconds: props.orderWindowSeconds !== undefined ? props.orderWindowSeconds : undefined,
   dayTradeOnly: props.dayTradeOnly !== undefined ? props.dayTradeOnly : undefined,
+  intradayLanePrefs: props.intradayLanePrefs !== undefined ? props.intradayLanePrefs : undefined,
   riskBudgetPrefs: props.riskBudgetPrefs !== undefined ? props.riskBudgetPrefs : undefined,
   signalConsumptionPrefs: props.signalConsumptionPrefs !== undefined ? props.signalConsumptionPrefs : undefined,
   executionPrefs: props.executionPrefs !== undefined ? props.executionPrefs : undefined,
@@ -10443,6 +10447,7 @@ import { logger } from './utils/logger';
   dayTradeOnly: props.dayTradeOnly !== undefined ? {
             set: props.dayTradeOnly 
            } : undefined,
+  intradayLanePrefs: props.intradayLanePrefs !== undefined ? props.intradayLanePrefs : undefined,
   riskBudgetPrefs: props.riskBudgetPrefs !== undefined ? props.riskBudgetPrefs : undefined,
   signalConsumptionPrefs: props.signalConsumptionPrefs !== undefined ? props.signalConsumptionPrefs : undefined,
   executionPrefs: props.executionPrefs !== undefined ? props.executionPrefs : undefined,
@@ -16851,6 +16856,7 @@ import { logger } from './utils/logger';
   dayTradeOnly: prop.dayTradeOnly !== undefined ? {
             set: prop.dayTradeOnly 
            } : undefined,
+  intradayLanePrefs: prop.intradayLanePrefs !== undefined ? prop.intradayLanePrefs : undefined,
   riskBudgetPrefs: prop.riskBudgetPrefs !== undefined ? prop.riskBudgetPrefs : undefined,
   signalConsumptionPrefs: prop.signalConsumptionPrefs !== undefined ? prop.signalConsumptionPrefs : undefined,
   executionPrefs: prop.executionPrefs !== undefined ? prop.executionPrefs : undefined,

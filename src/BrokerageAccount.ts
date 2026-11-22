@@ -3087,6 +3087,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.engineAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? props.engineAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.engineAccount.tradingPolicy.orderWindowSeconds !== undefined ? props.engineAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.engineAccount.tradingPolicy.dayTradeOnly !== undefined ? props.engineAccount.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: props.engineAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.engineAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.engineAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.engineAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.engineAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.engineAccount.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.engineAccount.tradingPolicy.executionPrefs !== undefined ? props.engineAccount.tradingPolicy.executionPrefs : undefined,
@@ -16064,6 +16065,7 @@ import { logger } from './utils/logger';
           dayTradeOnly: props.engineAccount.tradingPolicy.dayTradeOnly !== undefined ? {
               set: props.engineAccount.tradingPolicy.dayTradeOnly
             } : undefined,
+          intradayLanePrefs: props.engineAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.engineAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.engineAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.engineAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.engineAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.engineAccount.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.engineAccount.tradingPolicy.executionPrefs !== undefined ? props.engineAccount.tradingPolicy.executionPrefs : undefined,
@@ -16273,6 +16275,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.engineAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? props.engineAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.engineAccount.tradingPolicy.orderWindowSeconds !== undefined ? props.engineAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.engineAccount.tradingPolicy.dayTradeOnly !== undefined ? props.engineAccount.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: props.engineAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.engineAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.engineAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.engineAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.engineAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.engineAccount.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.engineAccount.tradingPolicy.executionPrefs !== undefined ? props.engineAccount.tradingPolicy.executionPrefs : undefined,
@@ -19710,6 +19713,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.engineAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? props.engineAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.engineAccount.tradingPolicy.orderWindowSeconds !== undefined ? props.engineAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.engineAccount.tradingPolicy.dayTradeOnly !== undefined ? props.engineAccount.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: props.engineAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.engineAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.engineAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.engineAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.engineAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.engineAccount.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.engineAccount.tradingPolicy.executionPrefs !== undefined ? props.engineAccount.tradingPolicy.executionPrefs : undefined,
@@ -24078,6 +24082,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.engineAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? props.engineAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.engineAccount.tradingPolicy.orderWindowSeconds !== undefined ? props.engineAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.engineAccount.tradingPolicy.dayTradeOnly !== undefined ? props.engineAccount.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: props.engineAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.engineAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.engineAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.engineAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.engineAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.engineAccount.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.engineAccount.tradingPolicy.executionPrefs !== undefined ? props.engineAccount.tradingPolicy.executionPrefs : undefined,
@@ -36717,6 +36722,7 @@ import { logger } from './utils/logger';
           dayTradeOnly: props.engineAccount.tradingPolicy.dayTradeOnly !== undefined ? {
               set: props.engineAccount.tradingPolicy.dayTradeOnly
             } : undefined,
+          intradayLanePrefs: props.engineAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.engineAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.engineAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.engineAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.engineAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.engineAccount.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.engineAccount.tradingPolicy.executionPrefs !== undefined ? props.engineAccount.tradingPolicy.executionPrefs : undefined,
@@ -36926,6 +36932,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.engineAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? props.engineAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.engineAccount.tradingPolicy.orderWindowSeconds !== undefined ? props.engineAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.engineAccount.tradingPolicy.dayTradeOnly !== undefined ? props.engineAccount.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: props.engineAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.engineAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.engineAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.engineAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.engineAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.engineAccount.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.engineAccount.tradingPolicy.executionPrefs !== undefined ? props.engineAccount.tradingPolicy.executionPrefs : undefined,
@@ -40363,6 +40370,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: props.engineAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? props.engineAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: props.engineAccount.tradingPolicy.orderWindowSeconds !== undefined ? props.engineAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: props.engineAccount.tradingPolicy.dayTradeOnly !== undefined ? props.engineAccount.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: props.engineAccount.tradingPolicy.intradayLanePrefs !== undefined ? props.engineAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: props.engineAccount.tradingPolicy.riskBudgetPrefs !== undefined ? props.engineAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: props.engineAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? props.engineAccount.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: props.engineAccount.tradingPolicy.executionPrefs !== undefined ? props.engineAccount.tradingPolicy.executionPrefs : undefined,
@@ -53165,6 +53173,7 @@ import { logger } from './utils/logger';
           dayTradeOnly: prop.engineAccount.tradingPolicy.dayTradeOnly !== undefined ? {
               set: prop.engineAccount.tradingPolicy.dayTradeOnly
             } : undefined,
+          intradayLanePrefs: prop.engineAccount.tradingPolicy.intradayLanePrefs !== undefined ? prop.engineAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.engineAccount.tradingPolicy.riskBudgetPrefs !== undefined ? prop.engineAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.engineAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.engineAccount.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: prop.engineAccount.tradingPolicy.executionPrefs !== undefined ? prop.engineAccount.tradingPolicy.executionPrefs : undefined,
@@ -53374,6 +53383,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: prop.engineAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? prop.engineAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: prop.engineAccount.tradingPolicy.orderWindowSeconds !== undefined ? prop.engineAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: prop.engineAccount.tradingPolicy.dayTradeOnly !== undefined ? prop.engineAccount.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: prop.engineAccount.tradingPolicy.intradayLanePrefs !== undefined ? prop.engineAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.engineAccount.tradingPolicy.riskBudgetPrefs !== undefined ? prop.engineAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.engineAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.engineAccount.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: prop.engineAccount.tradingPolicy.executionPrefs !== undefined ? prop.engineAccount.tradingPolicy.executionPrefs : undefined,
@@ -56811,6 +56821,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: prop.engineAccount.tradingPolicy.maxOrdersPerWindow !== undefined ? prop.engineAccount.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: prop.engineAccount.tradingPolicy.orderWindowSeconds !== undefined ? prop.engineAccount.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: prop.engineAccount.tradingPolicy.dayTradeOnly !== undefined ? prop.engineAccount.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: prop.engineAccount.tradingPolicy.intradayLanePrefs !== undefined ? prop.engineAccount.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: prop.engineAccount.tradingPolicy.riskBudgetPrefs !== undefined ? prop.engineAccount.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: prop.engineAccount.tradingPolicy.signalConsumptionPrefs !== undefined ? prop.engineAccount.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: prop.engineAccount.tradingPolicy.executionPrefs !== undefined ? prop.engineAccount.tradingPolicy.executionPrefs : undefined,

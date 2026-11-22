@@ -171,11 +171,22 @@ describe('evaluateMutationAccess', () => {
   });
 
   it('admits a tenant-scoped write only when the guard proved it in scope', () => {
-    const models = new Set(['FundAssignment']);
-    const fa = classifyMutationField('createOneFundAssignment', models);
-    expect(evaluateMutationAccess(USER, fa).reason).toBe('tenant_unresolved');
-    expect(evaluateMutationAccess(USER, fa, { tenantScope: 'in_scope' }).allowed).toBe(true);
-    expect(evaluateMutationAccess(USER, fa, { tenantScope: 'out_of_scope' }).reason).toBe('tenant_out_of_scope');
+    const models = new Set(['BrokerageAccount']);
+    const ba = classifyMutationField('createOneBrokerageAccount', models);
+    expect(evaluateMutationAccess(USER, ba).reason).toBe('tenant_unresolved');
+    expect(evaluateMutationAccess(USER, ba, { tenantScope: 'in_scope' }).allowed).toBe(true);
+    expect(evaluateMutationAccess(USER, ba, { tenantScope: 'out_of_scope' }).reason).toBe('tenant_out_of_scope');
+  });
+
+  it('does not admit an entitlement-row write on tenant scope alone', () => {
+    const models = new Set(['FundAssignment', 'OrgMembership']);
+    for (const field of ['createOneFundAssignment', 'updateOneOrgMembership']) {
+      const t = classifyMutationField(field, models);
+      expect(evaluateMutationAccess(USER, t, { tenantScope: 'in_scope' }), field).toMatchObject({
+        allowed: false,
+        reason: 'membership_authority_unresolved',
+      });
+    }
   });
 
   it('confines self-policy writes to the caller', () => {
@@ -226,6 +237,16 @@ const nw = (over: Partial<NestedWrite> & Pick<NestedWrite, 'model' | 'parentMode
 describe('nestedWriteRefusalForUser', () => {
   const me = 'u-1';
   const refusal = (w: NestedWrite): string | null => nestedWriteRefusalForUser(w, me, RELATIONS);
+
+  it("admits another person as the member of a root entitlement-row create, and nowhere else", () => {
+    const member = { model: 'User', relation: 'user', operations: ['connect'], connectIds: ['u-2'], parentMode: 'create' } as const;
+    expect(refusal(nw({ ...member, parentModel: 'FundAssignment' }))).toBeNull();
+    expect(refusal(nw({ ...member, parentModel: 'FundAssignment', depth: 2 }))).toBe('nested_write_not_user_writable');
+    expect(refusal(nw({ ...member, parentModel: 'FundAssignment', parentMode: 'update' }))).toBe(
+      'nested_write_not_user_writable'
+    );
+    expect(refusal(nw({ ...member, parentModel: 'AlpacaAccount' }))).toBe('nested_write_not_user_writable');
+  });
 
   it('admits the owned-content edges whose target is the root row\'s own counterpart, at depth 1 only', () => {
     expect(refusal(nw({ model: 'TradingPolicy', parentModel: 'AlpacaAccount', relation: 'tradingPolicy' }))).toBeNull();
@@ -508,6 +529,28 @@ describe('audit helpers', () => {
     expect(isDisarmOnlyPolicyWrite(upsert, { where, update: { killSwitchEnabled: { set: true } } })).toBe(false);
   });
 
+  it('treats a lane-preferences write as disarm-only only when it leaves the lanes disarmed', () => {
+    const t = classifyMutationField('updateOneTradingPolicy', new Set(['TradingPolicy']));
+    const where = { id: 'p1' };
+    // The generated update input carries a JSON column's value itself, not `{ set: value }`.
+    expect(isDisarmOnlyPolicyWrite(t, { where, data: { intradayLanePrefs: { armed: false, perLaneTradesPerDay: 3 } } })).toBe(true);
+    expect(isDisarmOnlyPolicyWrite(t, { where, data: { intradayLanePrefs: null } })).toBe(true);
+    // A kill that also disarms the lanes is still disarm-only, so an AuditLog outage cannot refuse it.
+    expect(
+      isDisarmOnlyPolicyWrite(t, {
+        where,
+        data: { realtimeTradingEnabled: { set: false }, intradayLanePrefs: { armed: false }, lastModifiedBy: { set: 'e' } },
+      })
+    ).toBe(true);
+    expect(isDisarmOnlyPolicyWrite(t, { where, data: { intradayLanePrefs: { armed: true } } })).toBe(false);
+    expect(isDisarmOnlyPolicyWrite(t, { where, data: { intradayLanePrefs: { perLaneTradesPerDay: 3 } } })).toBe(false);
+    expect(isDisarmOnlyPolicyWrite(t, { where, data: { intradayLanePrefs: { armed: 'false' } } })).toBe(false);
+    expect(isDisarmOnlyPolicyWrite(t, { where, data: { intradayLanePrefs: [{ armed: false }] } })).toBe(false);
+    expect(
+      isDisarmOnlyPolicyWrite(t, { where, data: { realtimeTradingEnabled: { set: false }, intradayLanePrefs: { armed: true } } })
+    ).toBe(false);
+  });
+
   it('treats an unidentified account as possibly LIVE', () => {
     const row = { nestedPath: null, policyId: null, alpacaAccountId: null, accountType: null, before: null };
     expect(mayTouchLiveAccount([{ ...row, resolution: 'unresolved' }])).toBe(true);
@@ -534,5 +577,11 @@ describe('audit helpers', () => {
   it('detects a trading-switch change at any depth', () => {
     expect(touchesTradingSwitch({ data: { tradingPolicy: { update: { data: { killSwitchEnabled: { set: true } } } } } })).toBe(true);
     expect(touchesTradingSwitch({ data: { maxLeverage: { set: 2 } } })).toBe(false);
+    expect(touchesTradingSwitch({ data: { intradayLanePrefs: { armed: true } } })).toBe(true);
+    expect(touchesTradingSwitch({ data: { intradayLanePrefs: null } })).toBe(true);
+    expect(
+      touchesTradingSwitch({ data: { tradingPolicy: { update: { data: { intradayLanePrefs: { armed: true } } } } } })
+    ).toBe(true);
+    expect(touchesTradingSwitch({ data: { riskBudgetPrefs: { armed: true } } })).toBe(false);
   });
 });

@@ -1360,7 +1360,7 @@ model User {
   openaiAPIKey String?
 
   /// OpenAI API Language model selected by the user
-  openaiModel OpenaiModel? @default(GPT_5_MINI)
+  openaiModel OpenaiModel?
 
   /// List of linked authentication providers. TYPESTRING.INCLUDE=['id','provider','email'] GQL.EXCLUDE=['user']
   linkedProviders LinkedProvider[]
@@ -1453,7 +1453,7 @@ model LlmConfiguration {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   /// Default provider used for all tiers unless overridden
-  defaultProvider LlmProvider @default(OPENAI)
+  defaultProvider LlmProvider @default(DEEPINFRA)
 
   /// Per-tier provider overrides (null = inherit from defaultProvider)
   miniProvider     LlmProvider?
@@ -5469,6 +5469,25 @@ model TradingPolicy {
 
   /// Enforce intraday-only trading (auto-close all positions before EOD). Default: false.
   dayTradeOnly                  Boolean  @default(false)
+
+  /// Per-account multi-lane intraday preferences: the single carrier of the
+  /// account's lane opt-in (`armed`) and its per-lane caps, including the
+  /// trades-per-day cap (`perLaneTradesPerDay`). It is validated at the engine's
+  /// read boundary by the strict IntradayLanePrefs schema in @adaptic/utils
+  /// (trading-policy/schemas). NULL, a value that fails that schema, or an
+  /// absent cap means the lanes are disarmed for this account. One JSON carrier
+  /// instead of separate arming and cap columns keeps a single arming predicate,
+  /// so there are no two homes for one setting that could disagree.
+  ///
+  /// It is left out of every generated selection set (GQL.SKIP) on purpose. A
+  /// GraphQL server that predates the column rejects any operation that
+  /// selects it, and the TradingPolicy selection set feeds the engine's order
+  /// chokepoint and broker-credential reads. Keeping the field out lets a
+  /// consumer of this package run against a server whether or not the
+  /// migration has been applied. It is read through `readIntradayLanePrefs`,
+  /// whose failure the lane path treats as disarmed, and written through the
+  /// generated create and update inputs. GQL.SKIP=true
+  intradayLanePrefs             Json?
 
   riskBudgetPrefs           Json?
 

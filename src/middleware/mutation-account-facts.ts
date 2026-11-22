@@ -14,6 +14,8 @@
  * @module middleware/mutation-account-facts
  */
 
+import type { Prisma } from '@prisma/client';
+
 import { resolveEntitlement } from '../auth/tenancy-scope';
 import type { AccountOwnership, MutationTarget } from '../auth/mutation-authorization';
 import type { NestedWrite } from '../auth/nested-write-inspector';
@@ -37,6 +39,7 @@ const POLICY_SELECT = {
   paperTradingOnly: true,
   killSwitchEnabled: true,
   autonomyMode: true,
+  intradayLanePrefs: true,
   alpacaAccount: { select: ACCOUNT_SELECT },
 } as const;
 
@@ -56,6 +59,7 @@ export interface PolicyFacts {
   readonly paperTradingOnly: boolean;
   readonly killSwitchEnabled: boolean;
   readonly autonomyMode: string;
+  readonly intradayLanePrefs: Prisma.JsonValue | null;
   readonly alpacaAccount: AccountFacts;
 }
 
@@ -119,6 +123,7 @@ function policyRow(row: PolicyFacts, nestedPath: string | null = null): AuditedP
       paperTradingOnly: row.paperTradingOnly,
       killSwitchEnabled: row.killSwitchEnabled,
       autonomyMode: row.autonomyMode,
+      intradayLanePrefs: row.intradayLanePrefs,
     },
   };
 }

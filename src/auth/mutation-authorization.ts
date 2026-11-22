@@ -30,7 +30,15 @@
  *     accounts has no single owner to check.
  *   - `self` — `User`: only the caller's own row, and only its profile and
  *     onboarding fields (`./user-write-content.ts`).
- *   - `tenant_scoped` — the tenancy-governed models: the row (for an update,
+ *   - `membership_authority` — `OrgMembership` and `FundAssignment`, the rows
+ *     every other entitlement is read from: the caller must hold OWNER or
+ *     ADMIN in the row's organization (OWNER for a row whose role is OWNER),
+ *     or MANAGER on the assignment's own fund; or the write makes the caller
+ *     the first owner of an empty organization, the one self-service create
+ *     the backend can verify from rows the caller cannot write
+ *     (`./membership-write-authority.ts`). Roles are read from the database
+ *     for the mutation, never from the token.
+ *   - `tenant_scoped` — the other tenancy-governed models: the row (for an update,
  *     upsert or delete) or the payload's tenant (for a create) must lie in the
  *     caller's OrgMembership / FundAssignment entitlement. The guard checks
  *     this itself, whatever `TENANCY_SCOPING_MODE` says, because fund
@@ -82,6 +90,11 @@
  * @module auth/mutation-authorization
  */
 
+import {
+  ADMITTING_MEMBERSHIP_VERDICTS,
+  isMembershipModel,
+  type MembershipVerdict,
+} from './membership-write-authority';
 import type { BackendPrincipal } from './token-verifier';
 import { DESK_MODELS, GOVERNED_MODELS } from './tenancy-scope';
 
@@ -281,6 +294,7 @@ export type UserWritePolicy =
   | 'account_owned'
   | 'self'
   | 'tenant_scoped'
+  | 'membership_authority'
   | 'mandate_tenant'
   | 'authenticated'
   | 'resolver_authorized';
@@ -320,9 +334,13 @@ export const MODEL_WRITE_RULES: ReadonlyMap<string, ModelWriteRule> = new Map<
   ['TradingPolicy', { policy: 'account_owned', userActions: ONLY('create', 'update', 'upsert') }],
   ['AlpacaAccount', { policy: 'account_owned', userActions: ONLY('create', 'update') }],
   ['User', { policy: 'self', userActions: ONLY('update') }],
-  ...GOVERNED_MODELS.map(
+  ...GOVERNED_MODELS.filter((model) => !isMembershipModel(model)).map(
     (model): [string, ModelWriteRule] => [model, { policy: 'tenant_scoped' }]
   ),
+  // The entitlement rows: being inside the tenant is not enough to write the
+  // role that decides what everyone in it may do.
+  ['OrgMembership', { policy: 'membership_authority' }],
+  ['FundAssignment', { policy: 'membership_authority' }],
   ['Configuration', { policy: 'authenticated', userActions: ONLY('upsert') }],
   ['DashboardLayout', { policy: 'authenticated', userActions: ONLY('upsert') }],
   ['Mandate', { policy: 'authenticated', userActions: ONLY('create', 'update') }],
@@ -383,6 +401,12 @@ export type MutationAuthReason =
   | 'not_self'
   | 'tenant_out_of_scope'
   | 'tenant_unresolved'
+  | 'membership_org_admin'
+  | 'membership_fund_manager'
+  | 'membership_first_owner'
+  | 'membership_role_insufficient'
+  | 'membership_owner_requires_owner'
+  | 'membership_authority_unresolved'
   | 'field_not_user_writable'
   | 'reserved_audit_source'
   | 'audit_actor_mismatch'
@@ -401,6 +425,12 @@ export type AccountOwnership =
 /** For a `tenant_scoped` write: whether the row or payload lies in the caller's entitlement. */
 export type TenantScope = 'in_scope' | 'out_of_scope';
 
+/**
+ * For a `membership_authority` write: the verdict read from the database, or
+ * `unresolved` when the rows it reaches could not be identified or read.
+ */
+export type MembershipAuthority = MembershipVerdict | 'unresolved';
+
 /** Everything the decision needs beyond the principal and target. */
 export interface MutationFacts {
   /** For `account_owned`: whether the caller owns every account touched. */
@@ -409,6 +439,8 @@ export interface MutationFacts {
   readonly targetsSelf?: boolean;
   /** For `tenant_scoped`: the guard's own scope check; absent = not yet resolved. */
   readonly tenantScope?: TenantScope;
+  /** For `membership_authority`: the caller's authority over the row; absent = not yet resolved. */
+  readonly membershipAuthority?: MembershipAuthority;
   /**
    * Every model the mutation's nested writes reach. A non-service principal is
    * refused when one is service-principal only, whatever its root.
@@ -482,6 +514,11 @@ export function evaluateMutationAccess(
     }
     case 'self':
       return facts.targetsSelf === true ? allow('self') : forbid('not_self');
+    case 'membership_authority': {
+      const authority = facts.membershipAuthority;
+      if (authority === undefined || authority === 'unresolved') return forbid('membership_authority_unresolved');
+      return ADMITTING_MEMBERSHIP_VERDICTS.has(authority) ? allow(authority) : forbid(authority);
+    }
     case 'tenant_scoped':
     case 'mandate_tenant':
       if (facts.tenantScope === 'in_scope') return allow('tenant_scoped');
