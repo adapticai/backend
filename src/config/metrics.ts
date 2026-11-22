@@ -117,6 +117,40 @@ export const tenancyScopingDecisionsTotal = new Counter({
   registers: [metricsRegistry],
 });
 
+/**
+ * Counts fluent relation loads served from a batch, by parent model and
+ * relation. Divided by `prisma_relation_batch_queries_total` it gives the mean
+ * batch size, which is the measure of how much per-row client-request overhead
+ * the batcher is actually removing from the event loop.
+ */
+export const relationBatchLoadsTotal = new Counter({
+  name: 'prisma_relation_batch_loads_total',
+  help: 'Fluent relation loads served from a batched parent read',
+  labelNames: ['model', 'relation'] as const,
+  registers: [metricsRegistry],
+});
+
+/** Counts the batched parent reads issued to serve those loads. */
+export const relationBatchQueriesTotal = new Counter({
+  name: 'prisma_relation_batch_queries_total',
+  help: 'Batched parent reads issued to serve fluent relation loads',
+  labelNames: ['model'] as const,
+  registers: [metricsRegistry],
+});
+
+/**
+ * Counts `findUnique` calls where Prisma's private `__internalParams` seam was
+ * absent, so the relation batcher could not classify the call and fell back to
+ * the per-row path. A non-zero value means the batcher is inert — correct, but
+ * no longer saving anything — and is the signal to re-derive the seam after a
+ * Prisma upgrade.
+ */
+export const relationBatchSeamMissesTotal = new Counter({
+  name: 'prisma_relation_batch_seam_misses_total',
+  help: 'findUnique calls the relation batcher could not classify because the Prisma internal-params seam was absent',
+  registers: [metricsRegistry],
+});
+
 // ---------------------------------------------------------------------------
 // Application metrics
 // ---------------------------------------------------------------------------
