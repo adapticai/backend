@@ -798,6 +798,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: item.tradingPolicy.maxOrdersPerWindow !== undefined ? item.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: item.tradingPolicy.orderWindowSeconds !== undefined ? item.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: item.tradingPolicy.dayTradeOnly !== undefined ? item.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: item.tradingPolicy.intradayLanePrefs !== undefined ? item.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: item.tradingPolicy.riskBudgetPrefs !== undefined ? item.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: item.tradingPolicy.signalConsumptionPrefs !== undefined ? item.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: item.tradingPolicy.executionPrefs !== undefined ? item.tradingPolicy.executionPrefs : undefined,
@@ -13441,6 +13442,7 @@ import { logger } from './utils/logger';
           dayTradeOnly: item.tradingPolicy.dayTradeOnly !== undefined ? {
               set: item.tradingPolicy.dayTradeOnly
             } : undefined,
+          intradayLanePrefs: item.tradingPolicy.intradayLanePrefs !== undefined ? item.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: item.tradingPolicy.riskBudgetPrefs !== undefined ? item.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: item.tradingPolicy.signalConsumptionPrefs !== undefined ? item.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: item.tradingPolicy.executionPrefs !== undefined ? item.tradingPolicy.executionPrefs : undefined,
@@ -13650,6 +13652,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: item.tradingPolicy.maxOrdersPerWindow !== undefined ? item.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: item.tradingPolicy.orderWindowSeconds !== undefined ? item.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: item.tradingPolicy.dayTradeOnly !== undefined ? item.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: item.tradingPolicy.intradayLanePrefs !== undefined ? item.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: item.tradingPolicy.riskBudgetPrefs !== undefined ? item.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: item.tradingPolicy.signalConsumptionPrefs !== undefined ? item.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: item.tradingPolicy.executionPrefs !== undefined ? item.tradingPolicy.executionPrefs : undefined,
@@ -15140,6 +15143,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: item.tradingPolicy.maxOrdersPerWindow !== undefined ? item.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: item.tradingPolicy.orderWindowSeconds !== undefined ? item.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: item.tradingPolicy.dayTradeOnly !== undefined ? item.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: item.tradingPolicy.intradayLanePrefs !== undefined ? item.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: item.tradingPolicy.riskBudgetPrefs !== undefined ? item.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: item.tradingPolicy.signalConsumptionPrefs !== undefined ? item.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: item.tradingPolicy.executionPrefs !== undefined ? item.tradingPolicy.executionPrefs : undefined,
@@ -55335,6 +55339,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: item.tradingPolicy.maxOrdersPerWindow !== undefined ? item.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: item.tradingPolicy.orderWindowSeconds !== undefined ? item.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: item.tradingPolicy.dayTradeOnly !== undefined ? item.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: item.tradingPolicy.intradayLanePrefs !== undefined ? item.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: item.tradingPolicy.riskBudgetPrefs !== undefined ? item.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: item.tradingPolicy.signalConsumptionPrefs !== undefined ? item.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: item.tradingPolicy.executionPrefs !== undefined ? item.tradingPolicy.executionPrefs : undefined,
@@ -67649,6 +67654,7 @@ import { logger } from './utils/logger';
           dayTradeOnly: item.tradingPolicy.dayTradeOnly !== undefined ? {
               set: item.tradingPolicy.dayTradeOnly
             } : undefined,
+          intradayLanePrefs: item.tradingPolicy.intradayLanePrefs !== undefined ? item.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: item.tradingPolicy.riskBudgetPrefs !== undefined ? item.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: item.tradingPolicy.signalConsumptionPrefs !== undefined ? item.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: item.tradingPolicy.executionPrefs !== undefined ? item.tradingPolicy.executionPrefs : undefined,
@@ -67858,6 +67864,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: item.tradingPolicy.maxOrdersPerWindow !== undefined ? item.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: item.tradingPolicy.orderWindowSeconds !== undefined ? item.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: item.tradingPolicy.dayTradeOnly !== undefined ? item.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: item.tradingPolicy.intradayLanePrefs !== undefined ? item.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: item.tradingPolicy.riskBudgetPrefs !== undefined ? item.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: item.tradingPolicy.signalConsumptionPrefs !== undefined ? item.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: item.tradingPolicy.executionPrefs !== undefined ? item.tradingPolicy.executionPrefs : undefined,
@@ -69348,6 +69355,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: item.tradingPolicy.maxOrdersPerWindow !== undefined ? item.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: item.tradingPolicy.orderWindowSeconds !== undefined ? item.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: item.tradingPolicy.dayTradeOnly !== undefined ? item.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: item.tradingPolicy.intradayLanePrefs !== undefined ? item.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: item.tradingPolicy.riskBudgetPrefs !== undefined ? item.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: item.tradingPolicy.signalConsumptionPrefs !== undefined ? item.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: item.tradingPolicy.executionPrefs !== undefined ? item.tradingPolicy.executionPrefs : undefined,
@@ -110659,6 +110667,7 @@ import { logger } from './utils/logger';
           dayTradeOnly: item.tradingPolicy.dayTradeOnly !== undefined ? {
               set: item.tradingPolicy.dayTradeOnly
             } : undefined,
+          intradayLanePrefs: item.tradingPolicy.intradayLanePrefs !== undefined ? item.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: item.tradingPolicy.riskBudgetPrefs !== undefined ? item.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: item.tradingPolicy.signalConsumptionPrefs !== undefined ? item.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: item.tradingPolicy.executionPrefs !== undefined ? item.tradingPolicy.executionPrefs : undefined,
@@ -110868,6 +110877,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: item.tradingPolicy.maxOrdersPerWindow !== undefined ? item.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: item.tradingPolicy.orderWindowSeconds !== undefined ? item.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: item.tradingPolicy.dayTradeOnly !== undefined ? item.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: item.tradingPolicy.intradayLanePrefs !== undefined ? item.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: item.tradingPolicy.riskBudgetPrefs !== undefined ? item.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: item.tradingPolicy.signalConsumptionPrefs !== undefined ? item.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: item.tradingPolicy.executionPrefs !== undefined ? item.tradingPolicy.executionPrefs : undefined,
@@ -112358,6 +112368,7 @@ import { logger } from './utils/logger';
           maxOrdersPerWindow: item.tradingPolicy.maxOrdersPerWindow !== undefined ? item.tradingPolicy.maxOrdersPerWindow : undefined,
           orderWindowSeconds: item.tradingPolicy.orderWindowSeconds !== undefined ? item.tradingPolicy.orderWindowSeconds : undefined,
           dayTradeOnly: item.tradingPolicy.dayTradeOnly !== undefined ? item.tradingPolicy.dayTradeOnly : undefined,
+          intradayLanePrefs: item.tradingPolicy.intradayLanePrefs !== undefined ? item.tradingPolicy.intradayLanePrefs : undefined,
           riskBudgetPrefs: item.tradingPolicy.riskBudgetPrefs !== undefined ? item.tradingPolicy.riskBudgetPrefs : undefined,
           signalConsumptionPrefs: item.tradingPolicy.signalConsumptionPrefs !== undefined ? item.tradingPolicy.signalConsumptionPrefs : undefined,
           executionPrefs: item.tradingPolicy.executionPrefs !== undefined ? item.tradingPolicy.executionPrefs : undefined,

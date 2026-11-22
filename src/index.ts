@@ -10,6 +10,9 @@ export * from './generated/typeStrings/index';
 // Export custom resolvers
 export * from './resolvers/custom/index';
 
+// Hand-written narrow reads of fields that no generated selection set carries
+export * from './readers/index';
+
 // Re-export Apollo Client functions from client.ts
 export {
   getApolloClient,

@@ -41,6 +41,7 @@
  * @module middleware/trading-policy-audit
  */
 
+import type { Prisma } from '@prisma/client';
 import { Counter } from 'prom-client';
 
 import { redactCredentials } from '../auth/credential-redaction';
@@ -57,18 +58,29 @@ const MAX_CHANGE_REASON_LENGTH = 500;
 /** Longest free-text header value (user agent, origin) recorded. */
 const MAX_HEADER_LENGTH = 300;
 
-/** The switches whose change arms or disarms an account. */
+/**
+ * The switches whose change arms or disarms an account. `intradayLanePrefs`
+ * is the single carrier of the account's multi-lane opt-in (its `armed`
+ * member), so a write to it can arm the lanes exactly as a write to
+ * `realtimeTradingEnabled` can arm the account: it is audited, warned on and
+ * classified as a switch like the others.
+ */
 export const TRADING_SWITCH_FIELDS = [
   'realtimeTradingEnabled',
   'paperTradingOnly',
   'killSwitchEnabled',
   'autonomyMode',
+  'intradayLanePrefs',
 ] as const;
 
-/** The switch values of one policy as they stood before the write. */
-export type TradingSwitches = Partial<
-  Record<(typeof TRADING_SWITCH_FIELDS)[number], boolean | string | null>
->;
+/** One trading switch's name. */
+export type TradingSwitchField = (typeof TRADING_SWITCH_FIELDS)[number];
+
+/**
+ * The switch values of one policy as they stood before the write. A JSON
+ * switch (`intradayLanePrefs`) is recorded as its stored value.
+ */
+export type TradingSwitches = Partial<Record<TradingSwitchField, boolean | string | Prisma.JsonValue | null>>;
 
 /**
  * How a touched policy's account was identified: read from the database
@@ -209,7 +221,7 @@ export function changeReasonFor(req: ActorRequest | undefined): string | null {
 export function touchesTradingSwitch(requested: unknown): boolean {
   if (requested === null || typeof requested !== 'object') return false;
   for (const [key, child] of Object.entries(requested as Record<string, unknown>)) {
-    if ((TRADING_SWITCH_FIELDS as readonly string[]).includes(key)) return true;
+    if (isTradingSwitchField(key)) return true;
     if (touchesTradingSwitch(child)) return true;
   }
   return false;
@@ -310,13 +322,36 @@ export async function writeResultRow(
   }
 }
 
-/** The value each trading switch moves to when a write DISARMS it. */
-const DISARMED_VALUES: Readonly<Record<(typeof TRADING_SWITCH_FIELDS)[number], ReadonlySet<unknown>>> = {
-  realtimeTradingEnabled: new Set([false]),
-  killSwitchEnabled: new Set([true]),
-  paperTradingOnly: new Set([true]),
-  autonomyMode: new Set(['ADVISORY_ONLY', 'EMERGENCY_SAFE_MODE']),
+/**
+ * Whether an `intradayLanePrefs` value leaves the account's lanes disarmed:
+ * a null (no preferences, which reads as disarmed) or an object whose `armed`
+ * member is exactly `false`. Any other value may arm, so it is not a disarm.
+ */
+function isDisarmedLanePrefs(value: unknown): boolean {
+  if (value === null) return true;
+  if (typeof value !== 'object' || Array.isArray(value)) return false;
+  return (value as Record<string, unknown>).armed === false;
+}
+
+/** Whether a value is the one a write DISARMING each trading switch sets. */
+const DISARMS: Readonly<Record<TradingSwitchField, (value: unknown) => boolean>> = {
+  realtimeTradingEnabled: (value) => value === false,
+  killSwitchEnabled: (value) => value === true,
+  paperTradingOnly: (value) => value === true,
+  autonomyMode: (value) => value === 'ADVISORY_ONLY' || value === 'EMERGENCY_SAFE_MODE',
+  intradayLanePrefs: isDisarmedLanePrefs,
 };
+
+/**
+ * Switches whose generated update input carries the value itself rather than
+ * `{ set: value }`: a JSON column is written as its new value.
+ */
+const JSON_SWITCH_FIELDS: ReadonlySet<TradingSwitchField> = new Set<TradingSwitchField>(['intradayLanePrefs']);
+
+/** Whether a data key names a trading switch. */
+function isTradingSwitchField(key: string): key is TradingSwitchField {
+  return (TRADING_SWITCH_FIELDS as readonly string[]).includes(key);
+}
 
 /** Bookkeeping fields a disarm write may also set. */
 const DISARM_BOOKKEEPING_FIELDS: ReadonlySet<string> = new Set(['lastModifiedBy', 'lastModifiedAt', 'version']);
@@ -352,10 +387,10 @@ export function isDisarmOnlyPolicyWrite(
   let disarmed = 0;
   for (const [key, raw] of Object.entries(data as Record<string, unknown>)) {
     if (raw === undefined) continue;
-    const set = setValueOf(raw);
+    const set = isTradingSwitchField(key) && JSON_SWITCH_FIELDS.has(key) ? { value: raw } : setValueOf(raw);
     if (!set) return false;
-    if (key in DISARMED_VALUES) {
-      if (!DISARMED_VALUES[key as keyof typeof DISARMED_VALUES].has(set.value)) return false;
+    if (isTradingSwitchField(key)) {
+      if (!DISARMS[key](set.value)) return false;
       disarmed += 1;
     } else if (!DISARM_BOOKKEEPING_FIELDS.has(key) && !(key === 'id' && where?.id === set.value)) {
       return false;

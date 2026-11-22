@@ -529,6 +529,28 @@ describe('audit helpers', () => {
     expect(isDisarmOnlyPolicyWrite(upsert, { where, update: { killSwitchEnabled: { set: true } } })).toBe(false);
   });
 
+  it('treats a lane-preferences write as disarm-only only when it leaves the lanes disarmed', () => {
+    const t = classifyMutationField('updateOneTradingPolicy', new Set(['TradingPolicy']));
+    const where = { id: 'p1' };
+    // The generated update input carries a JSON column's value itself, not `{ set: value }`.
+    expect(isDisarmOnlyPolicyWrite(t, { where, data: { intradayLanePrefs: { armed: false, perLaneTradesPerDay: 3 } } })).toBe(true);
+    expect(isDisarmOnlyPolicyWrite(t, { where, data: { intradayLanePrefs: null } })).toBe(true);
+    // A kill that also disarms the lanes is still disarm-only, so an AuditLog outage cannot refuse it.
+    expect(
+      isDisarmOnlyPolicyWrite(t, {
+        where,
+        data: { realtimeTradingEnabled: { set: false }, intradayLanePrefs: { armed: false }, lastModifiedBy: { set: 'e' } },
+      })
+    ).toBe(true);
+    expect(isDisarmOnlyPolicyWrite(t, { where, data: { intradayLanePrefs: { armed: true } } })).toBe(false);
+    expect(isDisarmOnlyPolicyWrite(t, { where, data: { intradayLanePrefs: { perLaneTradesPerDay: 3 } } })).toBe(false);
+    expect(isDisarmOnlyPolicyWrite(t, { where, data: { intradayLanePrefs: { armed: 'false' } } })).toBe(false);
+    expect(isDisarmOnlyPolicyWrite(t, { where, data: { intradayLanePrefs: [{ armed: false }] } })).toBe(false);
+    expect(
+      isDisarmOnlyPolicyWrite(t, { where, data: { realtimeTradingEnabled: { set: false }, intradayLanePrefs: { armed: true } } })
+    ).toBe(false);
+  });
+
   it('treats an unidentified account as possibly LIVE', () => {
     const row = { nestedPath: null, policyId: null, alpacaAccountId: null, accountType: null, before: null };
     expect(mayTouchLiveAccount([{ ...row, resolution: 'unresolved' }])).toBe(true);
@@ -555,5 +577,11 @@ describe('audit helpers', () => {
   it('detects a trading-switch change at any depth', () => {
     expect(touchesTradingSwitch({ data: { tradingPolicy: { update: { data: { killSwitchEnabled: { set: true } } } } } })).toBe(true);
     expect(touchesTradingSwitch({ data: { maxLeverage: { set: 2 } } })).toBe(false);
+    expect(touchesTradingSwitch({ data: { intradayLanePrefs: { armed: true } } })).toBe(true);
+    expect(touchesTradingSwitch({ data: { intradayLanePrefs: null } })).toBe(true);
+    expect(
+      touchesTradingSwitch({ data: { tradingPolicy: { update: { data: { intradayLanePrefs: { armed: true } } } } } })
+    ).toBe(true);
+    expect(touchesTradingSwitch({ data: { riskBudgetPrefs: { armed: true } } })).toBe(false);
   });
 });

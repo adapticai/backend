@@ -254,6 +254,10 @@ const SUSPEND_UPSERT =
   'mutation { upsertOneTradingPolicy(where: { alpacaAccountId: "a2" }, create: { alpacaAccount: { connect: { id: "a2" } } }, update: { killSwitchEnabled: { set: true } }) { id } }';
 const DISARM_LIVE =
   'mutation Disarm { updateOneTradingPolicy(where: { alpacaAccountId: "a1" }, data: { realtimeTradingEnabled: { set: false } }) { id } }';
+const DISARM_LIVE_WITH_LANES =
+  'mutation DisarmLanes { updateOneTradingPolicy(where: { alpacaAccountId: "a1" }, data: { realtimeTradingEnabled: { set: false }, intradayLanePrefs: { armed: false } }) { id } }';
+const ARM_LANES_LIVE =
+  'mutation ArmLanes { updateOneTradingPolicy(where: { alpacaAccountId: "a1" }, data: { intradayLanePrefs: { armed: true } }) { id } }';
 
 // Credential predicates: a `where` over a stored credential must be refused
 // before the guard reads a row with it, or the rows it matched land in the
@@ -420,6 +424,8 @@ export const SCENARIOS: Scenario[] = [
     mode: 'enforce',
   },
   { name: 'm/disarmAuditDown/server/enforce', query: DISARM_LIVE, principal: 'server', mode: 'enforce', auditDown: true },
+  { name: 'm/disarmLanesAuditDown/server/enforce', query: DISARM_LIVE_WITH_LANES, principal: 'server', mode: 'enforce', auditDown: true },
+  { name: 'm/armLanesAuditDown/server/enforce', query: ARM_LANES_LIVE, principal: 'server', mode: 'enforce', auditDown: true },
 
   { name: 'ctl/brokerCreate/fundUser/enforce', query: BROKER_CREATE, principal: 'fundUser', mode: 'enforce' },
   { name: 'ctl/brokerCreateOtherOwner/fundUser/enforce', query: BROKER_CREATE_OTHER_OWNER, principal: 'fundUser', mode: 'enforce' },
@@ -492,6 +498,7 @@ function policyFacts(p: { id: string; alpacaAccountId: string }): Record<string,
     paperTradingOnly: false,
     killSwitchEnabled: false,
     autonomyMode: 'ADVISORY_ONLY',
+    intradayLanePrefs: null,
     alpacaAccount: ACCOUNTS[p.alpacaAccountId],
   };
 }
