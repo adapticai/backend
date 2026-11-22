@@ -119,6 +119,12 @@ jobs:
         # and has no lockfile by design.
         run: npm ci
 
+      # `build:package` ends with the package-contents check (scripts/ci/package-contents.mjs):
+      # every relative import reachable from main / module / types / exports must resolve
+      # inside what `npm pack` would publish. package-npm.json `files` is a hand-kept
+      # whitelist of dist/ directories, and nothing else notices a directory leaving the
+      # tarball that a shipped module still imports; the consumer finds out at require()
+      # time. A failure here stops the job before anything is published.
       - name: Build npm package
         run: npm run build:package
         env:

@@ -22,6 +22,7 @@
     "resolvers/",
     "utils/",
     "validators/",
+    "auth/",
     "*.d.ts",
     "*.js",
     "*.cjs",

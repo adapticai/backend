@@ -17,6 +17,8 @@ on:
       - 'prisma/**'
       - 'scripts/**'
       - 'package.json'
+      - 'package-npm.json'
+      - 'prepare-package.mjs'
       - 'tsconfig.json'
       - 'vitest.config.ts'
       - '.github/workflows/**'
@@ -27,6 +29,8 @@ on:
       - 'prisma/**'
       - 'scripts/**'
       - 'package.json'
+      - 'package-npm.json'
+      - 'prepare-package.mjs'
       - 'tsconfig.json'
       - 'vitest.config.ts'
       - '.github/workflows/**'
@@ -171,6 +175,10 @@ jobs:
       - run: npm ci
       # Full pipeline (codegen + dual tsc) needs the same heap allowance the
       # publish workflow grants (Dockerfile parity: 6-8GB); default 4GB OOMs.
-      - run: npm run build
+      # `build:package` is the build plus the packaging the publish workflow runs
+      # (prepare-package.mjs) and the package-contents check: a pull request that
+      # makes a shipped module import a directory package-npm.json `files` leaves
+      # out fails here, not at a consumer's require().
+      - run: npm run build:package
         env:
           NODE_OPTIONS: --max-old-space-size=12288
