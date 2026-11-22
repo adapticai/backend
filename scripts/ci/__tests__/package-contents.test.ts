@@ -24,6 +24,7 @@ import {
   kindOf,
   main,
   processDeps,
+  wildcardPattern,
 } from '../package-contents.mjs';
 
 const PACK_TIMEOUT_MS = 120_000;
@@ -101,18 +102,64 @@ describe('candidatesFor: the loader of the importing file decides what is tried'
   });
 });
 
-describe('entryPoints', () => {
-  it('collects main, module, types and every concrete exports target, and skips wildcard subpaths', () => {
-    const entries = entryPoints({
-      main: 'index.cjs',
-      module: 'esm/index.mjs',
-      types: 'index.d.ts',
-      exports: {
-        '.': { import: './esm/index.mjs', require: './index.cjs', types: './index.d.ts' },
-        './*': { import: './esm/*.mjs', require: './*.cjs', types: './*.d.ts' },
-      },
-    });
-    expect(entries.map((entry) => entry.path).sort()).toEqual(['esm/index.mjs', 'index.cjs', 'index.d.ts']);
+describe('entryPoints: every file a consumer can load by the package name', () => {
+  const manifest = {
+    main: 'index.cjs',
+    module: 'esm/index.mjs',
+    types: 'index.d.ts',
+    exports: {
+      '.': { import: './esm/index.mjs', require: './index.cjs', types: './index.d.ts' },
+      './*': { import: './esm/*.mjs', require: './*.cjs', types: './*.d.ts' },
+    },
+  };
+
+  it('names main, module, types and the concrete exports targets, even when they are not packed', () => {
+    const entries = entryPoints(manifest, []);
+    expect(entries.map((entry) => [entry.path, entry.wildcard]).sort()).toEqual([
+      ['esm/index.mjs', false],
+      ['index.cjs', false],
+      ['index.d.ts', false],
+    ]);
+  });
+
+  it('adds every packed file a wildcard exports target matches, at any depth, and nothing else', () => {
+    const packList = [
+      'package.json',
+      'README.md',
+      'index.cjs',
+      'getToken.cjs',
+      'auth/totp.cjs',
+      'auth/totp.d.ts',
+      'esm/index.mjs',
+      'esm/getToken.mjs',
+      'esm/auth/totp.mjs',
+      'generated/typeStrings/index.d.ts',
+    ];
+    const wildcard = entryPoints(manifest, packList)
+      .filter((entry) => entry.wildcard)
+      .map((entry) => [entry.path, entry.field])
+      .sort();
+    expect(wildcard).toEqual([
+      ['auth/totp.cjs', 'exports../*.require'],
+      ['auth/totp.d.ts', 'exports../*.types'],
+      ['esm/auth/totp.mjs', 'exports../*.import'],
+      ['esm/getToken.mjs', 'exports../*.import'],
+      ['generated/typeStrings/index.d.ts', 'exports../*.types'],
+      ['getToken.cjs', 'exports../*.require'],
+    ]);
+  });
+
+  it('declares nothing for a subpath closed with null', () => {
+    expect(entryPoints({ exports: { '.': './index.cjs', './internal/*': null } }, ['index.cjs', 'internal/a.cjs']).map((entry) => entry.path)).toEqual(['index.cjs']);
+  });
+
+  it('a wildcard target matches literally around its single star', () => {
+    const pattern = wildcardPattern('./*.cjs');
+    expect(pattern.test('resolvers/custom/index.cjs')).toBe(true);
+    expect(pattern.test('index.mjs')).toBe(false);
+    expect(pattern.test('indexXcjs')).toBe(false);
+    expect(wildcardPattern('./esm/*.mjs').test('index.mjs')).toBe(false);
+    expect(wildcardPattern('./esm/*.mjs').test('esm/resolvers/custom/index.mjs')).toBe(true);
   });
 });
 
@@ -144,7 +191,7 @@ describe('checkPackage: reachability from the entries against the pack list', ()
         from: 'resolvers/custom/UserTotpResolver.cjs',
         spec: '../../auth/totp.cjs',
         target: 'auth/totp.cjs',
-        onDisk: true,
+        reason: 'excluded',
         chain: ['index.cjs', 'resolvers/custom/index.cjs', 'resolvers/custom/UserTotpResolver.cjs'],
       },
     ]);
@@ -154,8 +201,32 @@ describe('checkPackage: reachability from the entries against the pack list', ()
   it('tells a file the packer left out apart from a file the build never emitted', () => {
     const memory = inMemory({ 'index.cjs': 'require("./never-emitted.cjs");' });
     const report = runCheck(memory, CJS_MANIFEST);
-    expect(report.unresolved.map((item) => [item.target, item.onDisk])).toEqual([['never-emitted.cjs', false]]);
+    expect(report.unresolved.map((item) => [item.target, item.reason])).toEqual([['never-emitted.cjs', 'not-emitted']]);
     expect(directoriesToShip(report.unresolved)).toEqual([]);
+  });
+
+  it('reports a directory specifier rewritten to a file that does not exist as not emitted', () => {
+    const memory = inMemory({
+      'generated/index.cjs': 'require("./enums.cjs");',
+      'generated/enums/index.cjs': 'module.exports = {};',
+    });
+    const report = runCheck(memory, { type: 'module', main: 'generated/index.cjs' });
+    expect(report.unresolved.map((item) => [item.target, item.reason])).toEqual([['generated/enums.cjs', 'not-emitted']]);
+  });
+
+  it('reports a specifier that climbs above the package root as outside the package, never as packed or emitted', () => {
+    const memory = inMemory({ 'package.json': '{}', 'health.cjs': 'const pkg = require("../package.json");' });
+    const report = runCheck(memory, { type: 'module', main: 'health.cjs' });
+    expect(report.unresolved.map((item) => [item.target, item.reason])).toEqual([['../package.json', 'outside-package']]);
+    expect(directoriesToShip(report.unresolved)).toEqual([]);
+  });
+
+  it('suggests a root-level excluded file by name and a nested one by its top-level directory', () => {
+    const memory = inMemory(
+      { 'index.cjs': 'require("./health.cjs"); require("./config/jwtConfig.cjs");', 'health.cjs': '', 'config/jwtConfig.cjs': '' },
+      ['index.cjs'],
+    );
+    expect(directoriesToShip(runCheck(memory, CJS_MANIFEST).unresolved)).toEqual(['config/', 'health.cjs']);
   });
 
   it('follows ES module imports and demands the exact file, since ES specifiers are not extension-searched', () => {
@@ -203,6 +274,22 @@ describe('checkPackage: reachability from the entries against the pack list', ()
     expect(runCheck(memory, CJS_MANIFEST).unresolved).toEqual([]);
   });
 
+  it('reports a broken file that only a wildcard export reaches: a subpath is an entry too', () => {
+    const memory = inMemory(
+      {
+        'index.cjs': 'module.exports = 1;',
+        'getToken.cjs': 'require("./config/jwtConfig.cjs");',
+        'config/jwtConfig.cjs': '',
+      },
+      ['index.cjs', 'getToken.cjs'],
+    );
+    const manifest = { ...CJS_MANIFEST, exports: { '.': './index.cjs', './*': './*.cjs' } };
+    const report = runCheck(memory, manifest);
+    expect(report.unresolved.map((item) => [item.from, item.target, item.reason, item.chain])).toEqual([
+      ['getToken.cjs', 'config/jwtConfig.cjs', 'excluded', ['getToken.cjs']],
+    ]);
+  });
+
   it('reports an entry that is itself not packed', () => {
     const memory = inMemory({ 'index.cjs': '' }, []);
     expect(runCheck(memory, CJS_MANIFEST).missingEntries.map((entry) => entry.path)).toEqual(['index.cjs']);
@@ -218,44 +305,62 @@ function writeTree(root: string, files: Record<string, string>): void {
   }
 }
 
-/** The package-npm.json `files` list and the `exports` map prepare-package.mjs writes: the real configuration. */
+/**
+ * The manifest prepare-package.mjs writes into dist: package-npm.json as it is
+ * in the repository (its real `files` list and entries), made an ES module
+ * package and given the `exports` map step 2 of prepare-package.mjs sets.
+ */
 function realManifest(): Record<string, unknown> {
-  const source: { files: string[] } = JSON.parse(readFileSync(join(__dirname, '..', '..', '..', 'package-npm.json'), 'utf8'));
+  const source: Record<string, unknown> = JSON.parse(readFileSync(join(__dirname, '..', '..', '..', 'package-npm.json'), 'utf8'));
   return {
-    name: '@adaptic/backend',
+    ...source,
     version: '0.0.0-fixture',
     type: 'module',
-    main: 'index.cjs',
-    module: 'esm/index.mjs',
-    types: 'index.d.ts',
     exports: {
       '.': { import: './esm/index.mjs', require: './index.cjs', types: './index.d.ts' },
       './*': { import: './esm/*.mjs', require: './*.cjs', types: './*.d.ts' },
     },
-    files: source.files,
   };
 }
 
 /**
- * The dist layout prepare-package.mjs produces, reduced to the chain that broke:
- * a custom resolver that imports `../../auth/totp` at runtime and
- * `../../auth/token-verifier` as a type, in the CommonJS tree (root), the ES
- * module tree (`esm/`) and the declarations.
+ * The dist layout prepare-package.mjs produces, reduced to one file per import
+ * edge that has to hold. The CommonJS entry reaches auth/ through the custom
+ * resolvers and readers/ directly; the getToken and prismaClient subpaths reach
+ * config/ and middleware/; a directory specifier in the generated tree is
+ * rewritten to its index. The server bootstrap (server.cjs, health.cjs,
+ * config/tracing.cjs) and a test harness are in the build output with imports
+ * that cannot resolve from an installed copy: they are what `files` keeps out.
  */
 const DIST_LAYOUT: Record<string, string> = {
-  'index.cjs': 'require("./resolvers/custom/index.cjs");',
+  'index.cjs': 'require("./resolvers/custom/index.cjs"); require("./readers/index.cjs");',
   'resolvers/custom/index.cjs': 'require("./UserTotpResolver.cjs");',
   'resolvers/custom/UserTotpResolver.cjs': 'require("../../auth/totp.cjs"); require("../../utils/logger.cjs");',
+  'readers/index.cjs': 'require("./intraday-lane-prefs.cjs");',
+  'readers/intraday-lane-prefs.cjs': '',
   'utils/logger.cjs': 'module.exports = {};',
   'auth/totp.cjs': 'module.exports = {};',
-  'esm/index.mjs': 'import "./resolvers/custom/index.mjs";',
+  'getToken.cjs': 'require("./config/jwtConfig.cjs");',
+  'config/jwtConfig.cjs': 'require("../utils/logger.cjs");',
+  'prismaClient.cjs': 'require("./middleware/audit-log-write-redaction.cjs");',
+  'middleware/audit-log-write-redaction.cjs': 'require("../auth/totp.cjs");',
+  'generated/typegraphql-prisma/index.cjs': 'require("./enums/index.cjs");',
+  'generated/typegraphql-prisma/enums/index.cjs': '',
+  'server.cjs': 'require("./health.cjs"); require("./config/tracing.cjs"); require("./plugins/http-status-mapper.cjs");',
+  'health.cjs': 'try { require("../package.json"); } catch {}',
+  'config/tracing.cjs': 'try { require("../../package.json"); } catch {}',
+  'plugins/http-status-mapper.cjs': '',
+  'esm/index.mjs': 'import "./resolvers/custom/index.mjs"; import "./readers/index.mjs";',
   'esm/resolvers/custom/index.mjs': 'import "./UserTotpResolver.mjs";',
   'esm/resolvers/custom/UserTotpResolver.mjs': 'import "../../auth/totp.mjs"; import "../../utils/logger.mjs";',
+  'esm/readers/index.mjs': '',
   'esm/utils/logger.mjs': '',
   'esm/auth/totp.mjs': '',
-  'index.d.ts': 'export * from "./resolvers/custom/index";',
+  'esm/middleware/__tests__/audit-log-write-redaction.harness.mjs': 'import "../../prismaClient";',
+  'index.d.ts': 'export * from "./resolvers/custom/index"; export * from "./readers/index";',
   'resolvers/custom/index.d.ts': 'export * from "./UserTotpResolver";',
   'resolvers/custom/UserTotpResolver.d.ts': 'import type { BackendPrincipal } from "../../auth/token-verifier";',
+  'readers/index.d.ts': 'export {};',
   'auth/token-verifier.d.ts': 'export interface BackendPrincipal {}',
 };
 
@@ -281,28 +386,50 @@ describe('the real npm pack against the repo\'s package-npm.json files list', ()
     rmSync(root, { recursive: true, force: true });
   });
 
-  it('is complete for the layout prepare-package.mjs produces: the CommonJS entry can load auth/totp', async () => {
-    writeTree(root, { ...DIST_LAYOUT, 'package.json': JSON.stringify(realManifest()) });
-    const run = await checkDirectory(root);
-    expect(run.lines.join('\n')).toContain('COMPLETE');
-    expect(run.code).toBe(EXIT.COMPLETE);
-  }, PACK_TIMEOUT_MS);
-
-  it('fails and names the directory to ship when a directory the entry needs is not in files', async () => {
+  /** Packs the layout under the real manifest with `files` edited by `edit`, and checks it. */
+  async function checkWithFiles(edit: (files: string[]) => string[]): Promise<{ code: number; output: string }> {
     const manifest = realManifest();
-    manifest.files = (manifest.files as string[]).filter((entry) => entry !== 'auth/');
+    manifest.files = edit(manifest.files as string[]);
     writeTree(root, { ...DIST_LAYOUT, 'package.json': JSON.stringify(manifest) });
     const run = await checkDirectory(root);
-    const output = run.lines.join('\n');
-    expect(output).toContain("MISSING auth/totp.cjs: required as '../../auth/totp.cjs' by resolvers/custom/UserTotpResolver.cjs");
-    expect(output).toContain('excluded from the pack list by package-npm.json "files"');
-    expect(output).toContain('MISSING auth/token-verifier.d.ts');
-    expect(output).toContain('Add to package-npm.json "files": auth/');
-    expect(run.code).toBe(EXIT.MISSING);
+    return { code: run.code, output: run.lines.join('\n') };
+  }
+
+  it('is complete for the layout prepare-package.mjs produces: every entry and subpath loads what it imports', async () => {
+    const { code, output } = await checkWithFiles((files) => files);
+    expect(output).toContain('COMPLETE');
+    expect(code).toBe(EXIT.COMPLETE);
   }, PACK_TIMEOUT_MS);
 
-  it('ships auth/ in the repo\'s own files list', () => {
-    expect(realManifest().files).toContain('auth/');
+  it.each([
+    ['auth/', "MISSING auth/totp.cjs: required as '../../auth/totp.cjs' by resolvers/custom/UserTotpResolver.cjs", 'index.cjs -> resolvers/custom/index.cjs -> resolvers/custom/UserTotpResolver.cjs'],
+    ['readers/', "MISSING readers/index.cjs: required as './readers/index.cjs' by index.cjs", 'Reached via index.cjs'],
+    ['config/', "MISSING config/jwtConfig.cjs: required as './config/jwtConfig.cjs' by getToken.cjs", 'Reached via getToken.cjs'],
+    ['middleware/', "MISSING middleware/audit-log-write-redaction.cjs: required as './middleware/audit-log-write-redaction.cjs' by prismaClient.cjs", 'Reached via prismaClient.cjs'],
+  ])('fails, naming the file and the chain, when %s leaves files', async (directory, missing, chain) => {
+    const { code, output } = await checkWithFiles((files) => files.filter((entry) => entry !== directory));
+    expect(output).toContain(missing);
+    expect(output).toContain('excluded from the pack list by package-npm.json "files"');
+    expect(output).toContain(chain);
+    expect(output).toContain(`Ship in package-npm.json "files" (or stop shipping their importers): ${directory}`);
+    expect(code).toBe(EXIT.MISSING);
+  }, PACK_TIMEOUT_MS);
+
+  it.each([
+    ['!/server.cjs', "MISSING plugins/http-status-mapper.cjs: required as './plugins/http-status-mapper.cjs' by server.cjs"],
+    ['!/health.cjs', "MISSING ../package.json: required as '../package.json' by health.cjs — resolves above the package root"],
+    ['!/config/tracing.cjs', "MISSING ../package.json: required as '../../package.json' by config/tracing.cjs — resolves above the package root"],
+    ['!**/__tests__/**', "MISSING esm/prismaClient: required as '../../prismaClient' by esm/middleware/__tests__/audit-log-write-redaction.harness.mjs — does not exist in the build output"],
+  ])('fails when the exclusion %s is dropped and the file it keeps out ships', async (exclusion, missing) => {
+    const { code, output } = await checkWithFiles((files) => files.filter((entry) => entry !== exclusion));
+    expect(output).toContain(missing);
+    expect(code).toBe(EXIT.MISSING);
+  }, PACK_TIMEOUT_MS);
+
+  it('the repo\'s files list ships what the entries import and keeps the server bootstrap and test harnesses out', () => {
+    expect(realManifest().files).toEqual(
+      expect.arrayContaining(['auth/', 'readers/', 'config/', 'middleware/', '!**/__tests__/**', '!/server.cjs', '!/health.cjs', '!/config/tracing.cjs']),
+    );
   });
 });
 
@@ -323,10 +450,10 @@ describe('an unreadable package is UNKNOWN, never complete', () => {
     expect(run.code).toBe(EXIT.UNKNOWN);
   });
 
-  it('exits UNKNOWN when the manifest declares no concrete entry', async () => {
-    writeTree(root, { 'package.json': JSON.stringify({ name: 'x', version: '1.0.0', exports: { './*': './*.cjs' } }), 'a.cjs': '' });
+  it('exits UNKNOWN when no entry the manifest declares names a file', async () => {
+    writeTree(root, { 'package.json': JSON.stringify({ name: 'x', version: '1.0.0', exports: { './*': './*.cjs' } }), 'a.mjs': '' });
     const run = await checkDirectory(root);
-    expect(run.lines.join('\n')).toContain('UNKNOWN the manifest declares no concrete entry');
+    expect(run.lines.join('\n')).toContain('UNKNOWN the manifest declares no entry');
     expect(run.code).toBe(EXIT.UNKNOWN);
   }, PACK_TIMEOUT_MS);
 

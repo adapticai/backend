@@ -12,13 +12,27 @@
  *
  * This check closes that gap at the one place both facts are known. It asks npm
  * what it would pack (`npm pack --dry-run --json`: the same selection `npm
- * publish` makes), starts from every concrete entry the manifest declares
- * (`main`, `module`, `types`, and each non-wildcard `exports` target), follows
- * every relative `require()` / `import` / `export ... from` / `import()` /
- * `import type` through the files it reaches, and reports each target that is
- * not in the pack list. A target that exists on disk but is not packed is the
- * `files` omission this exists to catch; a target that exists nowhere is an
- * emit defect. The two are labelled apart because the remedies differ.
+ * publish` makes), starts from every file a consumer can load by the package's
+ * name, follows every relative `require()` / `import` / `export ... from` /
+ * `import()` / `import type` through the files it reaches, and reports each
+ * target that is not in the pack list.
+ *
+ * "Every file a consumer can load" is the manifest's concrete entries (`main`,
+ * `module`, `types`, each non-wildcard `exports` target) plus every packed file
+ * a wildcard `exports` target names. `"./*": { "require": "./*.cjs" }` makes
+ * each packed `.cjs` its own public entry (`require('@adaptic/backend/getToken')`
+ * loads `getToken.cjs`), so a broken import behind one of them is as much a
+ * defect as one behind `main`; a check that started only from `main` would pass
+ * a package whose subpaths throw.
+ *
+ * Each unresolved target carries the reason, because the remedies differ:
+ *
+ *   excluded         it is in the build output but `files` leaves it out: ship it,
+ *                    or stop shipping the file that imports it
+ *   not emitted      nothing in the build output answers the specifier: the
+ *                    emitted import is wrong (a rewrite step) or the file was never built
+ *   outside package  the specifier climbs above the package root, which in an
+ *                    installed copy is `node_modules/`, not this repository
  *
  * Resolution follows the loader that will actually read the file:
  *
@@ -28,8 +42,7 @@
  *
  * Specifiers are read with the TypeScript scanner, not a pattern, so an import
  * quoted inside a comment or a string is not an import. Bare specifiers
- * (`@prisma/client`, `node:fs`) are other packages' business and are skipped,
- * as are wildcard `exports` subpaths: those name a family of files, not an entry.
+ * (`@prisma/client`, `node:fs`) are other packages' business and are skipped.
  *
  * Exit codes ({@link EXIT}). A package whose pack list or entries could not be
  * read is UNKNOWN, never complete: an absent answer must not read as a pass.
@@ -75,19 +88,24 @@ export class UnreadableError extends Error {}
  *   Which resolution rules apply to the imports inside a file. `leaf` files
  *   (JSON, native addons) are followed to but not parsed.
  *
- * @typedef {{ field: string, path: string }} Entry
- *   A concrete manifest entry, with the manifest field that declared it.
+ * @typedef {{ field: string, path: string, wildcard: boolean }} Entry
+ *   A file a consumer can load by the package's name, with the manifest field
+ *   that makes it loadable. `wildcard` entries were found by matching a
+ *   wildcard `exports` target against the pack list, so they are packed by
+ *   construction; concrete entries are named outright and may not be.
+ *
+ * @typedef {'excluded' | 'not-emitted' | 'outside-package'} Reason
  *
  * @typedef {{
  *   from: string,
  *   spec: string,
  *   target: string,
- *   onDisk: boolean,
+ *   reason: Reason,
  *   chain: string[],
  * }} Unresolved
  *   One import with no target in the pack list. `target` is the package-relative
- *   path the loader would have tried first; `onDisk` says whether any candidate
- *   exists in the build output (excluded by `files`) or none does (never emitted).
+ *   path the loader would have tried first (for `outside-package`, the specifier
+ *   resolved against the importer, which starts with `../`).
  *
  * @typedef {{
  *   entries: Entry[],
@@ -97,6 +115,13 @@ export class UnreadableError extends Error {}
  *   missingEntries: Entry[],
  * }} Report
  */
+
+/** Human-readable form of each {@link Reason}, for the failure lines. */
+const REASON_TEXT = Object.freeze({
+  excluded: 'exists in the build output but is excluded from the pack list by package-npm.json "files"',
+  'not-emitted': 'does not exist in the build output: the emitted specifier is wrong or the file was never built',
+  'outside-package': 'resolves above the package root, which in an installed copy is node_modules/, not this repository',
+});
 
 /**
  * Runs `npm pack --dry-run --json` in `root` and returns the packed paths.
@@ -132,40 +157,84 @@ export function readPackList(root) {
 }
 
 /**
- * Every concrete entry the manifest declares. Wildcard `exports` subpaths are
- * skipped: `./*` names a family, and there is no single file to start from.
+ * Every `exports` target string with the manifest field path that declares it
+ * (`exports../*.require`). Condition objects and fallback arrays are walked;
+ * `null` targets (a subpath deliberately closed) declare nothing.
  *
- * @param {Record<string, unknown>} manifest
- * @returns {Entry[]}
+ * @param {unknown} exportsField
+ * @returns {Array<{ field: string, target: string }>}
  */
-export function entryPoints(manifest) {
-  /** @type {Map<string, Entry>} */
-  const found = new Map();
-  /** @param {string} field @param {unknown} value */
-  const add = (field, value) => {
-    if (typeof value !== 'string' || value.includes('*')) {
-      return;
-    }
-    const path = posix.normalize(value);
-    if (!found.has(path)) {
-      found.set(path, { field, path });
-    }
-  };
+function exportTargets(exportsField) {
+  /** @type {Array<{ field: string, target: string }>} */
+  const targets = [];
   /** @param {string} field @param {unknown} value */
   const walk = (field, value) => {
     if (typeof value === 'string') {
-      add(field, value);
+      targets.push({ field, target: value });
     } else if (Array.isArray(value)) {
       value.forEach((item) => walk(field, item));
     } else if (value !== null && typeof value === 'object') {
       Object.entries(value).forEach(([key, child]) => walk(`${field}.${key}`, child));
     }
   };
-  add('main', manifest.main);
-  add('module', manifest.module);
-  add('types', manifest.types);
-  add('typings', manifest.typings);
-  walk('exports', manifest.exports);
+  walk('exports', exportsField);
+  return targets;
+}
+
+/**
+ * Matches package-relative paths against a wildcard `exports` target. Node
+ * substitutes the subpath for the single `*`, and the substitution may contain
+ * `/`, so `./*.cjs` names every `.cjs` at any depth.
+ *
+ * @param {string} target an `exports` target containing `*`
+ * @returns {RegExp}
+ */
+export function wildcardPattern(target) {
+  const [before, after] = posix.normalize(target).split('*', 2).map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return new RegExp(`^${before}(.+)${after ?? ''}$`);
+}
+
+/**
+ * Every file a consumer can load by the package's name: the concrete entries
+ * the manifest names (`main`, `module`, `types`, `typings`, each non-wildcard
+ * `exports` target) and every packed file a wildcard `exports` target matches.
+ * A concrete entry is listed even when it is not packed, so the caller can
+ * report it; a wildcard only ever matches what is packed.
+ *
+ * @param {Record<string, unknown>} manifest
+ * @param {string[]} packList paths npm would pack, `/`-separated
+ * @returns {Entry[]}
+ */
+export function entryPoints(manifest, packList) {
+  /** @type {Map<string, Entry>} */
+  const found = new Map();
+  /** @param {string} field @param {string} path @param {boolean} wildcard */
+  const add = (field, path, wildcard) => {
+    if (!found.has(path)) {
+      found.set(path, { field, path, wildcard });
+    }
+  };
+  for (const field of ['main', 'module', 'types', 'typings']) {
+    const value = manifest[field];
+    if (typeof value === 'string') {
+      add(field, posix.normalize(value), false);
+    }
+  }
+  /** @type {Array<{ field: string, pattern: RegExp }>} */
+  const wildcards = [];
+  for (const { field, target } of exportTargets(manifest.exports)) {
+    if (target.includes('*')) {
+      wildcards.push({ field, pattern: wildcardPattern(target) });
+    } else {
+      add(field, posix.normalize(target), false);
+    }
+  }
+  for (const path of packList) {
+    const match = wildcards.find(({ pattern }) => pattern.test(path));
+    if (match !== undefined) {
+      add(match.field, path, true);
+    }
+  }
   return [...found.values()];
 }
 
@@ -263,7 +332,7 @@ export function relativeSpecifiers(preProcess, source) {
 export function checkPackage({ manifest, packList, readText, existsOnDisk, preProcess }) {
   const packed = new Set(packList);
   const packageIsModule = manifest.type === 'module';
-  const entries = entryPoints(manifest);
+  const entries = entryPoints(manifest, packList);
   /** @type {Entry[]} */
   const missingEntries = [];
   /** @type {Unresolved[]} */
@@ -276,17 +345,14 @@ export function checkPackage({ manifest, packList, readText, existsOnDisk, prePr
   for (const entry of entries) {
     if (!packed.has(entry.path)) {
       missingEntries.push(entry);
-    } else if (!reached.has(entry.path)) {
-      reached.set(entry.path, [entry.path]);
-      queue.push(entry.path);
     }
   }
 
-  while (queue.length > 0) {
-    const current = /** @type {string} */ (queue.shift());
+  /** Visits `current`: every relative import either resolves into the pack list or is recorded. */
+  const visit = (/** @type {string} */ current) => {
     const kind = kindOf(current, packageIsModule);
     if (kind === 'leaf') {
-      continue;
+      return;
     }
     const chain = /** @type {string[]} */ (reached.get(current));
     let source;
@@ -299,11 +365,18 @@ export function checkPackage({ manifest, packList, readText, existsOnDisk, prePr
       const candidates = candidatesFor(current, spec, kind);
       const hit = candidates.find((candidate) => packed.has(candidate));
       if (hit === undefined) {
+        /** @type {Reason} */
+        let reason = 'not-emitted';
+        if (candidates.length === 0) {
+          reason = 'outside-package';
+        } else if (candidates.some((candidate) => existsOnDisk(candidate))) {
+          reason = 'excluded';
+        }
         unresolved.push({
           from: current,
           spec,
           target: candidates[0] ?? posix.normalize(posix.join(posix.dirname(current), spec)),
-          onDisk: candidates.some((candidate) => existsOnDisk(candidate)),
+          reason,
           chain,
         });
       } else if (!reached.has(hit)) {
@@ -311,14 +384,37 @@ export function checkPackage({ manifest, packList, readText, existsOnDisk, prePr
         queue.push(hit);
       }
     }
-  }
+  };
+
+  /**
+   * Breadth-first from `seeds`, recording for each newly reached file the chain
+   * of imports that first reached it. Named entries are walked before wildcard
+   * ones, so a file `main` reaches is reported with its chain from `main`
+   * rather than as an entry of its own.
+   */
+  const walkFrom = (/** @type {Entry[]} */ seeds) => {
+    for (const entry of seeds) {
+      if (packed.has(entry.path) && !reached.has(entry.path)) {
+        reached.set(entry.path, [entry.path]);
+        queue.push(entry.path);
+      }
+    }
+    while (queue.length > 0) {
+      visit(/** @type {string} */ (queue.shift()));
+    }
+  };
+
+  walkFrom(entries.filter((entry) => !entry.wildcard));
+  walkFrom(entries.filter((entry) => entry.wildcard));
 
   return { entries, reached: reached.size, packed: packed.size, unresolved, missingEntries };
 }
 
 /**
- * The top-level directories that hold unpacked-but-existing targets: what to
- * add to `files`.
+ * What `files` would need to gain for the excluded targets to ship: the
+ * top-level directory of a nested target, or the file itself at the root.
+ * Only a suggestion: when the importer is the thing that should not ship,
+ * excluding the importer is the fix instead.
  *
  * @param {Unresolved[]} unresolved
  * @returns {string[]}
@@ -326,8 +422,8 @@ export function checkPackage({ manifest, packList, readText, existsOnDisk, prePr
 export function directoriesToShip(unresolved) {
   const directories = new Set();
   for (const item of unresolved) {
-    if (item.onDisk && item.target.includes('/')) {
-      directories.add(`${item.target.split('/')[0]}/`);
+    if (item.reason === 'excluded') {
+      directories.add(item.target.includes('/') ? `${item.target.split('/')[0]}/` : item.target);
     }
   }
   return [...directories].sort();
@@ -424,19 +520,20 @@ export async function main(argv, deps) {
       preProcess,
     });
     if (report.entries.length === 0) {
-      throw new UnreadableError('the manifest declares no concrete entry (main, module, types or exports)');
+      throw new UnreadableError('the manifest declares no entry (main, module, types or exports) that names a file');
     }
-    deps.out(`package-contents: ${report.entries.length} entries (${report.entries.map((e) => e.path).join(', ')}); ${report.reached} of ${report.packed} packed files reached; ${report.unresolved.length} unresolved imports; ${report.missingEntries.length} entries not packed`);
+    const concrete = report.entries.filter((entry) => !entry.wildcard);
+    const wildcard = report.entries.length - concrete.length;
+    deps.out(`package-contents: ${concrete.length} named entries (${concrete.map((e) => e.path).join(', ')}) and ${wildcard} files loadable through wildcard exports; ${report.reached} of ${report.packed} packed files reached; ${report.unresolved.length} unresolved imports; ${report.missingEntries.length} named entries not packed`);
     for (const entry of report.missingEntries) {
       deps.out(`MISSING ENTRY ${entry.path} (manifest field ${entry.field}) is not in the pack list`);
     }
     for (const item of report.unresolved) {
-      const why = item.onDisk ? 'exists in the build output but is excluded from the pack list by package-npm.json "files"' : 'does not exist in the build output';
-      deps.out(`MISSING ${item.target}: required as '${item.spec}' by ${item.from} — ${why}. Reached via ${item.chain.join(' -> ')}`);
+      deps.out(`MISSING ${item.target}: required as '${item.spec}' by ${item.from} — ${REASON_TEXT[item.reason]}. Reached via ${item.chain.join(' -> ')}`);
     }
     const ship = directoriesToShip(report.unresolved);
     if (ship.length > 0) {
-      deps.out(`Add to package-npm.json "files": ${ship.join(', ')}`);
+      deps.out(`Ship in package-npm.json "files" (or stop shipping their importers): ${ship.join(', ')}`);
     }
     if (report.unresolved.length > 0 || report.missingEntries.length > 0) {
       return EXIT.MISSING;

@@ -23,12 +23,19 @@
     "utils/",
     "validators/",
     "auth/",
+    "readers/",
+    "config/",
+    "middleware/",
     "*.d.ts",
     "*.js",
     "*.cjs",
     "*.mjs",
     "*.ts",
-    "!**/*.map"
+    "!**/*.map",
+    "!**/__tests__/**",
+    "!/server.cjs",
+    "!/health.cjs",
+    "!/config/tracing.cjs"
   ],
   "peerDependencies": {
     "@apollo/client": "^3.11.0",
