@@ -35,6 +35,7 @@ interface Report {
       officeKindAfter: string;
       revokedStillRevoked: boolean;
       aliceGrants: number;
+      daveScopeAfter: { all: boolean; ids: string[] };
     };
   };
 }
@@ -149,6 +150,34 @@ describe.skipIf(!DATABASE_URL)('access models on the served schema', () => {
         kind: 'ALLOCATOR_OFFICE',
       },
     });
+  });
+
+  it('a member cannot widen their own entity scope with the guard at its default (shadow)', () => {
+    const { steps, facts } = report;
+    expect(steps.daveWidensOwnScope.codes).toEqual(['FORBIDDEN']);
+    expect(steps.daveListsOwnIds.codes).toEqual(['FORBIDDEN']);
+    expect(facts.writes.daveScopeAfter).toEqual({ all: false, ids: [] });
+    expect(ids(steps.daveEntitiesAfter, 'officeEntities')).toEqual([]);
+  });
+
+  it("a member cannot change their organization's kind through a nested write either", () => {
+    expect(report.steps.aliceSetsKindThroughFund.codes).toEqual(['FORBIDDEN']);
+    expect(report.facts.writes.officeKindAfter).toBe('ALLOCATOR_OFFICE');
+  });
+
+  it('no caller can count, filter or order by the hidden access relations', () => {
+    const { steps } = report;
+    for (const step of ['bobCountsUserGrants', 'anonymousCountsUserGrants']) {
+      expect(steps[step].data, step).toBeNull();
+      expect(steps[step].errors.join(' '), step).toMatch(/Cannot query field "auditorGrants" on type "UserCount"/);
+    }
+    for (const step of ['bobCountsOfficeGrants', 'anonymousCountsOfficeGrants']) {
+      expect(steps[step].data, step).toBeNull();
+      expect(steps[step].errors.join(' '), step).toMatch(/Cannot query field "auditorGrants" on type "OrganizationCount"/);
+    }
+    expect(steps.bobFiltersUsersByGrant.errors.join(' ')).toMatch(/"auditorGrants" is not defined by type "UserWhereInput"/);
+    expect(steps.bobOrdersUsersByGrantCount.errors.join(' ')).toMatch(/"auditorGrants" is not defined by type "UserOrderByWithRelationInput"/);
+    expect(steps.bobFiltersOrgsByRole.errors.join(' ')).toMatch(/"roleAssignments" is not defined by type "OrganizationWhereInput"/);
   });
 
   it('the access back-relations are not on the User output', () => {

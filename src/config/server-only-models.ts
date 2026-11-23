@@ -109,6 +109,38 @@ export const WRITE_ONLY_FIELDS: ReadonlyMap<string, ReadonlySet<string>> = new M
 
 const WRITE_ONLY_OUTPUTS = indexGeneratedTypes(WRITE_ONLY_FIELDS);
 
+/**
+ * Relations hidden with `@TypeGraphQL.omit(output: true, input: true)` whose
+ * count typegraphql-prisma still emits on the parent's `<Model>Count` type,
+ * by parent model. The omit keeps the rows off the parent; the count would
+ * still let a caller learn, through a parent read that is not scoped to them
+ * (`User` is unscoped, `Organization` only staged), how many of the hidden
+ * rows exist and, with the count's `where` argument, which match a filter:
+ * how many auditor grants a person holds, or which roles an office assigns.
+ * {@link withoutServerOnlySchemaSurface} removes these counts. The rows are
+ * read through their own root resolvers, which scope them.
+ */
+export const HIDDEN_RELATION_COUNTS: ReadonlyMap<string, ReadonlySet<string>> = new Map<
+  string,
+  ReadonlySet<string>
+>([
+  ['User', new Set(['roleAssignments', 'auditorGrants'])],
+  ['Organization', new Set(['officeInvestors', 'entityGroups', 'auditorGrants', 'roleAssignments'])],
+  ['Investor', new Set(['childInvestors'])],
+]);
+
+/** Suffix of the generated per-model relation count output type (`_count`). */
+const RELATION_COUNT_SUFFIX = 'Count';
+
+/**
+ * @param typeName - A GraphQL output type name.
+ * @returns The hidden relation counts that type would serve, or `undefined`.
+ */
+export function hiddenRelationCountsFor(typeName: string): ReadonlySet<string> | undefined {
+  if (!typeName.endsWith(RELATION_COUNT_SUFFIX)) return undefined;
+  return HIDDEN_RELATION_COUNTS.get(typeName.slice(0, -RELATION_COUNT_SUFFIX.length));
+}
+
 /** Suffix of the generated per-model count aggregate output type. */
 const COUNT_AGGREGATE_SUFFIX = 'CountAggregate';
 
@@ -130,8 +162,9 @@ export function writeOnlyOutputFieldsFor(
 
 /**
  * Removes every field that returns, or takes an argument of, a server-only
- * type, and every write-only column ({@link WRITE_ONLY_FIELDS}) from the
- * output types that would serve it, then rebuilds the schema so types
+ * type, every write-only column ({@link WRITE_ONLY_FIELDS}) from the output
+ * types that would serve it, and every hidden relation count
+ * ({@link HIDDEN_RELATION_COUNTS}), then rebuilds the schema so types
  * reachable only through those fields drop out of the type map (and out of
  * introspection).
  *
@@ -156,8 +189,9 @@ export function withoutServerOnlySchemaSurface(
     if (isObjectType(type) || isInterfaceType(type)) {
       const fields = type.getFields();
       const writeOnly = writeOnlyOutputFieldsFor(type.name);
+      const hiddenCounts = hiddenRelationCountsFor(type.name);
       for (const [name, field] of Object.entries(fields)) {
-        if (writeOnly?.has(name)) {
+        if (writeOnly?.has(name) || hiddenCounts?.has(name)) {
           delete fields[name];
           continue;
         }

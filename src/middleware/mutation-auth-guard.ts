@@ -75,11 +75,15 @@ import {
   type MutationTarget,
 } from '../auth/mutation-authorization';
 import { isMembershipModel } from '../auth/membership-write-authority';
-import { findNestedWrites, type NestedWrite } from '../auth/nested-write-inspector';
+import { findNestedWrites, type NestedWrite, type WrittenColumn } from '../auth/nested-write-inspector';
 import { firstNestedRefusal, writesNestedModelRows, type RelationFacts } from '../auth/nested-write-policy';
 import { GOVERNED_MODELS, type GovernedModel } from '../auth/tenancy-scope';
 import type { BackendPrincipal } from '../auth/token-verifier';
-import { ALWAYS_ENFORCED_CONTENT_REFUSALS, userContentRefusal } from '../auth/user-write-content';
+import {
+  ALWAYS_ENFORCED_CONTENT_REFUSALS,
+  userContentRefusal,
+  writesReservedColumn,
+} from '../auth/user-write-content';
 import { metricsRegistry } from '../config/metrics';
 import { logger } from '../utils/logger';
 import {
@@ -471,7 +475,8 @@ function createMutationGuard(
     try {
       baseMode = resolveMode();
       target = classifyMutationField(info.fieldName, models);
-      nested = findNestedWrites(info, argRecord, modelsLongestFirst, target);
+      const columns: WrittenColumn[] = [];
+      nested = findNestedWrites(info, argRecord, modelsLongestFirst, target, columns);
       const written = nested.filter((n) => writesNestedModelRows(n, relations)).map((n) => n.model);
       mode = effectiveModeFor([target.model, ...written], baseMode, resolveEnforced());
       // A user-written row that places itself in a fund's ledger, or sets an
@@ -482,6 +487,15 @@ function createMutationGuard(
       // while the global guard sits in shadow.
       const contentRefusal = principal?.kind === 'user' ? userContentRefusal(target, argRecord, principal.sub) : null;
       if (contentRefusal !== null && ALWAYS_ENFORCED_CONTENT_REFUSALS.has(contentRefusal)) {
+        mode = 'enforce';
+      }
+      // A payload setting an authority column born after the guard (an
+      // organization's kind, a membership's entity scope), at the root or in
+      // any nested write, is decided at enforce for every principal but the
+      // service and admins: in shadow a member could widen their own entity
+      // scope. Enforcement applies the model's ordinary rule.
+      const unprivileged = principal?.kind !== 'server' && principal?.kind !== 'admin';
+      if (unprivileged && writesReservedColumn(columns)) {
         mode = 'enforce';
       }
       evaluation =

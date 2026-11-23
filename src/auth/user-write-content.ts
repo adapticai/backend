@@ -106,6 +106,32 @@ function auditLogRefusal(args: Record<string, unknown>, callerId: string): Conte
   return null;
 }
 
+/**
+ * Columns born after the guard that carry authority: an organization's kind
+ * (which workspace its members are given) and a membership's entity scope
+ * (which office entities its holder sees). A user mutation that sets one,
+ * at the root or through any nested write, is decided at `enforce` whatever
+ * the guard's mode: there is no legacy writer for shadow to protect, and in
+ * shadow a member could widen their own scope or retype their organization
+ * with only a log line to show for it. Enforcement then applies the model's
+ * ordinary rule: `membership_authority` for a membership (OWNER or ADMIN of
+ * the organization), `organization_kind_reserved` for the kind, and the
+ * nested-write allowlist for any nested path.
+ */
+export const RESERVED_COLUMNS: ReadonlyMap<string, ReadonlySet<string>> = new Map<string, ReadonlySet<string>>([
+  ['Organization', new Set(['kind'])],
+  ['OrgMembership', new Set(['entityScopeAll', 'entityScopeIds'])],
+]);
+
+/**
+ * Whether a mutation's payload sets a {@link RESERVED_COLUMNS} column.
+ *
+ * @param columns - Every field the payload sets, from `findNestedWrites`.
+ */
+export function writesReservedColumn(columns: ReadonlyArray<{ model: string; column: string }>): boolean {
+  return columns.some(({ model, column }) => RESERVED_COLUMNS.get(model)?.has(column) === true);
+}
+
 /** `Organization` fields no user may set (see the module doc). */
 export const ORGANIZATION_RESERVED_FIELDS: ReadonlySet<string> = new Set(['kind']);
 

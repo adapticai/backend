@@ -77,6 +77,17 @@ export interface NestedWrite {
   readonly parentRowWhere: Readonly<Record<string, unknown>> | null;
 }
 
+/**
+ * One field a mutation's payload sets on a model's row, at the root or in a
+ * nested write: a key read in `create` or `update` mode (never in a filter).
+ * The walk records every key of a model's data input, so the list also holds
+ * wrapper keys (`data`, `set`); a caller looks up the columns it cares about.
+ */
+export interface WrittenColumn {
+  readonly model: string;
+  readonly column: string;
+}
+
 /** Where the walk is: which model's data it is reading, and in what mode. */
 interface WalkContext {
   readonly model: string;
@@ -175,7 +186,8 @@ function walk(
   relation: string,
   ctx: WalkContext,
   modelsLongestFirst: readonly string[],
-  found: NestedWrite[]
+  found: NestedWrite[],
+  columns: WrittenColumn[]
 ): void {
   if (value === null || value === undefined) return;
   const nullable = getNullableType(type);
@@ -184,7 +196,7 @@ function walk(
     const inner = nullable.ofType as GraphQLInputType;
     const items: unknown[] = Array.isArray(value) ? value : [value];
     items.forEach((item, index) =>
-      walk(inner, item, `${path}[${index}]`, relation, ctx, modelsLongestFirst, found)
+      walk(inner, item, `${path}[${index}]`, relation, ctx, modelsLongestFirst, found, columns)
     );
     return;
   }
@@ -216,7 +228,7 @@ function walk(
         depth: ctx.depth + 1,
         rowWhere: null,
       };
-      walk(def.type, record[operation], `${path}.${operation}`, relation, inner, modelsLongestFirst, found);
+      walk(def.type, record[operation], `${path}.${operation}`, relation, inner, modelsLongestFirst, found, columns);
     }
     return;
   }
@@ -225,6 +237,7 @@ function walk(
   for (const [key, child] of Object.entries(record)) {
     const def = fields[key];
     if (!def || child === undefined) continue;
+    if (ctx.mode === 'create' || ctx.mode === 'update') columns.push({ model: ctx.model, column: key });
     walk(
       def.type,
       child,
@@ -232,7 +245,8 @@ function walk(
       key,
       contextForField(ctx, key, uniqueWhere),
       modelsLongestFirst,
-      found
+      found,
+      columns
     );
   }
 }
@@ -264,13 +278,16 @@ function rootContext(root: NestedWriteRoot, argName: string, args: Record<string
  * @param args - The field's arguments.
  * @param modelsLongestFirst - Model names sorted longest first.
  * @param root - The root mutation's model and action.
+ * @param columns - Filled with every field the payload sets, root and nested
+ *   (see {@link WrittenColumn}); optional.
  * @returns The nested writes, outermost first.
  */
 export function findNestedWrites(
   info: Pick<GraphQLResolveInfo, 'parentType' | 'fieldName'>,
   args: Record<string, unknown>,
   modelsLongestFirst: readonly string[],
-  root: NestedWriteRoot
+  root: NestedWriteRoot,
+  columns: WrittenColumn[] = []
 ): NestedWrite[] {
   const found: NestedWrite[] = [];
   const fieldDef = info.parentType.getFields()[info.fieldName];
@@ -283,7 +300,8 @@ export function findNestedWrites(
       argDef.name,
       rootContext(root, argDef.name, args),
       modelsLongestFirst,
-      found
+      found,
+      columns
     );
   }
   return found;

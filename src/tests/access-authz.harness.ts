@@ -405,6 +405,82 @@ async function main(): Promise<void> {
       `query ($id: String!) { user(where: { id: $id }) { id auditorGrants { id } } }`,
       { id: erin.id }
     );
+    const fundA = await prisma.fund.create({
+      data: {
+        name: 'Fund A',
+        slug: `access-fa-${tag}`,
+        organizationId: officeA.id,
+      },
+    });
+    facts.fundA = fundA.id;
+    const BOB: BackendPrincipal = { kind: 'user', sub: bob.id, roles: [] };
+    const daveMembership = await prisma.orgMembership.findFirstOrThrow({
+      where: { organizationId: officeA.id, userId: dave.id },
+    });
+    steps.daveWidensOwnScope = await run(
+      schema,
+      prisma,
+      DAVE,
+      `mutation ($id: String!) { updateOneOrgMembership(where: { id: $id }, data: { entityScopeAll: { set: true } }) { id entityScopeAll } }`,
+      { id: daveMembership.id }
+    );
+    steps.daveListsOwnIds = await run(
+      schema,
+      prisma,
+      DAVE,
+      `mutation ($id: String!, $ids: [String!]!) { updateOneOrgMembership(where: { id: $id }, data: { entityScopeIds: { set: $ids } }) { id } }`,
+      { id: daveMembership.id, ids: [inv1.id] }
+    );
+    steps.daveEntitiesAfter = await run(schema, prisma, DAVE, ENTITIES, {
+      office: officeA.id,
+    });
+    steps.aliceSetsKindThroughFund = await run(
+      schema,
+      prisma,
+      ALICE,
+      `mutation ($id: String!) { updateOneFund(where: { id: $id }, data: { organization: { update: { data: { kind: { set: MANAGER } } } } }) { id } }`,
+      { id: fundA.id }
+    );
+    const COUNT_USER = `query ($id: String!) { users(where: { id: { equals: $id } }) { id _count { auditorGrants roleAssignments } } }`;
+    const COUNT_ORG = `query ($id: String!) { organizations(where: { id: { equals: $id } }) { id _count { auditorGrants roleAssignments entityGroups officeInvestors } } }`;
+    steps.bobCountsUserGrants = await run(schema, prisma, BOB, COUNT_USER, {
+      id: erin.id,
+    });
+    steps.anonymousCountsUserGrants = await run(
+      schema,
+      prisma,
+      null,
+      COUNT_USER,
+      { id: erin.id }
+    );
+    steps.bobCountsOfficeGrants = await run(schema, prisma, BOB, COUNT_ORG, {
+      id: officeA.id,
+    });
+    steps.anonymousCountsOfficeGrants = await run(
+      schema,
+      prisma,
+      null,
+      COUNT_ORG,
+      { id: officeA.id }
+    );
+    steps.bobFiltersUsersByGrant = await run(
+      schema,
+      prisma,
+      BOB,
+      `query { users(where: { auditorGrants: { some: { revokedAt: { equals: null } } } }) { id } }`
+    );
+    steps.bobOrdersUsersByGrantCount = await run(
+      schema,
+      prisma,
+      BOB,
+      `query { users(orderBy: [{ auditorGrants: { _count: desc } }], take: 1) { id } }`
+    );
+    steps.bobFiltersOrgsByRole = await run(
+      schema,
+      prisma,
+      BOB,
+      `query { organizations(where: { roleAssignments: { some: { role: { equals: COO } } } }) { id } }`
+    );
     const after = await prisma.roleAssignment.count({
       where: { organizationId: { in: orgIds } },
     });
@@ -417,12 +493,19 @@ async function main(): Promise<void> {
     const aliceGrants = await prisma.auditorGrant.count({
       where: { userId: alice.id },
     });
+    const daveAfter = await prisma.orgMembership.findFirstOrThrow({
+      where: { organizationId: officeA.id, userId: dave.id },
+    });
     facts.writes = {
       roleAssignmentsBefore: before,
       roleAssignmentsAfter: after,
       officeKindAfter: officeAAfter.kind,
       revokedStillRevoked: revokedAfter.revokedAt !== null,
       aliceGrants,
+      daveScopeAfter: {
+        all: daveAfter.entityScopeAll,
+        ids: daveAfter.entityScopeIds,
+      },
     };
   } finally {
     await prisma.roleAssignment.deleteMany({

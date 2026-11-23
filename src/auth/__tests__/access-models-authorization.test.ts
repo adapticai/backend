@@ -5,6 +5,7 @@
  * The served-schema half is `src/tests/access-authz.test.ts`.
  */
 import { describe, expect, it } from 'vitest';
+import { GraphQLBoolean, GraphQLInputObjectType, GraphQLObjectType, GraphQLString } from 'graphql';
 
 import {
   activeAuditorGrantWhere,
@@ -32,9 +33,13 @@ import {
   isAlwaysEnforced,
   type Entitlement,
 } from '../tenancy-scope';
+import { findNestedWrites, type WrittenColumn } from '../nested-write-inspector';
+import { hiddenRelationCountsFor } from '../../config/server-only-models';
 import {
   ALWAYS_ENFORCED_CONTENT_REFUSALS,
+  RESERVED_COLUMNS,
   userContentRefusal,
+  writesReservedColumn,
 } from '../user-write-content';
 import type { BackendPrincipal } from '../token-verifier';
 
@@ -364,5 +369,81 @@ describe('active role assignment', () => {
       startsAt: { lte: NOW },
       OR: [{ endsAt: { equals: null } }, { endsAt: { gt: NOW } }],
     });
+  });
+});
+
+describe('reserved authority columns (kind, entity scope)', () => {
+  const boolSet = new GraphQLInputObjectType({ name: 'BoolFieldUpdateOperationsInput', fields: { set: { type: GraphQLBoolean } } });
+  const kindSet = new GraphQLInputObjectType({ name: 'EnumOrganizationKindFieldUpdateOperationsInput', fields: { set: { type: GraphQLString } } });
+  const orgWhere = new GraphQLInputObjectType({ name: 'OrganizationWhereInput', fields: { kind: { type: GraphQLString } } });
+  const orgUpdate = new GraphQLInputObjectType({
+    name: 'OrganizationUpdateWithoutFundsInput',
+    fields: { kind: { type: kindSet }, name: { type: GraphQLString } },
+  });
+  const orgNested = new GraphQLInputObjectType({
+    name: 'OrganizationUpdateOneRequiredWithoutFundsNestedInput',
+    fields: { update: { type: orgUpdate } },
+  });
+  const fundUpdate = new GraphQLInputObjectType({
+    name: 'FundUpdateInput',
+    fields: { organization: { type: orgNested }, name: { type: GraphQLString } },
+  });
+  const membershipUpdate = new GraphQLInputObjectType({
+    name: 'OrgMembershipUpdateInput',
+    fields: { entityScopeAll: { type: boolSet } },
+  });
+  const mutation = new GraphQLObjectType({
+    name: 'Mutation',
+    fields: {
+      updateOneFund: { type: GraphQLString, args: { data: { type: fundUpdate }, where: { type: orgWhere } } },
+      updateOneOrgMembership: { type: GraphQLString, args: { data: { type: membershipUpdate } } },
+    },
+  });
+  const models = ['OrgMembership', 'Organization', 'Fund'];
+
+  function columnsOf(fieldName: string, args: Record<string, unknown>, model: string): WrittenColumn[] {
+    const columns: WrittenColumn[] = [];
+    findNestedWrites({ parentType: mutation, fieldName }, args, models, { model, action: 'update' }, columns);
+    return columns;
+  }
+
+  it('names the kind and the entity scope, and nothing else', () => {
+    expect([...RESERVED_COLUMNS.entries()].map(([m, c]) => [m, [...c]])).toEqual([
+      ['Organization', ['kind']],
+      ['OrgMembership', ['entityScopeAll', 'entityScopeIds']],
+    ]);
+  });
+
+  it('finds an organization kind set through a nested write from a fund', () => {
+    const columns = columnsOf('updateOneFund', { data: { organization: { update: { kind: { set: 'MANAGER' } } } } }, 'Fund');
+    expect(columns).toContainEqual({ model: 'Organization', column: 'kind' });
+    expect(writesReservedColumn(columns)).toBe(true);
+  });
+
+  it("finds a member's own entity scope set at the root", () => {
+    const columns = columnsOf('updateOneOrgMembership', { data: { entityScopeAll: { set: true } } }, 'OrgMembership');
+    expect(writesReservedColumn(columns)).toBe(true);
+  });
+
+  it('ignores the column named in a filter, and writes of other columns', () => {
+    expect(writesReservedColumn(columnsOf('updateOneFund', { where: { kind: 'MANAGER' }, data: { name: 'F' } }, 'Fund'))).toBe(false);
+    expect(
+      writesReservedColumn(columnsOf('updateOneFund', { data: { organization: { update: { name: 'O' } } } }, 'Fund'))
+    ).toBe(false);
+  });
+});
+
+describe('hidden relation counts', () => {
+  it('removes the access back-relation counts from the User, Organization and Investor _count types', () => {
+    expect([...(hiddenRelationCountsFor('UserCount') ?? [])]).toEqual(['roleAssignments', 'auditorGrants']);
+    expect([...(hiddenRelationCountsFor('OrganizationCount') ?? [])]).toEqual([
+      'officeInvestors',
+      'entityGroups',
+      'auditorGrants',
+      'roleAssignments',
+    ]);
+    expect([...(hiddenRelationCountsFor('InvestorCount') ?? [])]).toEqual(['childInvestors']);
+    expect(hiddenRelationCountsFor('FundCount')).toBeUndefined();
+    expect(hiddenRelationCountsFor('UserCountAggregate')).toBeUndefined();
   });
 });
