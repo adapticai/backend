@@ -23,6 +23,7 @@ import { logger } from './utils/logger';
   metadata
   fundId
   ledgerSeq
+  workspace
 
   `;
 
@@ -80,6 +81,7 @@ import { logger } from './utils/logger';
   ipAddress: props.ipAddress !== undefined ? props.ipAddress : undefined,
   metadata: props.metadata !== undefined ? props.metadata : undefined,
   fundId: props.fundId !== undefined ? props.fundId : undefined,
+  workspace: props.workspace !== undefined ? props.workspace : undefined,
 
             },
           };
@@ -243,6 +245,7 @@ import { logger } from './utils/logger';
   ipAddress: prop.ipAddress !== undefined ? prop.ipAddress : undefined,
   metadata: prop.metadata !== undefined ? prop.metadata : undefined,
   fundId: prop.fundId !== undefined ? prop.fundId : undefined,
+  workspace: prop.workspace !== undefined ? prop.workspace : undefined,
       })),
           ...(options?.skipDuplicates ? { skipDuplicates: true } : {}),
         };
@@ -423,6 +426,9 @@ import { logger } from './utils/logger';
   fundId: props.fundId !== undefined ? {
             set: props.fundId 
            } : undefined,
+  workspace: props.workspace !== undefined ? {
+            set: props.workspace 
+           } : undefined,
       },
         };
 
@@ -591,6 +597,7 @@ import { logger } from './utils/logger';
   ipAddress: props.ipAddress !== undefined ? props.ipAddress : undefined,
   metadata: props.metadata !== undefined ? props.metadata : undefined,
   fundId: props.fundId !== undefined ? props.fundId : undefined,
+  workspace: props.workspace !== undefined ? props.workspace : undefined,
       },
           update: {
       timestamp: props.timestamp !== undefined ? {
@@ -618,6 +625,9 @@ import { logger } from './utils/logger';
   metadata: props.metadata !== undefined ? props.metadata : undefined,
   fundId: props.fundId !== undefined ? {
             set: props.fundId 
+           } : undefined,
+  workspace: props.workspace !== undefined ? {
+            set: props.workspace 
            } : undefined,
       },
         };
@@ -803,6 +813,9 @@ import { logger } from './utils/logger';
   metadata: prop.metadata !== undefined ? prop.metadata : undefined,
   fundId: prop.fundId !== undefined ? {
             set: prop.fundId 
+           } : undefined,
+  workspace: prop.workspace !== undefined ? {
+            set: prop.workspace 
            } : undefined,
 
           },

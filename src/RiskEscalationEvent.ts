@@ -586,11 +586,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -819,6 +826,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -3615,6 +3623,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -3626,11 +3637,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -4029,6 +4050,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -4061,6 +4088,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -4075,6 +4105,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -4776,11 +4807,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -5009,6 +5047,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -6674,11 +6713,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -6907,6 +6953,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -10730,11 +10777,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -10963,6 +11017,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -13434,6 +13489,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -13445,11 +13503,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -13848,6 +13916,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -13880,6 +13954,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -13894,6 +13971,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -14595,11 +14673,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -14828,6 +14913,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -16493,11 +16579,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -16726,6 +16819,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -21274,6 +21368,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -21285,11 +21382,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -21688,6 +21795,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -21720,6 +21833,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -21734,6 +21850,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -22435,11 +22552,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -22668,6 +22792,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -24333,11 +24458,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -24566,6 +24698,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))

@@ -1431,6 +1431,14 @@ model User {
   /// @TypeGraphQL.omit(output: true)
   totp UserTotp?
 
+  /// Per-workspace role assignments this user holds. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to the caller's organizations; the back-relation is on neither the GraphQL output nor any input, so it can neither be read nor written around that scope.
+  /// @TypeGraphQL.omit(output: true, input: true)
+  roleAssignments RoleAssignment[]
+
+  /// Scoped auditor grants issued to this user. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to the caller's organizations; the back-relation is on neither the GraphQL output nor any input, so it can neither be read nor written around that scope.
+  /// @TypeGraphQL.omit(output: true, input: true)
+  auditorGrants AuditorGrant[]
+
 
   @@index([customerId])
   @@map(name: "users")
@@ -5198,6 +5206,21 @@ enum AuditOperationType {
   DELETE
 }
 
+// The workspace an AuditLog entry belongs to. New members are appended, never renamed.
+enum AuditWorkspace {
+  /// The strategy (trading) side of the wall.
+  STRATEGY
+
+  /// The fund (operations, investors, compliance) side of the wall.
+  FUND
+
+  /// Areas both sides may open.
+  SHARED
+
+  /// The organization itself (membership, settings, access).
+  ORGANISATION
+}
+
 // Append-only audit log for tracking all data mutations in the system.
 // This table is immutable -- rows are only inserted, never updated or deleted.
 model AuditLog {
@@ -5246,6 +5269,9 @@ model AuditLog {
   /// `where: { fundId: { equals }, ledgerSeq: { lt } }`, `orderBy: [{ ledgerSeq: { sort: desc } }]`.
   /// @TypeGraphQL.omit(input: ["create", "update"])
   ledgerSeq BigInt? @unique @default(autoincrement())
+
+  /// The Manager OS workspace this entry belongs to. Null means untagged: the platform seals an untagged entry for every viewer without Strategy access, so a missing tag never opens an entry.
+  workspace AuditWorkspace?
 
   @@index([timestamp])
   @@index([userId, timestamp])
@@ -6036,6 +6062,67 @@ enum OrgRole {
 
   /// Baseline membership with no elevated permissions.
   MEMBER
+
+  /// Principal of an allocator office: the person the office acts for. Carries no
+  /// membership-management authority of its own; that stays with OWNER and ADMIN.
+  ALLOCATOR_PRINCIPAL
+
+  /// Leads the allocator office's investment decisions across the entities in its scope.
+  INVESTMENT_LEAD
+
+  /// Runs the allocator office's operations (capital activity, documents) across the entities in its scope.
+  OPERATIONS_LEAD
+}
+
+// What an Organization is: a manager that runs funds, or an allocator office that
+// owns investing entities. New members are appended, never renamed.
+enum OrganizationKind {
+  /// An investment manager: owns funds. Every organization that predates the allocator office is one.
+  MANAGER
+
+  /// An allocator (family) office: owns investing entities (Investor.officeOrganizationId) and groups of them.
+  ALLOCATOR_OFFICE
+}
+
+// The workspace a role or record belongs to in Manager OS. New members are
+// appended, never renamed.
+enum Workspace {
+  /// The strategy (trading) side of the wall.
+  STRATEGY
+
+  /// The fund (operations, investors, compliance) side of the wall.
+  FUND
+
+  /// Areas both sides may open (the record, the organization's shared settings).
+  SHARED
+}
+
+// What a RoleAssignment is scoped to. New members are appended, never renamed.
+enum RoleScopeType {
+  /// The whole organization; RoleAssignment.scopeId is null.
+  ORGANIZATION
+
+  /// One fund; RoleAssignment.scopeId is the Fund id.
+  FUND
+
+  /// One sleeve of a fund; RoleAssignment.scopeId is the sleeve id.
+  SLEEVE
+}
+
+// A per-workspace role a person holds in Manager OS beside their OrgRole. New
+// members are appended, never renamed.
+enum WorkspaceRole {
+  /// Chief operating officer.
+  COO
+
+  /// The second approver of a four-eyes pair.
+  SECOND_APPROVER
+
+  /// Adaptic oversight.
+  OVERSIGHT
+
+  /// An external verifier.
+  VERIFIER
 }
 
 // Role a user holds within a specific Fund (FundAssignment.role). Superset of
@@ -6083,6 +6170,12 @@ model Organization {
   /// Business structure ('fund_operator' | 'family_office'); lowercase String to match the platform contract.
   businessType String?
 
+  /// What the organization is. Every organization that predates the allocator office is a MANAGER.
+  kind OrganizationKind @default(MANAGER)
+
+  /// IANA time zone the organization works in (e.g. 'Europe/London'). Null when not set; readers never assume one.
+  timeZone String?
+
   /// Email domains associated with this organization for domain-based member matching. TYPESTRING.SKIP=true
   emailDomains String[] @default([])
 
@@ -6123,6 +6216,22 @@ model Organization {
   /// @TypeGraphQL.omit(output: true)
   featureFlagOverrides FeatureFlagOverride[]
 
+  /// Entities (investors) this organization owns as an allocator office. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to the caller's organizations; the back-relation is on neither the GraphQL output nor any input, so it can neither be read nor written around that scope.
+  /// @TypeGraphQL.omit(output: true, input: true)
+  officeInvestors Investor[] @relation("InvestorOffice")
+
+  /// Groups of entities this organization defines as an allocator office. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to the caller's organizations; the back-relation is on neither the GraphQL output nor any input, so it can neither be read nor written around that scope.
+  /// @TypeGraphQL.omit(output: true, input: true)
+  entityGroups EntityGroup[]
+
+  /// Scoped auditor grants issued by this organization as an allocator office. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to the caller's organizations; the back-relation is on neither the GraphQL output nor any input, so it can neither be read nor written around that scope.
+  /// @TypeGraphQL.omit(output: true, input: true)
+  auditorGrants AuditorGrant[]
+
+  /// Per-workspace role assignments in this organization. TYPESTRING.SKIP=true GQL.SKIP=true Read through the root adaptic.<model>.* resolvers, which scope rows to the caller's organizations; the back-relation is on neither the GraphQL output nor any input, so it can neither be read nor written around that scope.
+  /// @TypeGraphQL.omit(output: true, input: true)
+  roleAssignments RoleAssignment[]
+
   /// Timestamp when the organization was created. TYPESTRING.SKIP=true
   createdAt DateTime @default(now())
 
@@ -6158,6 +6267,12 @@ model OrgMembership {
   /// Granular permissions granted to this member. TYPESTRING.SKIP=true
   permissions String[] @default([])
 
+  /// Whether this member sees every entity the organization owns as an allocator office. False by default, so a membership sees no entity until it is granted one; see entityScopeIds.
+  entityScopeAll Boolean @default(false)
+
+  /// The entities (Investor ids) this member sees when entityScopeAll is false. Empty means none: scope fails closed, never open.
+  entityScopeIds String[] @default([]) @db.Uuid
+
   /// Timestamp when the membership was created. TYPESTRING.SKIP=true
   createdAt DateTime @default(now())
 
@@ -6167,6 +6282,128 @@ model OrgMembership {
   @@unique([organizationId, userId])
   @@index([userId])
   @@map(name: "org_memberships")
+}
+
+// A named group of entities an allocator office defines (a family branch, say).
+// Read through the root resolvers, which scope rows to the caller's organizations.
+model EntityGroup {
+  /// Unique identifier for the group. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the allocator office (Organization) that owns the group. TYPESTRING.SKIP=true
+  officeId String @db.Uuid
+
+  /// Relation to the owning office. TYPESTRING.INCLUDE=['id','name','slug'] GQL.INCLUDE=['id','name','slug']
+  office Organization @relation(fields: [officeId], references: [id], onDelete: Cascade)
+
+  /// Group display name.
+  name String
+
+  /// The entities (Investor ids) in the group. Empty means the group holds no entity.
+  investorIds String[] @default([]) @db.Uuid
+
+  /// Timestamp when the group was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  /// Timestamp when the group was last updated. TYPESTRING.SKIP=true
+  updatedAt DateTime @updatedAt
+
+  @@index([officeId])
+  @@map(name: "entity_groups")
+}
+
+// A scoped, time-boxed grant letting an auditor read named entities of an
+// allocator office over one period. Active only while revokedAt is null and
+// expiresAt is in the future (`activeAuditorGrants`); periodFrom..periodTo is
+// the audited period, not the grant's validity.
+model AuditorGrant {
+  /// Unique identifier for the grant. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the allocator office (Organization) that issued the grant. TYPESTRING.SKIP=true
+  officeOrganizationId String @db.Uuid
+
+  /// Relation to the issuing office. TYPESTRING.INCLUDE=['id','name','slug'] GQL.INCLUDE=['id','name','slug']
+  officeOrganization Organization @relation(fields: [officeOrganizationId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the auditor (User) the grant is issued to. TYPESTRING.SKIP=true
+  userId String @db.Uuid
+
+  /// Relation to the auditor. TYPESTRING.INCLUDE=['id','name','email'] GQL.INCLUDE=['id','name','email']
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// The entities (Investor ids) the auditor may read. Empty means none.
+  entityIds String[] @default([]) @db.Uuid
+
+  /// Start of the audited period (inclusive).
+  periodFrom DateTime
+
+  /// End of the audited period (inclusive); never before periodFrom.
+  periodTo DateTime
+
+  /// When the grant stops being active. A grant is active strictly before this instant.
+  expiresAt DateTime
+
+  /// When the grant was revoked. Null while not revoked; a revoked grant is never active.
+  revokedAt DateTime?
+
+  /// The user who issued the grant. Like AuditLog.userId it carries no foreign key: the record of who granted outlives that user's row. TYPESTRING.SKIP=true
+  grantedById String @db.Uuid
+
+  /// Timestamp when the grant was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  @@index([officeOrganizationId])
+  @@index([userId, expiresAt])
+  @@map(name: "auditor_grants")
+}
+
+// A per-workspace role a person holds in an organization (Manager OS), beside
+// their single OrgRole. Active from startsAt until endsAt (open-ended when
+// null); `activeRoleAssignments` serves only the active ones.
+model RoleAssignment {
+  /// Unique identifier for the assignment. TYPESTRING.SKIP=true
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Foreign key referencing the Organization the role is held in. TYPESTRING.SKIP=true
+  organizationId String @db.Uuid
+
+  /// Relation to the Organization. TYPESTRING.INCLUDE=['id','name','slug'] GQL.INCLUDE=['id','name','slug']
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  /// Foreign key referencing the User who holds the role. TYPESTRING.SKIP=true
+  userId String @db.Uuid
+
+  /// Relation to the User. TYPESTRING.INCLUDE=['id','name','email'] GQL.INCLUDE=['id','name','email']
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// The role held.
+  role WorkspaceRole
+
+  /// The workspace the role is held in.
+  workspace Workspace
+
+  /// What the role is scoped to.
+  scopeType RoleScopeType
+
+  /// The Fund or sleeve id for a FUND or SLEEVE scope; null for ORGANIZATION (enforced by a check constraint).
+  scopeId String? @db.Uuid
+
+  /// When the role starts (inclusive).
+  startsAt DateTime
+
+  /// When the role ends (exclusive); null for open-ended. Never at or before startsAt.
+  endsAt DateTime?
+
+  /// The user who granted the role. Like AuditLog.userId it carries no foreign key: the record of who granted outlives that user's row. TYPESTRING.SKIP=true
+  grantedById String @db.Uuid
+
+  /// Timestamp when the assignment was created. TYPESTRING.SKIP=true
+  createdAt DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([userId, organizationId])
+  @@map(name: "role_assignments")
 }
 
 // A fund owned by an organization. Owns brokerage accounts and carries the
@@ -6856,6 +7093,25 @@ model Investor {
   /// Free-form operator notes. TYPESTRING.SKIP=true
   notes String?
 
+  /// Foreign key referencing the parent entity in the office's entity tree (a trust's holding company, say). Null for a root entity. TYPESTRING.SKIP=true
+  parentInvestorId String? @db.Uuid
+
+  /// Relation to the parent entity. TYPESTRING.SKIP=true GQL.SKIP=true Read the parent by parentInvestorId.
+  parentInvestor Investor? @relation("InvestorEntityTree", fields: [parentInvestorId], references: [id], onDelete: SetNull)
+
+  /// Entities whose parent this entity is. TYPESTRING.SKIP=true GQL.SKIP=true Read children by parentInvestorId; the back-relation is not on the GraphQL output.
+  /// @TypeGraphQL.omit(output: true)
+  childInvestors Investor[] @relation("InvestorEntityTree")
+
+  /// The entity's registration number with its registry (company number, trust registration). Null when not recorded.
+  registrationNumber String?
+
+  /// Foreign key referencing the allocator office (Organization of kind ALLOCATOR_OFFICE) that owns this entity, distinct from the fund's organization in organizationId. Null when no office owns it. TYPESTRING.SKIP=true
+  officeOrganizationId String? @db.Uuid
+
+  /// Relation to the owning allocator office. TYPESTRING.SKIP=true GQL.SKIP=true Read the office by officeOrganizationId.
+  officeOrganization Organization? @relation("InvestorOffice", fields: [officeOrganizationId], references: [id], onDelete: SetNull)
+
   /// Per-fund holdings for this investor. TYPESTRING.SKIP=true GQL.EXCLUDE=['investor']
   holdings Holding[]
 
@@ -6881,6 +7137,8 @@ model Investor {
   @@index([userId])
   @@index([customerId])
   @@index([status])
+  @@index([parentInvestorId])
+  @@index([officeOrganizationId])
   @@map(name: "investors")
 }
 

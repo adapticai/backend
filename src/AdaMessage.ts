@@ -423,11 +423,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -656,6 +663,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -931,6 +939,8 @@ import { logger } from './utils/logger';
             logoUrl: props.conversation.fund.organization.logoUrl !== undefined ? props.conversation.fund.organization.logoUrl : undefined,
             website: props.conversation.fund.organization.website !== undefined ? props.conversation.fund.organization.website : undefined,
             businessType: props.conversation.fund.organization.businessType !== undefined ? props.conversation.fund.organization.businessType : undefined,
+            kind: props.conversation.fund.organization.kind !== undefined ? props.conversation.fund.organization.kind : undefined,
+            timeZone: props.conversation.fund.organization.timeZone !== undefined ? props.conversation.fund.organization.timeZone : undefined,
             emailDomains: props.conversation.fund.organization.emailDomains !== undefined ? {
                 set: props.conversation.fund.organization.emailDomains 
                } : undefined,
@@ -2429,6 +2439,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -2440,11 +2453,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -2843,6 +2866,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -2875,6 +2904,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -2889,6 +2921,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -3597,11 +3630,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -3830,6 +3870,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -4155,6 +4196,12 @@ import { logger } from './utils/logger';
             businessType: props.conversation.fund.organization.businessType !== undefined ? {
                 set: props.conversation.fund.organization.businessType
               } : undefined,
+            kind: props.conversation.fund.organization.kind !== undefined ? {
+                set: props.conversation.fund.organization.kind
+              } : undefined,
+            timeZone: props.conversation.fund.organization.timeZone !== undefined ? {
+                set: props.conversation.fund.organization.timeZone
+              } : undefined,
             emailDomains: props.conversation.fund.organization.emailDomains !== undefined ? {
                 set: props.conversation.fund.organization.emailDomains
               } : undefined,
@@ -4178,6 +4225,8 @@ import { logger } from './utils/logger';
             logoUrl: props.conversation.fund.organization.logoUrl !== undefined ? props.conversation.fund.organization.logoUrl : undefined,
             website: props.conversation.fund.organization.website !== undefined ? props.conversation.fund.organization.website : undefined,
             businessType: props.conversation.fund.organization.businessType !== undefined ? props.conversation.fund.organization.businessType : undefined,
+            kind: props.conversation.fund.organization.kind !== undefined ? props.conversation.fund.organization.kind : undefined,
+            timeZone: props.conversation.fund.organization.timeZone !== undefined ? props.conversation.fund.organization.timeZone : undefined,
             emailDomains: props.conversation.fund.organization.emailDomains !== undefined ? {
                 set: props.conversation.fund.organization.emailDomains 
                } : undefined,
@@ -5178,6 +5227,8 @@ import { logger } from './utils/logger';
             logoUrl: props.conversation.fund.organization.logoUrl !== undefined ? props.conversation.fund.organization.logoUrl : undefined,
             website: props.conversation.fund.organization.website !== undefined ? props.conversation.fund.organization.website : undefined,
             businessType: props.conversation.fund.organization.businessType !== undefined ? props.conversation.fund.organization.businessType : undefined,
+            kind: props.conversation.fund.organization.kind !== undefined ? props.conversation.fund.organization.kind : undefined,
+            timeZone: props.conversation.fund.organization.timeZone !== undefined ? props.conversation.fund.organization.timeZone : undefined,
             emailDomains: props.conversation.fund.organization.emailDomains !== undefined ? {
                 set: props.conversation.fund.organization.emailDomains 
                } : undefined,
@@ -5958,11 +6009,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -6191,6 +6249,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -6466,6 +6525,8 @@ import { logger } from './utils/logger';
             logoUrl: props.conversation.fund.organization.logoUrl !== undefined ? props.conversation.fund.organization.logoUrl : undefined,
             website: props.conversation.fund.organization.website !== undefined ? props.conversation.fund.organization.website : undefined,
             businessType: props.conversation.fund.organization.businessType !== undefined ? props.conversation.fund.organization.businessType : undefined,
+            kind: props.conversation.fund.organization.kind !== undefined ? props.conversation.fund.organization.kind : undefined,
+            timeZone: props.conversation.fund.organization.timeZone !== undefined ? props.conversation.fund.organization.timeZone : undefined,
             emailDomains: props.conversation.fund.organization.emailDomains !== undefined ? {
                 set: props.conversation.fund.organization.emailDomains 
                } : undefined,
@@ -7428,11 +7489,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -7661,6 +7729,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -7936,6 +8005,8 @@ import { logger } from './utils/logger';
             logoUrl: props.conversation.fund.organization.logoUrl !== undefined ? props.conversation.fund.organization.logoUrl : undefined,
             website: props.conversation.fund.organization.website !== undefined ? props.conversation.fund.organization.website : undefined,
             businessType: props.conversation.fund.organization.businessType !== undefined ? props.conversation.fund.organization.businessType : undefined,
+            kind: props.conversation.fund.organization.kind !== undefined ? props.conversation.fund.organization.kind : undefined,
+            timeZone: props.conversation.fund.organization.timeZone !== undefined ? props.conversation.fund.organization.timeZone : undefined,
             emailDomains: props.conversation.fund.organization.emailDomains !== undefined ? {
                 set: props.conversation.fund.organization.emailDomains 
                } : undefined,
@@ -9122,6 +9193,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -9133,11 +9207,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -9536,6 +9620,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -9568,6 +9658,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -9582,6 +9675,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -10290,11 +10384,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -10523,6 +10624,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -10848,6 +10950,12 @@ import { logger } from './utils/logger';
             businessType: props.conversation.fund.organization.businessType !== undefined ? {
                 set: props.conversation.fund.organization.businessType
               } : undefined,
+            kind: props.conversation.fund.organization.kind !== undefined ? {
+                set: props.conversation.fund.organization.kind
+              } : undefined,
+            timeZone: props.conversation.fund.organization.timeZone !== undefined ? {
+                set: props.conversation.fund.organization.timeZone
+              } : undefined,
             emailDomains: props.conversation.fund.organization.emailDomains !== undefined ? {
                 set: props.conversation.fund.organization.emailDomains
               } : undefined,
@@ -10871,6 +10979,8 @@ import { logger } from './utils/logger';
             logoUrl: props.conversation.fund.organization.logoUrl !== undefined ? props.conversation.fund.organization.logoUrl : undefined,
             website: props.conversation.fund.organization.website !== undefined ? props.conversation.fund.organization.website : undefined,
             businessType: props.conversation.fund.organization.businessType !== undefined ? props.conversation.fund.organization.businessType : undefined,
+            kind: props.conversation.fund.organization.kind !== undefined ? props.conversation.fund.organization.kind : undefined,
+            timeZone: props.conversation.fund.organization.timeZone !== undefined ? props.conversation.fund.organization.timeZone : undefined,
             emailDomains: props.conversation.fund.organization.emailDomains !== undefined ? {
                 set: props.conversation.fund.organization.emailDomains 
                } : undefined,
@@ -11871,6 +11981,8 @@ import { logger } from './utils/logger';
             logoUrl: props.conversation.fund.organization.logoUrl !== undefined ? props.conversation.fund.organization.logoUrl : undefined,
             website: props.conversation.fund.organization.website !== undefined ? props.conversation.fund.organization.website : undefined,
             businessType: props.conversation.fund.organization.businessType !== undefined ? props.conversation.fund.organization.businessType : undefined,
+            kind: props.conversation.fund.organization.kind !== undefined ? props.conversation.fund.organization.kind : undefined,
+            timeZone: props.conversation.fund.organization.timeZone !== undefined ? props.conversation.fund.organization.timeZone : undefined,
             emailDomains: props.conversation.fund.organization.emailDomains !== undefined ? {
                 set: props.conversation.fund.organization.emailDomains 
                } : undefined,
@@ -12651,11 +12763,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -12884,6 +13003,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -13159,6 +13279,8 @@ import { logger } from './utils/logger';
             logoUrl: props.conversation.fund.organization.logoUrl !== undefined ? props.conversation.fund.organization.logoUrl : undefined,
             website: props.conversation.fund.organization.website !== undefined ? props.conversation.fund.organization.website : undefined,
             businessType: props.conversation.fund.organization.businessType !== undefined ? props.conversation.fund.organization.businessType : undefined,
+            kind: props.conversation.fund.organization.kind !== undefined ? props.conversation.fund.organization.kind : undefined,
+            timeZone: props.conversation.fund.organization.timeZone !== undefined ? props.conversation.fund.organization.timeZone : undefined,
             emailDomains: props.conversation.fund.organization.emailDomains !== undefined ? {
                 set: props.conversation.fund.organization.emailDomains 
                } : undefined,
@@ -14505,6 +14627,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -14516,11 +14641,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -14919,6 +15054,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -14951,6 +15092,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -14965,6 +15109,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -15673,11 +15818,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -15906,6 +16058,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -16231,6 +16384,12 @@ import { logger } from './utils/logger';
             businessType: prop.conversation.fund.organization.businessType !== undefined ? {
                 set: prop.conversation.fund.organization.businessType
               } : undefined,
+            kind: prop.conversation.fund.organization.kind !== undefined ? {
+                set: prop.conversation.fund.organization.kind
+              } : undefined,
+            timeZone: prop.conversation.fund.organization.timeZone !== undefined ? {
+                set: prop.conversation.fund.organization.timeZone
+              } : undefined,
             emailDomains: prop.conversation.fund.organization.emailDomains !== undefined ? {
                 set: prop.conversation.fund.organization.emailDomains
               } : undefined,
@@ -16254,6 +16413,8 @@ import { logger } from './utils/logger';
             logoUrl: prop.conversation.fund.organization.logoUrl !== undefined ? prop.conversation.fund.organization.logoUrl : undefined,
             website: prop.conversation.fund.organization.website !== undefined ? prop.conversation.fund.organization.website : undefined,
             businessType: prop.conversation.fund.organization.businessType !== undefined ? prop.conversation.fund.organization.businessType : undefined,
+            kind: prop.conversation.fund.organization.kind !== undefined ? prop.conversation.fund.organization.kind : undefined,
+            timeZone: prop.conversation.fund.organization.timeZone !== undefined ? prop.conversation.fund.organization.timeZone : undefined,
             emailDomains: prop.conversation.fund.organization.emailDomains !== undefined ? {
                 set: prop.conversation.fund.organization.emailDomains 
                } : undefined,
@@ -17254,6 +17415,8 @@ import { logger } from './utils/logger';
             logoUrl: prop.conversation.fund.organization.logoUrl !== undefined ? prop.conversation.fund.organization.logoUrl : undefined,
             website: prop.conversation.fund.organization.website !== undefined ? prop.conversation.fund.organization.website : undefined,
             businessType: prop.conversation.fund.organization.businessType !== undefined ? prop.conversation.fund.organization.businessType : undefined,
+            kind: prop.conversation.fund.organization.kind !== undefined ? prop.conversation.fund.organization.kind : undefined,
+            timeZone: prop.conversation.fund.organization.timeZone !== undefined ? prop.conversation.fund.organization.timeZone : undefined,
             emailDomains: prop.conversation.fund.organization.emailDomains !== undefined ? {
                 set: prop.conversation.fund.organization.emailDomains 
                } : undefined,
@@ -18034,11 +18197,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -18267,6 +18437,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -18542,6 +18713,8 @@ import { logger } from './utils/logger';
             logoUrl: prop.conversation.fund.organization.logoUrl !== undefined ? prop.conversation.fund.organization.logoUrl : undefined,
             website: prop.conversation.fund.organization.website !== undefined ? prop.conversation.fund.organization.website : undefined,
             businessType: prop.conversation.fund.organization.businessType !== undefined ? prop.conversation.fund.organization.businessType : undefined,
+            kind: prop.conversation.fund.organization.kind !== undefined ? prop.conversation.fund.organization.kind : undefined,
+            timeZone: prop.conversation.fund.organization.timeZone !== undefined ? prop.conversation.fund.organization.timeZone : undefined,
             emailDomains: prop.conversation.fund.organization.emailDomains !== undefined ? {
                 set: prop.conversation.fund.organization.emailDomains 
                } : undefined,

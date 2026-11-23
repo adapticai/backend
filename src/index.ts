@@ -49,6 +49,7 @@ import { AnalyticsConfiguration } from './AnalyticsConfiguration';
 import { AnalyticsSnapshot } from './AnalyticsSnapshot';
 import { Asset } from './Asset';
 import { AuditLog } from './AuditLog';
+import { AuditorGrant } from './AuditorGrant';
 import { Authenticator } from './Authenticator';
 import { AutoFollowRule } from './AutoFollowRule';
 import { BrokerageAccount } from './BrokerageAccount';
@@ -60,6 +61,7 @@ import { DeadLetterMessage } from './DeadLetterMessage';
 import { DecisionMemorySummary } from './DecisionMemorySummary';
 import { DeskDecision } from './DeskDecision';
 import { EconomicEvent } from './EconomicEvent';
+import { EntityGroup } from './EntityGroup';
 import { EquityBar } from './EquityBar';
 import { Event } from './Event';
 import { EventSnapshot } from './EventSnapshot';
@@ -107,6 +109,7 @@ import { PolicyOverlay } from './PolicyOverlay';
 import { PortfolioGreeksHistory } from './PortfolioGreeksHistory';
 import { PushSubscription } from './PushSubscription';
 import { RiskEscalationEvent } from './RiskEscalationEvent';
+import { RoleAssignment } from './RoleAssignment';
 import { ScheduledOptionOrder } from './ScheduledOptionOrder';
 import { Session } from './Session';
 import { SignalGeneratorMetrics } from './SignalGeneratorMetrics';
@@ -145,6 +148,7 @@ const adaptic = {
   analyticsSnapshot: AnalyticsSnapshot,
   asset: Asset,
   auditLog: AuditLog,
+  auditorGrant: AuditorGrant,
   authenticator: Authenticator,
   autoFollowRule: AutoFollowRule,
   brokerageAccount: BrokerageAccount,
@@ -156,6 +160,7 @@ const adaptic = {
   decisionMemorySummary: DecisionMemorySummary,
   deskDecision: DeskDecision,
   economicEvent: EconomicEvent,
+  entityGroup: EntityGroup,
   equityBar: EquityBar,
   event: Event,
   eventSnapshot: EventSnapshot,
@@ -203,6 +208,7 @@ const adaptic = {
   portfolioGreeksHistory: PortfolioGreeksHistory,
   pushSubscription: PushSubscription,
   riskEscalationEvent: RiskEscalationEvent,
+  roleAssignment: RoleAssignment,
   scheduledOptionOrder: ScheduledOptionOrder,
   session: Session,
   signalGeneratorMetrics: SignalGeneratorMetrics,

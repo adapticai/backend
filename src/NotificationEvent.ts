@@ -92,6 +92,8 @@ import { logger } from './utils/logger';
         logoUrl: props.organization.logoUrl !== undefined ? props.organization.logoUrl : undefined,
         website: props.organization.website !== undefined ? props.organization.website : undefined,
         businessType: props.organization.businessType !== undefined ? props.organization.businessType : undefined,
+        kind: props.organization.kind !== undefined ? props.organization.kind : undefined,
+        timeZone: props.organization.timeZone !== undefined ? props.organization.timeZone : undefined,
         emailDomains: props.organization.emailDomains !== undefined ? {
             set: props.organization.emailDomains 
            } : undefined,
@@ -115,11 +117,18 @@ import { logger } from './utils/logger';
           userId: item.userId !== undefined ? {
               equals: item.userId 
              } : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              equals: item.entityScopeIds 
+             } : undefined,
         },
         create: {
           role: item.role !== undefined ? item.role : undefined,
           permissions: item.permissions !== undefined ? {
               set: item.permissions 
+             } : undefined,
+          entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              set: item.entityScopeIds 
              } : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -700,6 +709,7 @@ import { logger } from './utils/logger';
           joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
           externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
           notes: item.notes !== undefined ? item.notes : undefined,
+          registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
           deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -769,6 +779,119 @@ import { logger } from './utils/logger';
             riskProfile: item.customer.riskProfile !== undefined ? item.customer.riskProfile : undefined,
             amlStatus: item.customer.amlStatus !== undefined ? item.customer.amlStatus : undefined,
             lastKycUpdate: item.customer.lastKycUpdate !== undefined ? item.customer.lastKycUpdate : undefined,
+          },
+        }
+      } : undefined,
+      parentInvestor: item.parentInvestor ? 
+        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
+    ? { connect: {
+            id: item.parentInvestor.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
+            organizationId: item.parentInvestor.organizationId !== undefined ? {
+                equals: item.parentInvestor.organizationId 
+               } : undefined,
+            name: item.parentInvestor.name !== undefined ? {
+                equals: item.parentInvestor.name 
+               } : undefined,
+            email: item.parentInvestor.email !== undefined ? {
+                equals: item.parentInvestor.email 
+               } : undefined,
+            type: item.parentInvestor.type !== undefined ? {
+                equals: item.parentInvestor.type 
+               } : undefined,
+            status: item.parentInvestor.status !== undefined ? {
+                equals: item.parentInvestor.status 
+               } : undefined,
+          },
+          create: {
+            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
+            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
+            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
+            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
+            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
+            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
+            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
+            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
+            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
+            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
+            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+      childInvestors: item.childInvestors ? 
+        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        item.childInvestors.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: item.childInvestors.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+            email: item.email !== undefined ? {
+                equals: item.email 
+               } : undefined,
+            type: item.type !== undefined ? {
+                equals: item.type 
+               } : undefined,
+            status: item.status !== undefined ? {
+                equals: item.status 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            email: item.email !== undefined ? item.email : undefined,
+            type: item.type !== undefined ? item.type : undefined,
+            status: item.status !== undefined ? item.status : undefined,
+            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
+            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
+            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
+            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
+            notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      officeOrganization: item.officeOrganization ? 
+        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
+    ? { connect: {
+            id: item.officeOrganization.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            name: item.officeOrganization.name !== undefined ? {
+                equals: item.officeOrganization.name 
+               } : undefined,
+          },
+          create: {
+            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
+            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
+            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
+            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
+            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
+            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
+                set: item.officeOrganization.emailDomains 
+               } : undefined,
+            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
+            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
+            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
+            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
+            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -1043,6 +1166,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -1115,6 +1239,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -1443,6 +1568,8 @@ import { logger } from './utils/logger';
           logoUrl: props.fund.organization.logoUrl !== undefined ? props.fund.organization.logoUrl : undefined,
           website: props.fund.organization.website !== undefined ? props.fund.organization.website : undefined,
           businessType: props.fund.organization.businessType !== undefined ? props.fund.organization.businessType : undefined,
+          kind: props.fund.organization.kind !== undefined ? props.fund.organization.kind : undefined,
+          timeZone: props.fund.organization.timeZone !== undefined ? props.fund.organization.timeZone : undefined,
           emailDomains: props.fund.organization.emailDomains !== undefined ? {
               set: props.fund.organization.emailDomains 
              } : undefined,
@@ -1466,11 +1593,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -1510,6 +1644,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -1981,11 +2116,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -2172,6 +2314,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -2737,11 +2880,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -2928,6 +3078,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -3385,6 +3536,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -3510,6 +3662,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -3609,6 +3762,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -3655,6 +3810,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -3712,6 +3868,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -3758,6 +3916,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -3808,6 +3967,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -4577,11 +4738,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -4810,6 +4978,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -5383,6 +5552,12 @@ import { logger } from './utils/logger';
         businessType: props.organization.businessType !== undefined ? {
             set: props.organization.businessType
           } : undefined,
+        kind: props.organization.kind !== undefined ? {
+            set: props.organization.kind
+          } : undefined,
+        timeZone: props.organization.timeZone !== undefined ? {
+            set: props.organization.timeZone
+          } : undefined,
         emailDomains: props.organization.emailDomains !== undefined ? {
             set: props.organization.emailDomains
           } : undefined,
@@ -5413,6 +5588,9 @@ import { logger } from './utils/logger';
           userId: item.userId !== undefined ? {
               equals: item.userId
             } : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              equals: item.entityScopeIds
+            } : undefined,
         },
         update: {
           id: item.id !== undefined ? {
@@ -5423,6 +5601,12 @@ import { logger } from './utils/logger';
             } : undefined,
           permissions: item.permissions !== undefined ? {
               set: item.permissions
+            } : undefined,
+          entityScopeAll: item.entityScopeAll !== undefined ? {
+              set: item.entityScopeAll
+            } : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              set: item.entityScopeIds
             } : undefined,
       user: item.user ? 
       typeof item.user === 'object' && Object.keys(item.user).length === 1 && (Object.keys(item.user)[0] === 'id' || Object.keys(item.user)[0] === 'symbol')
@@ -5527,6 +5711,10 @@ import { logger } from './utils/logger';
           role: item.role !== undefined ? item.role : undefined,
           permissions: item.permissions !== undefined ? {
               set: item.permissions 
+             } : undefined,
+          entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              set: item.entityScopeIds 
              } : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -7139,6 +7327,12 @@ import { logger } from './utils/logger';
           status: item.status !== undefined ? {
               equals: item.status
             } : undefined,
+          parentInvestorId: item.parentInvestorId !== undefined ? {
+              equals: item.parentInvestorId
+            } : undefined,
+          officeOrganizationId: item.officeOrganizationId !== undefined ? {
+              equals: item.officeOrganizationId
+            } : undefined,
         },
         update: {
           id: item.id !== undefined ? {
@@ -7170,6 +7364,9 @@ import { logger } from './utils/logger';
             } : undefined,
           notes: item.notes !== undefined ? {
               set: item.notes
+            } : undefined,
+          registrationNumber: item.registrationNumber !== undefined ? {
+              set: item.registrationNumber
             } : undefined,
           deletedAt: item.deletedAt !== undefined ? {
               set: item.deletedAt
@@ -7346,6 +7543,266 @@ import { logger } from './utils/logger';
             riskProfile: item.customer.riskProfile !== undefined ? item.customer.riskProfile : undefined,
             amlStatus: item.customer.amlStatus !== undefined ? item.customer.amlStatus : undefined,
             lastKycUpdate: item.customer.lastKycUpdate !== undefined ? item.customer.lastKycUpdate : undefined,
+          },
+        }
+      } : undefined,
+      parentInvestor: item.parentInvestor ? 
+      typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && (Object.keys(item.parentInvestor)[0] === 'id' || Object.keys(item.parentInvestor)[0] === 'symbol')
+? {
+      connect: {
+        id: item.parentInvestor.id
+      }
+} : { upsert: {
+          where: {
+            id: item.parentInvestor.id !== undefined ? {
+                equals: item.parentInvestor.id
+              } : undefined,
+            organizationId: item.parentInvestor.organizationId !== undefined ? {
+                equals: item.parentInvestor.organizationId
+              } : undefined,
+            userId: item.parentInvestor.userId !== undefined ? {
+                equals: item.parentInvestor.userId
+              } : undefined,
+            customerId: item.parentInvestor.customerId !== undefined ? {
+                equals: item.parentInvestor.customerId
+              } : undefined,
+            name: item.parentInvestor.name !== undefined ? {
+                equals: item.parentInvestor.name
+              } : undefined,
+            email: item.parentInvestor.email !== undefined ? {
+                equals: item.parentInvestor.email
+              } : undefined,
+            type: item.parentInvestor.type !== undefined ? {
+                equals: item.parentInvestor.type
+              } : undefined,
+            status: item.parentInvestor.status !== undefined ? {
+                equals: item.parentInvestor.status
+              } : undefined,
+            parentInvestorId: item.parentInvestor.parentInvestorId !== undefined ? {
+                equals: item.parentInvestor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.parentInvestor.officeOrganizationId !== undefined ? {
+                equals: item.parentInvestor.officeOrganizationId
+              } : undefined,
+          },
+          update: {
+            id: item.parentInvestor.id !== undefined ? {
+                set: item.parentInvestor.id
+              } : undefined,
+            name: item.parentInvestor.name !== undefined ? {
+                set: item.parentInvestor.name
+              } : undefined,
+            email: item.parentInvestor.email !== undefined ? {
+                set: item.parentInvestor.email
+              } : undefined,
+            type: item.parentInvestor.type !== undefined ? {
+                set: item.parentInvestor.type
+              } : undefined,
+            status: item.parentInvestor.status !== undefined ? {
+                set: item.parentInvestor.status
+              } : undefined,
+            kycStatus: item.parentInvestor.kycStatus !== undefined ? {
+                set: item.parentInvestor.kycStatus
+              } : undefined,
+            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? {
+                set: item.parentInvestor.jurisdiction
+              } : undefined,
+            joinedAt: item.parentInvestor.joinedAt !== undefined ? {
+                set: item.parentInvestor.joinedAt
+              } : undefined,
+            externalRef: item.parentInvestor.externalRef !== undefined ? {
+                set: item.parentInvestor.externalRef
+              } : undefined,
+            notes: item.parentInvestor.notes !== undefined ? {
+                set: item.parentInvestor.notes
+              } : undefined,
+            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? {
+                set: item.parentInvestor.registrationNumber
+              } : undefined,
+            deletedAt: item.parentInvestor.deletedAt !== undefined ? {
+                set: item.parentInvestor.deletedAt
+              } : undefined,
+          },
+          create: {
+            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
+            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
+            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
+            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
+            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
+            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
+            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
+            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
+            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
+            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
+            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+      childInvestors: item.childInvestors ? 
+      Array.isArray(item.childInvestors) && item.childInvestors.length > 0 && item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: item.childInvestors.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: item.childInvestors.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId
+              } : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            customerId: item.customerId !== undefined ? {
+                equals: item.customerId
+              } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name
+              } : undefined,
+            email: item.email !== undefined ? {
+                equals: item.email
+              } : undefined,
+            type: item.type !== undefined ? {
+                equals: item.type
+              } : undefined,
+            status: item.status !== undefined ? {
+                equals: item.status
+              } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            name: item.name !== undefined ? {
+                set: item.name
+              } : undefined,
+            email: item.email !== undefined ? {
+                set: item.email
+              } : undefined,
+            type: item.type !== undefined ? {
+                set: item.type
+              } : undefined,
+            status: item.status !== undefined ? {
+                set: item.status
+              } : undefined,
+            kycStatus: item.kycStatus !== undefined ? {
+                set: item.kycStatus
+              } : undefined,
+            jurisdiction: item.jurisdiction !== undefined ? {
+                set: item.jurisdiction
+              } : undefined,
+            joinedAt: item.joinedAt !== undefined ? {
+                set: item.joinedAt
+              } : undefined,
+            externalRef: item.externalRef !== undefined ? {
+                set: item.externalRef
+              } : undefined,
+            notes: item.notes !== undefined ? {
+                set: item.notes
+              } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
+            deletedAt: item.deletedAt !== undefined ? {
+                set: item.deletedAt
+              } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            email: item.email !== undefined ? item.email : undefined,
+            type: item.type !== undefined ? item.type : undefined,
+            status: item.status !== undefined ? item.status : undefined,
+            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
+            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
+            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
+            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
+            notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      officeOrganization: item.officeOrganization ? 
+      typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && (Object.keys(item.officeOrganization)[0] === 'id' || Object.keys(item.officeOrganization)[0] === 'symbol')
+? {
+      connect: {
+        id: item.officeOrganization.id
+      }
+} : { upsert: {
+          where: {
+            id: item.officeOrganization.id !== undefined ? {
+                equals: item.officeOrganization.id
+              } : undefined,
+            name: item.officeOrganization.name !== undefined ? {
+                equals: item.officeOrganization.name
+              } : undefined,
+            slug: item.officeOrganization.slug !== undefined ? {
+                equals: item.officeOrganization.slug
+              } : undefined,
+          },
+          update: {
+            id: item.officeOrganization.id !== undefined ? {
+                set: item.officeOrganization.id
+              } : undefined,
+            name: item.officeOrganization.name !== undefined ? {
+                set: item.officeOrganization.name
+              } : undefined,
+            slug: item.officeOrganization.slug !== undefined ? {
+                set: item.officeOrganization.slug
+              } : undefined,
+            logoUrl: item.officeOrganization.logoUrl !== undefined ? {
+                set: item.officeOrganization.logoUrl
+              } : undefined,
+            website: item.officeOrganization.website !== undefined ? {
+                set: item.officeOrganization.website
+              } : undefined,
+            businessType: item.officeOrganization.businessType !== undefined ? {
+                set: item.officeOrganization.businessType
+              } : undefined,
+            kind: item.officeOrganization.kind !== undefined ? {
+                set: item.officeOrganization.kind
+              } : undefined,
+            timeZone: item.officeOrganization.timeZone !== undefined ? {
+                set: item.officeOrganization.timeZone
+              } : undefined,
+            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
+                set: item.officeOrganization.emailDomains
+              } : undefined,
+            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? {
+                set: item.officeOrganization.jurisdiction
+              } : undefined,
+            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? {
+                set: item.officeOrganization.regulatoryStatus
+              } : undefined,
+            description: item.officeOrganization.description !== undefined ? {
+                set: item.officeOrganization.description
+              } : undefined,
+            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
+            deletedAt: item.officeOrganization.deletedAt !== undefined ? {
+                set: item.officeOrganization.deletedAt
+              } : undefined,
+          },
+          create: {
+            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
+            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
+            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
+            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
+            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
+            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
+                set: item.officeOrganization.emailDomains 
+               } : undefined,
+            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
+            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
+            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
+            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
+            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -7680,6 +8137,7 @@ import { logger } from './utils/logger';
           joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
           externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
           notes: item.notes !== undefined ? item.notes : undefined,
+          registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
           deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -7749,6 +8207,119 @@ import { logger } from './utils/logger';
             riskProfile: item.customer.riskProfile !== undefined ? item.customer.riskProfile : undefined,
             amlStatus: item.customer.amlStatus !== undefined ? item.customer.amlStatus : undefined,
             lastKycUpdate: item.customer.lastKycUpdate !== undefined ? item.customer.lastKycUpdate : undefined,
+          },
+        }
+      } : undefined,
+      parentInvestor: item.parentInvestor ? 
+        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
+    ? { connect: {
+            id: item.parentInvestor.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
+            organizationId: item.parentInvestor.organizationId !== undefined ? {
+                equals: item.parentInvestor.organizationId 
+               } : undefined,
+            name: item.parentInvestor.name !== undefined ? {
+                equals: item.parentInvestor.name 
+               } : undefined,
+            email: item.parentInvestor.email !== undefined ? {
+                equals: item.parentInvestor.email 
+               } : undefined,
+            type: item.parentInvestor.type !== undefined ? {
+                equals: item.parentInvestor.type 
+               } : undefined,
+            status: item.parentInvestor.status !== undefined ? {
+                equals: item.parentInvestor.status 
+               } : undefined,
+          },
+          create: {
+            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
+            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
+            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
+            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
+            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
+            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
+            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
+            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
+            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
+            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
+            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+      childInvestors: item.childInvestors ? 
+        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        item.childInvestors.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: item.childInvestors.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+            email: item.email !== undefined ? {
+                equals: item.email 
+               } : undefined,
+            type: item.type !== undefined ? {
+                equals: item.type 
+               } : undefined,
+            status: item.status !== undefined ? {
+                equals: item.status 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            email: item.email !== undefined ? item.email : undefined,
+            type: item.type !== undefined ? item.type : undefined,
+            status: item.status !== undefined ? item.status : undefined,
+            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
+            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
+            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
+            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
+            notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      officeOrganization: item.officeOrganization ? 
+        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
+    ? { connect: {
+            id: item.officeOrganization.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            name: item.officeOrganization.name !== undefined ? {
+                equals: item.officeOrganization.name 
+               } : undefined,
+          },
+          create: {
+            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
+            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
+            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
+            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
+            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
+            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
+                set: item.officeOrganization.emailDomains 
+               } : undefined,
+            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
+            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
+            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
+            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
+            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -8107,6 +8678,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -8139,6 +8716,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -8153,6 +8733,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -8250,6 +8831,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -8338,6 +8920,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -8370,6 +8958,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -8384,6 +8975,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -8525,6 +9117,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -9248,6 +9841,8 @@ import { logger } from './utils/logger';
         logoUrl: props.organization.logoUrl !== undefined ? props.organization.logoUrl : undefined,
         website: props.organization.website !== undefined ? props.organization.website : undefined,
         businessType: props.organization.businessType !== undefined ? props.organization.businessType : undefined,
+        kind: props.organization.kind !== undefined ? props.organization.kind : undefined,
+        timeZone: props.organization.timeZone !== undefined ? props.organization.timeZone : undefined,
         emailDomains: props.organization.emailDomains !== undefined ? {
             set: props.organization.emailDomains 
            } : undefined,
@@ -9271,11 +9866,18 @@ import { logger } from './utils/logger';
           userId: item.userId !== undefined ? {
               equals: item.userId 
              } : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              equals: item.entityScopeIds 
+             } : undefined,
         },
         create: {
           role: item.role !== undefined ? item.role : undefined,
           permissions: item.permissions !== undefined ? {
               set: item.permissions 
+             } : undefined,
+          entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              set: item.entityScopeIds 
              } : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -9856,6 +10458,7 @@ import { logger } from './utils/logger';
           joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
           externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
           notes: item.notes !== undefined ? item.notes : undefined,
+          registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
           deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -9925,6 +10528,119 @@ import { logger } from './utils/logger';
             riskProfile: item.customer.riskProfile !== undefined ? item.customer.riskProfile : undefined,
             amlStatus: item.customer.amlStatus !== undefined ? item.customer.amlStatus : undefined,
             lastKycUpdate: item.customer.lastKycUpdate !== undefined ? item.customer.lastKycUpdate : undefined,
+          },
+        }
+      } : undefined,
+      parentInvestor: item.parentInvestor ? 
+        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
+    ? { connect: {
+            id: item.parentInvestor.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
+            organizationId: item.parentInvestor.organizationId !== undefined ? {
+                equals: item.parentInvestor.organizationId 
+               } : undefined,
+            name: item.parentInvestor.name !== undefined ? {
+                equals: item.parentInvestor.name 
+               } : undefined,
+            email: item.parentInvestor.email !== undefined ? {
+                equals: item.parentInvestor.email 
+               } : undefined,
+            type: item.parentInvestor.type !== undefined ? {
+                equals: item.parentInvestor.type 
+               } : undefined,
+            status: item.parentInvestor.status !== undefined ? {
+                equals: item.parentInvestor.status 
+               } : undefined,
+          },
+          create: {
+            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
+            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
+            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
+            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
+            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
+            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
+            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
+            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
+            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
+            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
+            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+      childInvestors: item.childInvestors ? 
+        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        item.childInvestors.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: item.childInvestors.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+            email: item.email !== undefined ? {
+                equals: item.email 
+               } : undefined,
+            type: item.type !== undefined ? {
+                equals: item.type 
+               } : undefined,
+            status: item.status !== undefined ? {
+                equals: item.status 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            email: item.email !== undefined ? item.email : undefined,
+            type: item.type !== undefined ? item.type : undefined,
+            status: item.status !== undefined ? item.status : undefined,
+            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
+            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
+            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
+            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
+            notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      officeOrganization: item.officeOrganization ? 
+        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
+    ? { connect: {
+            id: item.officeOrganization.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            name: item.officeOrganization.name !== undefined ? {
+                equals: item.officeOrganization.name 
+               } : undefined,
+          },
+          create: {
+            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
+            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
+            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
+            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
+            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
+            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
+                set: item.officeOrganization.emailDomains 
+               } : undefined,
+            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
+            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
+            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
+            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
+            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -10199,6 +10915,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -10271,6 +10988,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -10649,6 +11367,12 @@ import { logger } from './utils/logger';
           businessType: props.fund.organization.businessType !== undefined ? {
               set: props.fund.organization.businessType
             } : undefined,
+          kind: props.fund.organization.kind !== undefined ? {
+              set: props.fund.organization.kind
+            } : undefined,
+          timeZone: props.fund.organization.timeZone !== undefined ? {
+              set: props.fund.organization.timeZone
+            } : undefined,
           emailDomains: props.fund.organization.emailDomains !== undefined ? {
               set: props.fund.organization.emailDomains
             } : undefined,
@@ -10679,6 +11403,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -10690,11 +11417,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -10728,6 +11465,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -10760,6 +11503,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -10774,6 +11520,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -11076,6 +11823,8 @@ import { logger } from './utils/logger';
           logoUrl: props.fund.organization.logoUrl !== undefined ? props.fund.organization.logoUrl : undefined,
           website: props.fund.organization.website !== undefined ? props.fund.organization.website : undefined,
           businessType: props.fund.organization.businessType !== undefined ? props.fund.organization.businessType : undefined,
+          kind: props.fund.organization.kind !== undefined ? props.fund.organization.kind : undefined,
+          timeZone: props.fund.organization.timeZone !== undefined ? props.fund.organization.timeZone : undefined,
           emailDomains: props.fund.organization.emailDomains !== undefined ? {
               set: props.fund.organization.emailDomains 
              } : undefined,
@@ -11099,11 +11848,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -11143,6 +11899,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -11979,6 +12736,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -11990,11 +12750,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -12303,6 +13073,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -12335,6 +13111,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -12349,6 +13128,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -13096,11 +13876,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -13287,6 +14074,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -14217,6 +15005,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -14228,11 +15019,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -14541,6 +15342,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -14573,6 +15380,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -14587,6 +15397,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -15334,11 +16145,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -15525,6 +16343,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -16301,6 +17120,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -16333,6 +17158,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -16347,6 +17175,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -16498,6 +17327,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -16659,6 +17489,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -16691,6 +17527,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -16705,6 +17544,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -16829,6 +17669,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -16981,6 +17822,12 @@ import { logger } from './utils/logger';
             businessType: item.organization.businessType !== undefined ? {
                 set: item.organization.businessType
               } : undefined,
+            kind: item.organization.kind !== undefined ? {
+                set: item.organization.kind
+              } : undefined,
+            timeZone: item.organization.timeZone !== undefined ? {
+                set: item.organization.timeZone
+              } : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains
               } : undefined,
@@ -17004,6 +17851,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -17047,6 +17896,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -17079,6 +17934,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -17093,6 +17951,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -17133,6 +17992,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -17179,6 +18040,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -17272,6 +18134,12 @@ import { logger } from './utils/logger';
             businessType: item.organization.businessType !== undefined ? {
                 set: item.organization.businessType
               } : undefined,
+            kind: item.organization.kind !== undefined ? {
+                set: item.organization.kind
+              } : undefined,
+            timeZone: item.organization.timeZone !== undefined ? {
+                set: item.organization.timeZone
+              } : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains
               } : undefined,
@@ -17295,6 +18163,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -17338,6 +18208,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -17370,6 +18246,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -17384,6 +18263,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -17417,6 +18297,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -17463,6 +18345,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -17548,6 +18431,12 @@ import { logger } from './utils/logger';
             businessType: item.organization.businessType !== undefined ? {
                 set: item.organization.businessType
               } : undefined,
+            kind: item.organization.kind !== undefined ? {
+                set: item.organization.kind
+              } : undefined,
+            timeZone: item.organization.timeZone !== undefined ? {
+                set: item.organization.timeZone
+              } : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains
               } : undefined,
@@ -17571,6 +18460,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -17824,6 +18715,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -18816,6 +19709,8 @@ import { logger } from './utils/logger';
           logoUrl: props.fund.organization.logoUrl !== undefined ? props.fund.organization.logoUrl : undefined,
           website: props.fund.organization.website !== undefined ? props.fund.organization.website : undefined,
           businessType: props.fund.organization.businessType !== undefined ? props.fund.organization.businessType : undefined,
+          kind: props.fund.organization.kind !== undefined ? props.fund.organization.kind : undefined,
+          timeZone: props.fund.organization.timeZone !== undefined ? props.fund.organization.timeZone : undefined,
           emailDomains: props.fund.organization.emailDomains !== undefined ? {
               set: props.fund.organization.emailDomains 
              } : undefined,
@@ -18839,11 +19734,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -18883,6 +19785,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -19354,11 +20257,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -19545,6 +20455,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -20110,11 +21021,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -20301,6 +21219,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -20758,6 +21677,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -20883,6 +21803,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -20982,6 +21903,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -21028,6 +21951,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -21085,6 +22009,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -21131,6 +22057,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -21181,6 +22108,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -22337,6 +23266,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -22348,11 +23280,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -22751,6 +23693,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -22783,6 +23731,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -22797,6 +23748,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -23471,11 +24423,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -23704,6 +24663,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -24242,11 +25202,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -24475,6 +25442,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -24864,6 +25832,8 @@ import { logger } from './utils/logger';
         logoUrl: props.organization.logoUrl !== undefined ? props.organization.logoUrl : undefined,
         website: props.organization.website !== undefined ? props.organization.website : undefined,
         businessType: props.organization.businessType !== undefined ? props.organization.businessType : undefined,
+        kind: props.organization.kind !== undefined ? props.organization.kind : undefined,
+        timeZone: props.organization.timeZone !== undefined ? props.organization.timeZone : undefined,
         emailDomains: props.organization.emailDomains !== undefined ? {
             set: props.organization.emailDomains 
            } : undefined,
@@ -24887,11 +25857,18 @@ import { logger } from './utils/logger';
           userId: item.userId !== undefined ? {
               equals: item.userId 
              } : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              equals: item.entityScopeIds 
+             } : undefined,
         },
         create: {
           role: item.role !== undefined ? item.role : undefined,
           permissions: item.permissions !== undefined ? {
               set: item.permissions 
+             } : undefined,
+          entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              set: item.entityScopeIds 
              } : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -25472,6 +26449,7 @@ import { logger } from './utils/logger';
           joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
           externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
           notes: item.notes !== undefined ? item.notes : undefined,
+          registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
           deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -25541,6 +26519,119 @@ import { logger } from './utils/logger';
             riskProfile: item.customer.riskProfile !== undefined ? item.customer.riskProfile : undefined,
             amlStatus: item.customer.amlStatus !== undefined ? item.customer.amlStatus : undefined,
             lastKycUpdate: item.customer.lastKycUpdate !== undefined ? item.customer.lastKycUpdate : undefined,
+          },
+        }
+      } : undefined,
+      parentInvestor: item.parentInvestor ? 
+        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
+    ? { connect: {
+            id: item.parentInvestor.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
+            organizationId: item.parentInvestor.organizationId !== undefined ? {
+                equals: item.parentInvestor.organizationId 
+               } : undefined,
+            name: item.parentInvestor.name !== undefined ? {
+                equals: item.parentInvestor.name 
+               } : undefined,
+            email: item.parentInvestor.email !== undefined ? {
+                equals: item.parentInvestor.email 
+               } : undefined,
+            type: item.parentInvestor.type !== undefined ? {
+                equals: item.parentInvestor.type 
+               } : undefined,
+            status: item.parentInvestor.status !== undefined ? {
+                equals: item.parentInvestor.status 
+               } : undefined,
+          },
+          create: {
+            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
+            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
+            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
+            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
+            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
+            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
+            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
+            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
+            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
+            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
+            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+      childInvestors: item.childInvestors ? 
+        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        item.childInvestors.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: item.childInvestors.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+            email: item.email !== undefined ? {
+                equals: item.email 
+               } : undefined,
+            type: item.type !== undefined ? {
+                equals: item.type 
+               } : undefined,
+            status: item.status !== undefined ? {
+                equals: item.status 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            email: item.email !== undefined ? item.email : undefined,
+            type: item.type !== undefined ? item.type : undefined,
+            status: item.status !== undefined ? item.status : undefined,
+            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
+            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
+            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
+            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
+            notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      officeOrganization: item.officeOrganization ? 
+        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
+    ? { connect: {
+            id: item.officeOrganization.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            name: item.officeOrganization.name !== undefined ? {
+                equals: item.officeOrganization.name 
+               } : undefined,
+          },
+          create: {
+            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
+            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
+            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
+            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
+            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
+            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
+                set: item.officeOrganization.emailDomains 
+               } : undefined,
+            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
+            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
+            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
+            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
+            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -25815,6 +26906,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -25887,6 +26979,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -26215,6 +27308,8 @@ import { logger } from './utils/logger';
           logoUrl: props.fund.organization.logoUrl !== undefined ? props.fund.organization.logoUrl : undefined,
           website: props.fund.organization.website !== undefined ? props.fund.organization.website : undefined,
           businessType: props.fund.organization.businessType !== undefined ? props.fund.organization.businessType : undefined,
+          kind: props.fund.organization.kind !== undefined ? props.fund.organization.kind : undefined,
+          timeZone: props.fund.organization.timeZone !== undefined ? props.fund.organization.timeZone : undefined,
           emailDomains: props.fund.organization.emailDomains !== undefined ? {
               set: props.fund.organization.emailDomains 
              } : undefined,
@@ -26238,11 +27333,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -26282,6 +27384,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -26753,11 +27856,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -26944,6 +28054,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -27509,11 +28620,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -27700,6 +28818,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -28157,6 +29276,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -28282,6 +29402,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -28381,6 +29502,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -28427,6 +29550,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -28484,6 +29608,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -28530,6 +29656,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -28580,6 +29707,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -29349,11 +30478,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -29582,6 +30718,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -29840,6 +30977,12 @@ import { logger } from './utils/logger';
         businessType: props.organization.businessType !== undefined ? {
             set: props.organization.businessType
           } : undefined,
+        kind: props.organization.kind !== undefined ? {
+            set: props.organization.kind
+          } : undefined,
+        timeZone: props.organization.timeZone !== undefined ? {
+            set: props.organization.timeZone
+          } : undefined,
         emailDomains: props.organization.emailDomains !== undefined ? {
             set: props.organization.emailDomains
           } : undefined,
@@ -29870,6 +31013,9 @@ import { logger } from './utils/logger';
           userId: item.userId !== undefined ? {
               equals: item.userId
             } : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              equals: item.entityScopeIds
+            } : undefined,
         },
         update: {
           id: item.id !== undefined ? {
@@ -29880,6 +31026,12 @@ import { logger } from './utils/logger';
             } : undefined,
           permissions: item.permissions !== undefined ? {
               set: item.permissions
+            } : undefined,
+          entityScopeAll: item.entityScopeAll !== undefined ? {
+              set: item.entityScopeAll
+            } : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              set: item.entityScopeIds
             } : undefined,
       user: item.user ? 
       typeof item.user === 'object' && Object.keys(item.user).length === 1 && (Object.keys(item.user)[0] === 'id' || Object.keys(item.user)[0] === 'symbol')
@@ -29984,6 +31136,10 @@ import { logger } from './utils/logger';
           role: item.role !== undefined ? item.role : undefined,
           permissions: item.permissions !== undefined ? {
               set: item.permissions 
+             } : undefined,
+          entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              set: item.entityScopeIds 
              } : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -31596,6 +32752,12 @@ import { logger } from './utils/logger';
           status: item.status !== undefined ? {
               equals: item.status
             } : undefined,
+          parentInvestorId: item.parentInvestorId !== undefined ? {
+              equals: item.parentInvestorId
+            } : undefined,
+          officeOrganizationId: item.officeOrganizationId !== undefined ? {
+              equals: item.officeOrganizationId
+            } : undefined,
         },
         update: {
           id: item.id !== undefined ? {
@@ -31627,6 +32789,9 @@ import { logger } from './utils/logger';
             } : undefined,
           notes: item.notes !== undefined ? {
               set: item.notes
+            } : undefined,
+          registrationNumber: item.registrationNumber !== undefined ? {
+              set: item.registrationNumber
             } : undefined,
           deletedAt: item.deletedAt !== undefined ? {
               set: item.deletedAt
@@ -31803,6 +32968,266 @@ import { logger } from './utils/logger';
             riskProfile: item.customer.riskProfile !== undefined ? item.customer.riskProfile : undefined,
             amlStatus: item.customer.amlStatus !== undefined ? item.customer.amlStatus : undefined,
             lastKycUpdate: item.customer.lastKycUpdate !== undefined ? item.customer.lastKycUpdate : undefined,
+          },
+        }
+      } : undefined,
+      parentInvestor: item.parentInvestor ? 
+      typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && (Object.keys(item.parentInvestor)[0] === 'id' || Object.keys(item.parentInvestor)[0] === 'symbol')
+? {
+      connect: {
+        id: item.parentInvestor.id
+      }
+} : { upsert: {
+          where: {
+            id: item.parentInvestor.id !== undefined ? {
+                equals: item.parentInvestor.id
+              } : undefined,
+            organizationId: item.parentInvestor.organizationId !== undefined ? {
+                equals: item.parentInvestor.organizationId
+              } : undefined,
+            userId: item.parentInvestor.userId !== undefined ? {
+                equals: item.parentInvestor.userId
+              } : undefined,
+            customerId: item.parentInvestor.customerId !== undefined ? {
+                equals: item.parentInvestor.customerId
+              } : undefined,
+            name: item.parentInvestor.name !== undefined ? {
+                equals: item.parentInvestor.name
+              } : undefined,
+            email: item.parentInvestor.email !== undefined ? {
+                equals: item.parentInvestor.email
+              } : undefined,
+            type: item.parentInvestor.type !== undefined ? {
+                equals: item.parentInvestor.type
+              } : undefined,
+            status: item.parentInvestor.status !== undefined ? {
+                equals: item.parentInvestor.status
+              } : undefined,
+            parentInvestorId: item.parentInvestor.parentInvestorId !== undefined ? {
+                equals: item.parentInvestor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.parentInvestor.officeOrganizationId !== undefined ? {
+                equals: item.parentInvestor.officeOrganizationId
+              } : undefined,
+          },
+          update: {
+            id: item.parentInvestor.id !== undefined ? {
+                set: item.parentInvestor.id
+              } : undefined,
+            name: item.parentInvestor.name !== undefined ? {
+                set: item.parentInvestor.name
+              } : undefined,
+            email: item.parentInvestor.email !== undefined ? {
+                set: item.parentInvestor.email
+              } : undefined,
+            type: item.parentInvestor.type !== undefined ? {
+                set: item.parentInvestor.type
+              } : undefined,
+            status: item.parentInvestor.status !== undefined ? {
+                set: item.parentInvestor.status
+              } : undefined,
+            kycStatus: item.parentInvestor.kycStatus !== undefined ? {
+                set: item.parentInvestor.kycStatus
+              } : undefined,
+            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? {
+                set: item.parentInvestor.jurisdiction
+              } : undefined,
+            joinedAt: item.parentInvestor.joinedAt !== undefined ? {
+                set: item.parentInvestor.joinedAt
+              } : undefined,
+            externalRef: item.parentInvestor.externalRef !== undefined ? {
+                set: item.parentInvestor.externalRef
+              } : undefined,
+            notes: item.parentInvestor.notes !== undefined ? {
+                set: item.parentInvestor.notes
+              } : undefined,
+            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? {
+                set: item.parentInvestor.registrationNumber
+              } : undefined,
+            deletedAt: item.parentInvestor.deletedAt !== undefined ? {
+                set: item.parentInvestor.deletedAt
+              } : undefined,
+          },
+          create: {
+            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
+            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
+            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
+            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
+            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
+            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
+            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
+            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
+            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
+            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
+            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+      childInvestors: item.childInvestors ? 
+      Array.isArray(item.childInvestors) && item.childInvestors.length > 0 && item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: item.childInvestors.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: item.childInvestors.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId
+              } : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            customerId: item.customerId !== undefined ? {
+                equals: item.customerId
+              } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name
+              } : undefined,
+            email: item.email !== undefined ? {
+                equals: item.email
+              } : undefined,
+            type: item.type !== undefined ? {
+                equals: item.type
+              } : undefined,
+            status: item.status !== undefined ? {
+                equals: item.status
+              } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            name: item.name !== undefined ? {
+                set: item.name
+              } : undefined,
+            email: item.email !== undefined ? {
+                set: item.email
+              } : undefined,
+            type: item.type !== undefined ? {
+                set: item.type
+              } : undefined,
+            status: item.status !== undefined ? {
+                set: item.status
+              } : undefined,
+            kycStatus: item.kycStatus !== undefined ? {
+                set: item.kycStatus
+              } : undefined,
+            jurisdiction: item.jurisdiction !== undefined ? {
+                set: item.jurisdiction
+              } : undefined,
+            joinedAt: item.joinedAt !== undefined ? {
+                set: item.joinedAt
+              } : undefined,
+            externalRef: item.externalRef !== undefined ? {
+                set: item.externalRef
+              } : undefined,
+            notes: item.notes !== undefined ? {
+                set: item.notes
+              } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
+            deletedAt: item.deletedAt !== undefined ? {
+                set: item.deletedAt
+              } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            email: item.email !== undefined ? item.email : undefined,
+            type: item.type !== undefined ? item.type : undefined,
+            status: item.status !== undefined ? item.status : undefined,
+            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
+            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
+            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
+            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
+            notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      officeOrganization: item.officeOrganization ? 
+      typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && (Object.keys(item.officeOrganization)[0] === 'id' || Object.keys(item.officeOrganization)[0] === 'symbol')
+? {
+      connect: {
+        id: item.officeOrganization.id
+      }
+} : { upsert: {
+          where: {
+            id: item.officeOrganization.id !== undefined ? {
+                equals: item.officeOrganization.id
+              } : undefined,
+            name: item.officeOrganization.name !== undefined ? {
+                equals: item.officeOrganization.name
+              } : undefined,
+            slug: item.officeOrganization.slug !== undefined ? {
+                equals: item.officeOrganization.slug
+              } : undefined,
+          },
+          update: {
+            id: item.officeOrganization.id !== undefined ? {
+                set: item.officeOrganization.id
+              } : undefined,
+            name: item.officeOrganization.name !== undefined ? {
+                set: item.officeOrganization.name
+              } : undefined,
+            slug: item.officeOrganization.slug !== undefined ? {
+                set: item.officeOrganization.slug
+              } : undefined,
+            logoUrl: item.officeOrganization.logoUrl !== undefined ? {
+                set: item.officeOrganization.logoUrl
+              } : undefined,
+            website: item.officeOrganization.website !== undefined ? {
+                set: item.officeOrganization.website
+              } : undefined,
+            businessType: item.officeOrganization.businessType !== undefined ? {
+                set: item.officeOrganization.businessType
+              } : undefined,
+            kind: item.officeOrganization.kind !== undefined ? {
+                set: item.officeOrganization.kind
+              } : undefined,
+            timeZone: item.officeOrganization.timeZone !== undefined ? {
+                set: item.officeOrganization.timeZone
+              } : undefined,
+            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
+                set: item.officeOrganization.emailDomains
+              } : undefined,
+            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? {
+                set: item.officeOrganization.jurisdiction
+              } : undefined,
+            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? {
+                set: item.officeOrganization.regulatoryStatus
+              } : undefined,
+            description: item.officeOrganization.description !== undefined ? {
+                set: item.officeOrganization.description
+              } : undefined,
+            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
+            deletedAt: item.officeOrganization.deletedAt !== undefined ? {
+                set: item.officeOrganization.deletedAt
+              } : undefined,
+          },
+          create: {
+            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
+            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
+            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
+            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
+            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
+            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
+                set: item.officeOrganization.emailDomains 
+               } : undefined,
+            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
+            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
+            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
+            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
+            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -32137,6 +33562,7 @@ import { logger } from './utils/logger';
           joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
           externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
           notes: item.notes !== undefined ? item.notes : undefined,
+          registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
           deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -32206,6 +33632,119 @@ import { logger } from './utils/logger';
             riskProfile: item.customer.riskProfile !== undefined ? item.customer.riskProfile : undefined,
             amlStatus: item.customer.amlStatus !== undefined ? item.customer.amlStatus : undefined,
             lastKycUpdate: item.customer.lastKycUpdate !== undefined ? item.customer.lastKycUpdate : undefined,
+          },
+        }
+      } : undefined,
+      parentInvestor: item.parentInvestor ? 
+        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
+    ? { connect: {
+            id: item.parentInvestor.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
+            organizationId: item.parentInvestor.organizationId !== undefined ? {
+                equals: item.parentInvestor.organizationId 
+               } : undefined,
+            name: item.parentInvestor.name !== undefined ? {
+                equals: item.parentInvestor.name 
+               } : undefined,
+            email: item.parentInvestor.email !== undefined ? {
+                equals: item.parentInvestor.email 
+               } : undefined,
+            type: item.parentInvestor.type !== undefined ? {
+                equals: item.parentInvestor.type 
+               } : undefined,
+            status: item.parentInvestor.status !== undefined ? {
+                equals: item.parentInvestor.status 
+               } : undefined,
+          },
+          create: {
+            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
+            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
+            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
+            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
+            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
+            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
+            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
+            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
+            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
+            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
+            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+      childInvestors: item.childInvestors ? 
+        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        item.childInvestors.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: item.childInvestors.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+            email: item.email !== undefined ? {
+                equals: item.email 
+               } : undefined,
+            type: item.type !== undefined ? {
+                equals: item.type 
+               } : undefined,
+            status: item.status !== undefined ? {
+                equals: item.status 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            email: item.email !== undefined ? item.email : undefined,
+            type: item.type !== undefined ? item.type : undefined,
+            status: item.status !== undefined ? item.status : undefined,
+            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
+            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
+            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
+            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
+            notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      officeOrganization: item.officeOrganization ? 
+        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
+    ? { connect: {
+            id: item.officeOrganization.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            name: item.officeOrganization.name !== undefined ? {
+                equals: item.officeOrganization.name 
+               } : undefined,
+          },
+          create: {
+            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
+            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
+            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
+            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
+            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
+            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
+                set: item.officeOrganization.emailDomains 
+               } : undefined,
+            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
+            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
+            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
+            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
+            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -32564,6 +34103,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -32596,6 +34141,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -32610,6 +34158,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -32707,6 +34256,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -32795,6 +34345,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -32827,6 +34383,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -32841,6 +34400,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -32982,6 +34542,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -33705,6 +35266,8 @@ import { logger } from './utils/logger';
         logoUrl: props.organization.logoUrl !== undefined ? props.organization.logoUrl : undefined,
         website: props.organization.website !== undefined ? props.organization.website : undefined,
         businessType: props.organization.businessType !== undefined ? props.organization.businessType : undefined,
+        kind: props.organization.kind !== undefined ? props.organization.kind : undefined,
+        timeZone: props.organization.timeZone !== undefined ? props.organization.timeZone : undefined,
         emailDomains: props.organization.emailDomains !== undefined ? {
             set: props.organization.emailDomains 
            } : undefined,
@@ -33728,11 +35291,18 @@ import { logger } from './utils/logger';
           userId: item.userId !== undefined ? {
               equals: item.userId 
              } : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              equals: item.entityScopeIds 
+             } : undefined,
         },
         create: {
           role: item.role !== undefined ? item.role : undefined,
           permissions: item.permissions !== undefined ? {
               set: item.permissions 
+             } : undefined,
+          entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              set: item.entityScopeIds 
              } : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -34313,6 +35883,7 @@ import { logger } from './utils/logger';
           joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
           externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
           notes: item.notes !== undefined ? item.notes : undefined,
+          registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
           deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -34382,6 +35953,119 @@ import { logger } from './utils/logger';
             riskProfile: item.customer.riskProfile !== undefined ? item.customer.riskProfile : undefined,
             amlStatus: item.customer.amlStatus !== undefined ? item.customer.amlStatus : undefined,
             lastKycUpdate: item.customer.lastKycUpdate !== undefined ? item.customer.lastKycUpdate : undefined,
+          },
+        }
+      } : undefined,
+      parentInvestor: item.parentInvestor ? 
+        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
+    ? { connect: {
+            id: item.parentInvestor.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
+            organizationId: item.parentInvestor.organizationId !== undefined ? {
+                equals: item.parentInvestor.organizationId 
+               } : undefined,
+            name: item.parentInvestor.name !== undefined ? {
+                equals: item.parentInvestor.name 
+               } : undefined,
+            email: item.parentInvestor.email !== undefined ? {
+                equals: item.parentInvestor.email 
+               } : undefined,
+            type: item.parentInvestor.type !== undefined ? {
+                equals: item.parentInvestor.type 
+               } : undefined,
+            status: item.parentInvestor.status !== undefined ? {
+                equals: item.parentInvestor.status 
+               } : undefined,
+          },
+          create: {
+            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
+            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
+            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
+            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
+            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
+            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
+            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
+            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
+            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
+            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
+            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+      childInvestors: item.childInvestors ? 
+        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        item.childInvestors.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: item.childInvestors.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+            email: item.email !== undefined ? {
+                equals: item.email 
+               } : undefined,
+            type: item.type !== undefined ? {
+                equals: item.type 
+               } : undefined,
+            status: item.status !== undefined ? {
+                equals: item.status 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            email: item.email !== undefined ? item.email : undefined,
+            type: item.type !== undefined ? item.type : undefined,
+            status: item.status !== undefined ? item.status : undefined,
+            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
+            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
+            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
+            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
+            notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      officeOrganization: item.officeOrganization ? 
+        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
+    ? { connect: {
+            id: item.officeOrganization.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            name: item.officeOrganization.name !== undefined ? {
+                equals: item.officeOrganization.name 
+               } : undefined,
+          },
+          create: {
+            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
+            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
+            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
+            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
+            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
+            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
+                set: item.officeOrganization.emailDomains 
+               } : undefined,
+            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
+            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
+            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
+            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
+            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -34656,6 +36340,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -34728,6 +36413,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -35106,6 +36792,12 @@ import { logger } from './utils/logger';
           businessType: props.fund.organization.businessType !== undefined ? {
               set: props.fund.organization.businessType
             } : undefined,
+          kind: props.fund.organization.kind !== undefined ? {
+              set: props.fund.organization.kind
+            } : undefined,
+          timeZone: props.fund.organization.timeZone !== undefined ? {
+              set: props.fund.organization.timeZone
+            } : undefined,
           emailDomains: props.fund.organization.emailDomains !== undefined ? {
               set: props.fund.organization.emailDomains
             } : undefined,
@@ -35136,6 +36828,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -35147,11 +36842,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -35185,6 +36890,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -35217,6 +36928,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -35231,6 +36945,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -35533,6 +37248,8 @@ import { logger } from './utils/logger';
           logoUrl: props.fund.organization.logoUrl !== undefined ? props.fund.organization.logoUrl : undefined,
           website: props.fund.organization.website !== undefined ? props.fund.organization.website : undefined,
           businessType: props.fund.organization.businessType !== undefined ? props.fund.organization.businessType : undefined,
+          kind: props.fund.organization.kind !== undefined ? props.fund.organization.kind : undefined,
+          timeZone: props.fund.organization.timeZone !== undefined ? props.fund.organization.timeZone : undefined,
           emailDomains: props.fund.organization.emailDomains !== undefined ? {
               set: props.fund.organization.emailDomains 
              } : undefined,
@@ -35556,11 +37273,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -35600,6 +37324,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -36436,6 +38161,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -36447,11 +38175,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -36760,6 +38498,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -36792,6 +38536,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -36806,6 +38553,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -37553,11 +39301,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -37744,6 +39499,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -38674,6 +40430,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -38685,11 +40444,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -38998,6 +40767,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -39030,6 +40805,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -39044,6 +40822,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -39791,11 +41570,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -39982,6 +41768,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -40758,6 +42545,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -40790,6 +42583,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -40804,6 +42600,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -40955,6 +42752,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -41116,6 +42914,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -41148,6 +42952,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -41162,6 +42969,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -41286,6 +43094,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -41438,6 +43247,12 @@ import { logger } from './utils/logger';
             businessType: item.organization.businessType !== undefined ? {
                 set: item.organization.businessType
               } : undefined,
+            kind: item.organization.kind !== undefined ? {
+                set: item.organization.kind
+              } : undefined,
+            timeZone: item.organization.timeZone !== undefined ? {
+                set: item.organization.timeZone
+              } : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains
               } : undefined,
@@ -41461,6 +43276,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -41504,6 +43321,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -41536,6 +43359,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -41550,6 +43376,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -41590,6 +43417,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -41636,6 +43465,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -41729,6 +43559,12 @@ import { logger } from './utils/logger';
             businessType: item.organization.businessType !== undefined ? {
                 set: item.organization.businessType
               } : undefined,
+            kind: item.organization.kind !== undefined ? {
+                set: item.organization.kind
+              } : undefined,
+            timeZone: item.organization.timeZone !== undefined ? {
+                set: item.organization.timeZone
+              } : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains
               } : undefined,
@@ -41752,6 +43588,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -41795,6 +43633,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -41827,6 +43671,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -41841,6 +43688,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -41874,6 +43722,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -41920,6 +43770,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -42005,6 +43856,12 @@ import { logger } from './utils/logger';
             businessType: item.organization.businessType !== undefined ? {
                 set: item.organization.businessType
               } : undefined,
+            kind: item.organization.kind !== undefined ? {
+                set: item.organization.kind
+              } : undefined,
+            timeZone: item.organization.timeZone !== undefined ? {
+                set: item.organization.timeZone
+              } : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains
               } : undefined,
@@ -42028,6 +43885,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -42281,6 +44140,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -43273,6 +45134,8 @@ import { logger } from './utils/logger';
           logoUrl: props.fund.organization.logoUrl !== undefined ? props.fund.organization.logoUrl : undefined,
           website: props.fund.organization.website !== undefined ? props.fund.organization.website : undefined,
           businessType: props.fund.organization.businessType !== undefined ? props.fund.organization.businessType : undefined,
+          kind: props.fund.organization.kind !== undefined ? props.fund.organization.kind : undefined,
+          timeZone: props.fund.organization.timeZone !== undefined ? props.fund.organization.timeZone : undefined,
           emailDomains: props.fund.organization.emailDomains !== undefined ? {
               set: props.fund.organization.emailDomains 
              } : undefined,
@@ -43296,11 +45159,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -43340,6 +45210,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -43811,11 +45682,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -44002,6 +45880,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -44567,11 +46446,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -44758,6 +46644,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -45215,6 +47102,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -45340,6 +47228,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -45439,6 +47328,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -45485,6 +47376,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -45542,6 +47434,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -45588,6 +47482,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -45638,6 +47533,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -46794,6 +48691,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -46805,11 +48705,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -47208,6 +49118,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -47240,6 +49156,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -47254,6 +49173,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -47928,11 +49848,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -48161,6 +50088,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -48699,11 +50627,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -48932,6 +50867,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -49350,6 +51286,12 @@ import { logger } from './utils/logger';
         businessType: prop.organization.businessType !== undefined ? {
             set: prop.organization.businessType
           } : undefined,
+        kind: prop.organization.kind !== undefined ? {
+            set: prop.organization.kind
+          } : undefined,
+        timeZone: prop.organization.timeZone !== undefined ? {
+            set: prop.organization.timeZone
+          } : undefined,
         emailDomains: prop.organization.emailDomains !== undefined ? {
             set: prop.organization.emailDomains
           } : undefined,
@@ -49380,6 +51322,9 @@ import { logger } from './utils/logger';
           userId: item.userId !== undefined ? {
               equals: item.userId
             } : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              equals: item.entityScopeIds
+            } : undefined,
         },
         update: {
           id: item.id !== undefined ? {
@@ -49390,6 +51335,12 @@ import { logger } from './utils/logger';
             } : undefined,
           permissions: item.permissions !== undefined ? {
               set: item.permissions
+            } : undefined,
+          entityScopeAll: item.entityScopeAll !== undefined ? {
+              set: item.entityScopeAll
+            } : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              set: item.entityScopeIds
             } : undefined,
       user: item.user ? 
       typeof item.user === 'object' && Object.keys(item.user).length === 1 && (Object.keys(item.user)[0] === 'id' || Object.keys(item.user)[0] === 'symbol')
@@ -49494,6 +51445,10 @@ import { logger } from './utils/logger';
           role: item.role !== undefined ? item.role : undefined,
           permissions: item.permissions !== undefined ? {
               set: item.permissions 
+             } : undefined,
+          entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              set: item.entityScopeIds 
              } : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -51106,6 +53061,12 @@ import { logger } from './utils/logger';
           status: item.status !== undefined ? {
               equals: item.status
             } : undefined,
+          parentInvestorId: item.parentInvestorId !== undefined ? {
+              equals: item.parentInvestorId
+            } : undefined,
+          officeOrganizationId: item.officeOrganizationId !== undefined ? {
+              equals: item.officeOrganizationId
+            } : undefined,
         },
         update: {
           id: item.id !== undefined ? {
@@ -51137,6 +53098,9 @@ import { logger } from './utils/logger';
             } : undefined,
           notes: item.notes !== undefined ? {
               set: item.notes
+            } : undefined,
+          registrationNumber: item.registrationNumber !== undefined ? {
+              set: item.registrationNumber
             } : undefined,
           deletedAt: item.deletedAt !== undefined ? {
               set: item.deletedAt
@@ -51313,6 +53277,266 @@ import { logger } from './utils/logger';
             riskProfile: item.customer.riskProfile !== undefined ? item.customer.riskProfile : undefined,
             amlStatus: item.customer.amlStatus !== undefined ? item.customer.amlStatus : undefined,
             lastKycUpdate: item.customer.lastKycUpdate !== undefined ? item.customer.lastKycUpdate : undefined,
+          },
+        }
+      } : undefined,
+      parentInvestor: item.parentInvestor ? 
+      typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && (Object.keys(item.parentInvestor)[0] === 'id' || Object.keys(item.parentInvestor)[0] === 'symbol')
+? {
+      connect: {
+        id: item.parentInvestor.id
+      }
+} : { upsert: {
+          where: {
+            id: item.parentInvestor.id !== undefined ? {
+                equals: item.parentInvestor.id
+              } : undefined,
+            organizationId: item.parentInvestor.organizationId !== undefined ? {
+                equals: item.parentInvestor.organizationId
+              } : undefined,
+            userId: item.parentInvestor.userId !== undefined ? {
+                equals: item.parentInvestor.userId
+              } : undefined,
+            customerId: item.parentInvestor.customerId !== undefined ? {
+                equals: item.parentInvestor.customerId
+              } : undefined,
+            name: item.parentInvestor.name !== undefined ? {
+                equals: item.parentInvestor.name
+              } : undefined,
+            email: item.parentInvestor.email !== undefined ? {
+                equals: item.parentInvestor.email
+              } : undefined,
+            type: item.parentInvestor.type !== undefined ? {
+                equals: item.parentInvestor.type
+              } : undefined,
+            status: item.parentInvestor.status !== undefined ? {
+                equals: item.parentInvestor.status
+              } : undefined,
+            parentInvestorId: item.parentInvestor.parentInvestorId !== undefined ? {
+                equals: item.parentInvestor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.parentInvestor.officeOrganizationId !== undefined ? {
+                equals: item.parentInvestor.officeOrganizationId
+              } : undefined,
+          },
+          update: {
+            id: item.parentInvestor.id !== undefined ? {
+                set: item.parentInvestor.id
+              } : undefined,
+            name: item.parentInvestor.name !== undefined ? {
+                set: item.parentInvestor.name
+              } : undefined,
+            email: item.parentInvestor.email !== undefined ? {
+                set: item.parentInvestor.email
+              } : undefined,
+            type: item.parentInvestor.type !== undefined ? {
+                set: item.parentInvestor.type
+              } : undefined,
+            status: item.parentInvestor.status !== undefined ? {
+                set: item.parentInvestor.status
+              } : undefined,
+            kycStatus: item.parentInvestor.kycStatus !== undefined ? {
+                set: item.parentInvestor.kycStatus
+              } : undefined,
+            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? {
+                set: item.parentInvestor.jurisdiction
+              } : undefined,
+            joinedAt: item.parentInvestor.joinedAt !== undefined ? {
+                set: item.parentInvestor.joinedAt
+              } : undefined,
+            externalRef: item.parentInvestor.externalRef !== undefined ? {
+                set: item.parentInvestor.externalRef
+              } : undefined,
+            notes: item.parentInvestor.notes !== undefined ? {
+                set: item.parentInvestor.notes
+              } : undefined,
+            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? {
+                set: item.parentInvestor.registrationNumber
+              } : undefined,
+            deletedAt: item.parentInvestor.deletedAt !== undefined ? {
+                set: item.parentInvestor.deletedAt
+              } : undefined,
+          },
+          create: {
+            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
+            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
+            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
+            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
+            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
+            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
+            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
+            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
+            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
+            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
+            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+      childInvestors: item.childInvestors ? 
+      Array.isArray(item.childInvestors) && item.childInvestors.length > 0 && item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
+      connect: item.childInvestors.map((item) => ({
+        id: item.id
+      }))
+} : { upsert: item.childInvestors.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId
+              } : undefined,
+            userId: item.userId !== undefined ? {
+                equals: item.userId
+              } : undefined,
+            customerId: item.customerId !== undefined ? {
+                equals: item.customerId
+              } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name
+              } : undefined,
+            email: item.email !== undefined ? {
+                equals: item.email
+              } : undefined,
+            type: item.type !== undefined ? {
+                equals: item.type
+              } : undefined,
+            status: item.status !== undefined ? {
+                equals: item.status
+              } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
+          },
+          update: {
+            id: item.id !== undefined ? {
+                set: item.id
+              } : undefined,
+            name: item.name !== undefined ? {
+                set: item.name
+              } : undefined,
+            email: item.email !== undefined ? {
+                set: item.email
+              } : undefined,
+            type: item.type !== undefined ? {
+                set: item.type
+              } : undefined,
+            status: item.status !== undefined ? {
+                set: item.status
+              } : undefined,
+            kycStatus: item.kycStatus !== undefined ? {
+                set: item.kycStatus
+              } : undefined,
+            jurisdiction: item.jurisdiction !== undefined ? {
+                set: item.jurisdiction
+              } : undefined,
+            joinedAt: item.joinedAt !== undefined ? {
+                set: item.joinedAt
+              } : undefined,
+            externalRef: item.externalRef !== undefined ? {
+                set: item.externalRef
+              } : undefined,
+            notes: item.notes !== undefined ? {
+                set: item.notes
+              } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
+            deletedAt: item.deletedAt !== undefined ? {
+                set: item.deletedAt
+              } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            email: item.email !== undefined ? item.email : undefined,
+            type: item.type !== undefined ? item.type : undefined,
+            status: item.status !== undefined ? item.status : undefined,
+            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
+            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
+            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
+            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
+            notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      officeOrganization: item.officeOrganization ? 
+      typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && (Object.keys(item.officeOrganization)[0] === 'id' || Object.keys(item.officeOrganization)[0] === 'symbol')
+? {
+      connect: {
+        id: item.officeOrganization.id
+      }
+} : { upsert: {
+          where: {
+            id: item.officeOrganization.id !== undefined ? {
+                equals: item.officeOrganization.id
+              } : undefined,
+            name: item.officeOrganization.name !== undefined ? {
+                equals: item.officeOrganization.name
+              } : undefined,
+            slug: item.officeOrganization.slug !== undefined ? {
+                equals: item.officeOrganization.slug
+              } : undefined,
+          },
+          update: {
+            id: item.officeOrganization.id !== undefined ? {
+                set: item.officeOrganization.id
+              } : undefined,
+            name: item.officeOrganization.name !== undefined ? {
+                set: item.officeOrganization.name
+              } : undefined,
+            slug: item.officeOrganization.slug !== undefined ? {
+                set: item.officeOrganization.slug
+              } : undefined,
+            logoUrl: item.officeOrganization.logoUrl !== undefined ? {
+                set: item.officeOrganization.logoUrl
+              } : undefined,
+            website: item.officeOrganization.website !== undefined ? {
+                set: item.officeOrganization.website
+              } : undefined,
+            businessType: item.officeOrganization.businessType !== undefined ? {
+                set: item.officeOrganization.businessType
+              } : undefined,
+            kind: item.officeOrganization.kind !== undefined ? {
+                set: item.officeOrganization.kind
+              } : undefined,
+            timeZone: item.officeOrganization.timeZone !== undefined ? {
+                set: item.officeOrganization.timeZone
+              } : undefined,
+            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
+                set: item.officeOrganization.emailDomains
+              } : undefined,
+            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? {
+                set: item.officeOrganization.jurisdiction
+              } : undefined,
+            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? {
+                set: item.officeOrganization.regulatoryStatus
+              } : undefined,
+            description: item.officeOrganization.description !== undefined ? {
+                set: item.officeOrganization.description
+              } : undefined,
+            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
+            deletedAt: item.officeOrganization.deletedAt !== undefined ? {
+                set: item.officeOrganization.deletedAt
+              } : undefined,
+          },
+          create: {
+            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
+            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
+            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
+            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
+            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
+            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
+                set: item.officeOrganization.emailDomains 
+               } : undefined,
+            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
+            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
+            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
+            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
+            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -51647,6 +53871,7 @@ import { logger } from './utils/logger';
           joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
           externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
           notes: item.notes !== undefined ? item.notes : undefined,
+          registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
           deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -51716,6 +53941,119 @@ import { logger } from './utils/logger';
             riskProfile: item.customer.riskProfile !== undefined ? item.customer.riskProfile : undefined,
             amlStatus: item.customer.amlStatus !== undefined ? item.customer.amlStatus : undefined,
             lastKycUpdate: item.customer.lastKycUpdate !== undefined ? item.customer.lastKycUpdate : undefined,
+          },
+        }
+      } : undefined,
+      parentInvestor: item.parentInvestor ? 
+        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
+    ? { connect: {
+            id: item.parentInvestor.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
+            organizationId: item.parentInvestor.organizationId !== undefined ? {
+                equals: item.parentInvestor.organizationId 
+               } : undefined,
+            name: item.parentInvestor.name !== undefined ? {
+                equals: item.parentInvestor.name 
+               } : undefined,
+            email: item.parentInvestor.email !== undefined ? {
+                equals: item.parentInvestor.email 
+               } : undefined,
+            type: item.parentInvestor.type !== undefined ? {
+                equals: item.parentInvestor.type 
+               } : undefined,
+            status: item.parentInvestor.status !== undefined ? {
+                equals: item.parentInvestor.status 
+               } : undefined,
+          },
+          create: {
+            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
+            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
+            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
+            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
+            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
+            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
+            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
+            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
+            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
+            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
+            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+      childInvestors: item.childInvestors ? 
+        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        item.childInvestors.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: item.childInvestors.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+            email: item.email !== undefined ? {
+                equals: item.email 
+               } : undefined,
+            type: item.type !== undefined ? {
+                equals: item.type 
+               } : undefined,
+            status: item.status !== undefined ? {
+                equals: item.status 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            email: item.email !== undefined ? item.email : undefined,
+            type: item.type !== undefined ? item.type : undefined,
+            status: item.status !== undefined ? item.status : undefined,
+            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
+            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
+            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
+            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
+            notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      officeOrganization: item.officeOrganization ? 
+        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
+    ? { connect: {
+            id: item.officeOrganization.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            name: item.officeOrganization.name !== undefined ? {
+                equals: item.officeOrganization.name 
+               } : undefined,
+          },
+          create: {
+            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
+            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
+            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
+            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
+            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
+            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
+                set: item.officeOrganization.emailDomains 
+               } : undefined,
+            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
+            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
+            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
+            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
+            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -52074,6 +54412,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -52106,6 +54450,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -52120,6 +54467,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -52217,6 +54565,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -52305,6 +54654,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -52337,6 +54692,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -52351,6 +54709,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -52492,6 +54851,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -53215,6 +55575,8 @@ import { logger } from './utils/logger';
         logoUrl: prop.organization.logoUrl !== undefined ? prop.organization.logoUrl : undefined,
         website: prop.organization.website !== undefined ? prop.organization.website : undefined,
         businessType: prop.organization.businessType !== undefined ? prop.organization.businessType : undefined,
+        kind: prop.organization.kind !== undefined ? prop.organization.kind : undefined,
+        timeZone: prop.organization.timeZone !== undefined ? prop.organization.timeZone : undefined,
         emailDomains: prop.organization.emailDomains !== undefined ? {
             set: prop.organization.emailDomains 
            } : undefined,
@@ -53238,11 +55600,18 @@ import { logger } from './utils/logger';
           userId: item.userId !== undefined ? {
               equals: item.userId 
              } : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              equals: item.entityScopeIds 
+             } : undefined,
         },
         create: {
           role: item.role !== undefined ? item.role : undefined,
           permissions: item.permissions !== undefined ? {
               set: item.permissions 
+             } : undefined,
+          entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+          entityScopeIds: item.entityScopeIds !== undefined ? {
+              set: item.entityScopeIds 
              } : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -53823,6 +56192,7 @@ import { logger } from './utils/logger';
           joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
           externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
           notes: item.notes !== undefined ? item.notes : undefined,
+          registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
           deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
       user: item.user ? 
         typeof item.user === 'object' && Object.keys(item.user).length === 1 && Object.keys(item.user)[0] === 'id'
@@ -53892,6 +56262,119 @@ import { logger } from './utils/logger';
             riskProfile: item.customer.riskProfile !== undefined ? item.customer.riskProfile : undefined,
             amlStatus: item.customer.amlStatus !== undefined ? item.customer.amlStatus : undefined,
             lastKycUpdate: item.customer.lastKycUpdate !== undefined ? item.customer.lastKycUpdate : undefined,
+          },
+        }
+      } : undefined,
+      parentInvestor: item.parentInvestor ? 
+        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
+    ? { connect: {
+            id: item.parentInvestor.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
+            organizationId: item.parentInvestor.organizationId !== undefined ? {
+                equals: item.parentInvestor.organizationId 
+               } : undefined,
+            name: item.parentInvestor.name !== undefined ? {
+                equals: item.parentInvestor.name 
+               } : undefined,
+            email: item.parentInvestor.email !== undefined ? {
+                equals: item.parentInvestor.email 
+               } : undefined,
+            type: item.parentInvestor.type !== undefined ? {
+                equals: item.parentInvestor.type 
+               } : undefined,
+            status: item.parentInvestor.status !== undefined ? {
+                equals: item.parentInvestor.status 
+               } : undefined,
+          },
+          create: {
+            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
+            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
+            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
+            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
+            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
+            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
+            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
+            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
+            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
+            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
+            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
+          },
+        }
+      } : undefined,
+      childInvestors: item.childInvestors ? 
+        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
+          connect:        item.childInvestors.map((item) => ({
+             id: item.id
+          }))
+ }
+ : { connectOrCreate: item.childInvestors.map((item) => ({
+          where: {
+            id: item.id !== undefined ? item.id : undefined,
+            organizationId: item.organizationId !== undefined ? {
+                equals: item.organizationId 
+               } : undefined,
+            name: item.name !== undefined ? {
+                equals: item.name 
+               } : undefined,
+            email: item.email !== undefined ? {
+                equals: item.email 
+               } : undefined,
+            type: item.type !== undefined ? {
+                equals: item.type 
+               } : undefined,
+            status: item.status !== undefined ? {
+                equals: item.status 
+               } : undefined,
+          },
+          create: {
+            name: item.name !== undefined ? item.name : undefined,
+            email: item.email !== undefined ? item.email : undefined,
+            type: item.type !== undefined ? item.type : undefined,
+            status: item.status !== undefined ? item.status : undefined,
+            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
+            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
+            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
+            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
+            notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
+            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+          },
+        }))
+      } : undefined,
+      officeOrganization: item.officeOrganization ? 
+        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
+    ? { connect: {
+            id: item.officeOrganization.id
+            }
+          }
+    : { connectOrCreate: {
+          where: {
+            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            name: item.officeOrganization.name !== undefined ? {
+                equals: item.officeOrganization.name 
+               } : undefined,
+          },
+          create: {
+            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
+            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
+            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
+            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
+            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
+            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
+            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
+            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
+                set: item.officeOrganization.emailDomains 
+               } : undefined,
+            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
+            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
+            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
+            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
+            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
           },
         }
       } : undefined,
@@ -54166,6 +56649,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -54238,6 +56722,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -54616,6 +57101,12 @@ import { logger } from './utils/logger';
           businessType: prop.fund.organization.businessType !== undefined ? {
               set: prop.fund.organization.businessType
             } : undefined,
+          kind: prop.fund.organization.kind !== undefined ? {
+              set: prop.fund.organization.kind
+            } : undefined,
+          timeZone: prop.fund.organization.timeZone !== undefined ? {
+              set: prop.fund.organization.timeZone
+            } : undefined,
           emailDomains: prop.fund.organization.emailDomains !== undefined ? {
               set: prop.fund.organization.emailDomains
             } : undefined,
@@ -54646,6 +57137,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -54657,11 +57151,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -54695,6 +57199,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -54727,6 +57237,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -54741,6 +57254,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -55043,6 +57557,8 @@ import { logger } from './utils/logger';
           logoUrl: prop.fund.organization.logoUrl !== undefined ? prop.fund.organization.logoUrl : undefined,
           website: prop.fund.organization.website !== undefined ? prop.fund.organization.website : undefined,
           businessType: prop.fund.organization.businessType !== undefined ? prop.fund.organization.businessType : undefined,
+          kind: prop.fund.organization.kind !== undefined ? prop.fund.organization.kind : undefined,
+          timeZone: prop.fund.organization.timeZone !== undefined ? prop.fund.organization.timeZone : undefined,
           emailDomains: prop.fund.organization.emailDomains !== undefined ? {
               set: prop.fund.organization.emailDomains 
              } : undefined,
@@ -55066,11 +57582,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -55110,6 +57633,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -55946,6 +58470,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -55957,11 +58484,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -56270,6 +58807,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -56302,6 +58845,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -56316,6 +58862,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -57063,11 +59610,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -57254,6 +59808,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -58184,6 +60739,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -58195,11 +60753,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -58508,6 +61076,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -58540,6 +61114,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -58554,6 +61131,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -59301,11 +61879,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -59492,6 +62077,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -60268,6 +62854,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -60300,6 +62892,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -60314,6 +62909,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -60465,6 +63061,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -60626,6 +63223,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -60658,6 +63261,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -60672,6 +63278,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -60796,6 +63403,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -60948,6 +63556,12 @@ import { logger } from './utils/logger';
             businessType: item.organization.businessType !== undefined ? {
                 set: item.organization.businessType
               } : undefined,
+            kind: item.organization.kind !== undefined ? {
+                set: item.organization.kind
+              } : undefined,
+            timeZone: item.organization.timeZone !== undefined ? {
+                set: item.organization.timeZone
+              } : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains
               } : undefined,
@@ -60971,6 +63585,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -61014,6 +63630,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -61046,6 +63668,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -61060,6 +63685,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -61100,6 +63726,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -61146,6 +63774,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -61239,6 +63868,12 @@ import { logger } from './utils/logger';
             businessType: item.organization.businessType !== undefined ? {
                 set: item.organization.businessType
               } : undefined,
+            kind: item.organization.kind !== undefined ? {
+                set: item.organization.kind
+              } : undefined,
+            timeZone: item.organization.timeZone !== undefined ? {
+                set: item.organization.timeZone
+              } : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains
               } : undefined,
@@ -61262,6 +63897,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -61305,6 +63942,12 @@ import { logger } from './utils/logger';
             status: item.investor.status !== undefined ? {
                 equals: item.investor.status
               } : undefined,
+            parentInvestorId: item.investor.parentInvestorId !== undefined ? {
+                equals: item.investor.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.investor.officeOrganizationId !== undefined ? {
+                equals: item.investor.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.investor.id !== undefined ? {
@@ -61337,6 +63980,9 @@ import { logger } from './utils/logger';
             notes: item.investor.notes !== undefined ? {
                 set: item.investor.notes
               } : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? {
+                set: item.investor.registrationNumber
+              } : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? {
                 set: item.investor.deletedAt
               } : undefined,
@@ -61351,6 +63997,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -61384,6 +64031,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -61430,6 +64079,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -61515,6 +64165,12 @@ import { logger } from './utils/logger';
             businessType: item.organization.businessType !== undefined ? {
                 set: item.organization.businessType
               } : undefined,
+            kind: item.organization.kind !== undefined ? {
+                set: item.organization.kind
+              } : undefined,
+            timeZone: item.organization.timeZone !== undefined ? {
+                set: item.organization.timeZone
+              } : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains
               } : undefined,
@@ -61538,6 +64194,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -61791,6 +64449,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -62783,6 +65443,8 @@ import { logger } from './utils/logger';
           logoUrl: prop.fund.organization.logoUrl !== undefined ? prop.fund.organization.logoUrl : undefined,
           website: prop.fund.organization.website !== undefined ? prop.fund.organization.website : undefined,
           businessType: prop.fund.organization.businessType !== undefined ? prop.fund.organization.businessType : undefined,
+          kind: prop.fund.organization.kind !== undefined ? prop.fund.organization.kind : undefined,
+          timeZone: prop.fund.organization.timeZone !== undefined ? prop.fund.organization.timeZone : undefined,
           emailDomains: prop.fund.organization.emailDomains !== undefined ? {
               set: prop.fund.organization.emailDomains 
              } : undefined,
@@ -62806,11 +65468,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -62850,6 +65519,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -63321,11 +65991,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -63512,6 +66189,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -64077,11 +66755,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -64268,6 +66953,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -64725,6 +67411,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -64850,6 +67537,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -64949,6 +67637,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -64995,6 +67685,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -65052,6 +67743,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -65098,6 +67791,7 @@ import { logger } from './utils/logger';
             joinedAt: item.investor.joinedAt !== undefined ? item.investor.joinedAt : undefined,
             externalRef: item.investor.externalRef !== undefined ? item.investor.externalRef : undefined,
             notes: item.investor.notes !== undefined ? item.investor.notes : undefined,
+            registrationNumber: item.investor.registrationNumber !== undefined ? item.investor.registrationNumber : undefined,
             deletedAt: item.investor.deletedAt !== undefined ? item.investor.deletedAt : undefined,
           },
         }
@@ -65148,6 +67842,8 @@ import { logger } from './utils/logger';
             logoUrl: item.organization.logoUrl !== undefined ? item.organization.logoUrl : undefined,
             website: item.organization.website !== undefined ? item.organization.website : undefined,
             businessType: item.organization.businessType !== undefined ? item.organization.businessType : undefined,
+            kind: item.organization.kind !== undefined ? item.organization.kind : undefined,
+            timeZone: item.organization.timeZone !== undefined ? item.organization.timeZone : undefined,
             emailDomains: item.organization.emailDomains !== undefined ? {
                 set: item.organization.emailDomains 
                } : undefined,
@@ -66304,6 +69000,9 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId
               } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -66315,11 +69014,21 @@ import { logger } from './utils/logger';
             permissions: item.permissions !== undefined ? {
                 set: item.permissions
               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? {
+                set: item.entityScopeAll
+              } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds
+              } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -66718,6 +69427,12 @@ import { logger } from './utils/logger';
             status: item.status !== undefined ? {
                 equals: item.status
               } : undefined,
+            parentInvestorId: item.parentInvestorId !== undefined ? {
+                equals: item.parentInvestorId
+              } : undefined,
+            officeOrganizationId: item.officeOrganizationId !== undefined ? {
+                equals: item.officeOrganizationId
+              } : undefined,
           },
           update: {
             id: item.id !== undefined ? {
@@ -66750,6 +69465,9 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? {
                 set: item.notes
               } : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? {
+                set: item.registrationNumber
+              } : undefined,
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
@@ -66764,6 +69482,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -67438,11 +70157,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -67671,6 +70397,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))
@@ -68209,11 +70936,18 @@ import { logger } from './utils/logger';
             userId: item.userId !== undefined ? {
                 equals: item.userId 
                } : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                equals: item.entityScopeIds 
+               } : undefined,
           },
           create: {
             role: item.role !== undefined ? item.role : undefined,
             permissions: item.permissions !== undefined ? {
                 set: item.permissions 
+               } : undefined,
+            entityScopeAll: item.entityScopeAll !== undefined ? item.entityScopeAll : undefined,
+            entityScopeIds: item.entityScopeIds !== undefined ? {
+                set: item.entityScopeIds 
                } : undefined,
           },
         }))
@@ -68442,6 +71176,7 @@ import { logger } from './utils/logger';
             joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
             externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
             notes: item.notes !== undefined ? item.notes : undefined,
+            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
           },
         }))

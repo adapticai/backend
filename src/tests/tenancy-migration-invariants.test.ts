@@ -68,7 +68,7 @@ describe('Enum Sync: SP2 tenancy enums match the platform contract', () => {
     ]);
   });
 
-  it('OrgRole has the platform org-RBAC values', () => {
+  it('OrgRole has the platform org-RBAC values, then the allocator-office roles appended (AG-29)', () => {
     expect(Object.values(PrismaOrgRole)).toEqual([
       'OWNER',
       'ADMIN',
@@ -77,6 +77,9 @@ describe('Enum Sync: SP2 tenancy enums match the platform contract', () => {
       'KYC_AML_OFFICER',
       'AUDITOR',
       'MEMBER',
+      'ALLOCATOR_PRINCIPAL',
+      'INVESTMENT_LEAD',
+      'OPERATIONS_LEAD',
     ]);
   });
 
