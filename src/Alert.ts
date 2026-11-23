@@ -820,6 +820,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -3512,6 +3514,8 @@ import { logger } from './utils/logger';
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
           create: {
             name: item.name !== undefined ? item.name : undefined,
@@ -3525,6 +3529,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -4467,6 +4473,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -6642,6 +6650,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -8227,6 +8237,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -10595,6 +10607,8 @@ import { logger } from './utils/logger';
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
           create: {
             name: item.name !== undefined ? item.name : undefined,
@@ -10608,6 +10622,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -11550,6 +11566,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -13725,6 +13743,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -16256,6 +16276,8 @@ import { logger } from './utils/logger';
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
           create: {
             name: item.name !== undefined ? item.name : undefined,
@@ -16269,6 +16291,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -17211,6 +17235,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -19386,6 +19412,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,

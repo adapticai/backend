@@ -125,6 +125,14 @@ describe('office entities on the served schema', () => {
     expect(ids(report.steps['probe.service'], 'organizations')).toHaveLength(1);
   });
 
+  it("refuses a stranger counting a relation's investors by an entity column, and serves the service's count", () => {
+    expect(report.steps['probe.malloryCount'].codes).toContain('FORBIDDEN');
+    expect(report.steps['probe.serviceCount'].errors).toEqual([]);
+    expect(report.steps['probe.serviceCount'].data).toEqual({
+      organizations: [{ id: expect.any(String), _count: { investors: 1 } }],
+    });
+  });
+
   it("an external auditor reads their own grants with their own token; a listed member reads no one else's; groups go to whole-office readers", () => {
     const { active, revoked } = report.facts.grants;
     const erin = report.steps['grants.erin'];

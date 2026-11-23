@@ -5,6 +5,10 @@
 -- an existing row's meaning (an organization is a MANAGER; a membership sees no
 -- office-owned entity until granted one; an audit entry is untagged), and no
 -- existing column, value or constraint changes.
+--
+-- The id lists (a membership's entity scope, a grant's entities, a group's
+-- entities) are NOT NULL: empty means none, and a NULL would be a third state
+-- every reader would have to decide, so the database refuses it.
 
 -- CreateEnum
 CREATE TYPE "AuditWorkspace" AS ENUM ('STRATEGY', 'FUND', 'SHARED', 'ORGANISATION');
@@ -38,7 +42,7 @@ ADD COLUMN     "registrationNumber" TEXT;
 
 -- AlterTable
 ALTER TABLE "org_memberships" ADD COLUMN     "entityScopeAll" BOOLEAN NOT NULL DEFAULT false,
-ADD COLUMN     "entityScopeIds" UUID[] DEFAULT ARRAY[]::UUID[];
+ADD COLUMN     "entityScopeIds" UUID[] NOT NULL DEFAULT ARRAY[]::UUID[];
 
 -- AlterTable
 ALTER TABLE "organizations" ADD COLUMN     "kind" "OrganizationKind" NOT NULL DEFAULT 'MANAGER',
@@ -49,7 +53,7 @@ CREATE TABLE "entity_groups" (
     "id" UUID NOT NULL,
     "officeId" UUID NOT NULL,
     "name" TEXT NOT NULL,
-    "investorIds" UUID[] DEFAULT ARRAY[]::UUID[],
+    "investorIds" UUID[] NOT NULL DEFAULT ARRAY[]::UUID[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -61,7 +65,7 @@ CREATE TABLE "auditor_grants" (
     "id" UUID NOT NULL,
     "officeOrganizationId" UUID NOT NULL,
     "userId" UUID NOT NULL,
-    "entityIds" UUID[] DEFAULT ARRAY[]::UUID[],
+    "entityIds" UUID[] NOT NULL DEFAULT ARRAY[]::UUID[],
     "periodFrom" TIMESTAMP(3) NOT NULL,
     "periodTo" TIMESTAMP(3) NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,

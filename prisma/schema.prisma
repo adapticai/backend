@@ -7099,8 +7099,8 @@ model Investor {
   /// Relation to the parent entity. TYPESTRING.SKIP=true GQL.SKIP=true Read the parent by parentInvestorId.
   parentInvestor Investor? @relation("InvestorEntityTree", fields: [parentInvestorId], references: [id], onDelete: SetNull)
 
-  /// Entities whose parent this entity is. TYPESTRING.SKIP=true GQL.SKIP=true Read children by parentInvestorId; the back-relation is not on the GraphQL output.
-  /// @TypeGraphQL.omit(output: true)
+  /// Entities whose parent this entity is. TYPESTRING.SKIP=true GQL.SKIP=true Read children by parentInvestorId; the back-relation is on neither the GraphQL output nor any input, so a child is placed under a parent only by setting its own parentInvestorId, which is reserved to the service.
+  /// @TypeGraphQL.omit(output: true, input: true)
   childInvestors Investor[] @relation("InvestorEntityTree")
 
   /// The entity's registration number with its registry (company number, trust registration). Null when not recorded.

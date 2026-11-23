@@ -42,7 +42,7 @@ const READY_POLL_MS = 500;
 const DATABASES: ReadonlyArray<{
   env: string;
   db: string;
-  template: 'head' | 'pre';
+  template: 'head' | 'pre' | 'empty';
 }> = [
   { env: 'ACCESS_IT_DATABASE_URL', db: 'access_it', template: 'head' },
   { env: 'ACCESS_PRE_DATABASE_URL', db: 'access_pre', template: 'pre' },
@@ -52,7 +52,9 @@ const DATABASES: ReadonlyArray<{
   {
     env: 'RESTATEMENT_TEST_DATABASE_URL',
     db: 'restatement_it',
-    template: 'head',
+    // Builds its own schema and applies its own migration on a copy, so it
+    // needs a database whose `public` holds nothing that migration's guards see.
+    template: 'empty',
   },
 ];
 
@@ -287,7 +289,7 @@ export default async function setup(): Promise<() => void> {
       }
     }
     for (const { env, db, template } of missing) {
-      sql(port, `CREATE DATABASE ${db} TEMPLATE tpl_${template}`);
+      sql(port, template === 'empty' ? `CREATE DATABASE ${db}` : `CREATE DATABASE ${db} TEMPLATE tpl_${template}`);
       process.env[env] = urlFor(port, db);
     }
     log(

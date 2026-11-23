@@ -184,6 +184,42 @@ const constructVariablesObject = (
   return variablesObject;
 };
 
+/**
+ * A relation the generated client writes by `connect` only.
+ *
+ * When a model's back-relation to the writer is omitted from every GraphQL
+ * input (`@TypeGraphQL.omit(input: true)`), the related row is one the API
+ * keeps out of nested writes: it is reached through its own root, under its
+ * own authorization (an access row's user and organization, an entity's
+ * office and parent). Writing it through the relation means naming it, so the
+ * client sends `connect: { id }` and nothing else, and does not expand the
+ * related model's whole create/update tree into this model's functions.
+ *
+ * Read from the nested input's name (`<Target>(Create|Update)…Without<Back>…Input`)
+ * and the target's `<Target>CreateInput`: connect-only exactly when that
+ * input has no `<back>` field.
+ *
+ * @param nestedInputTypeName - The relation field's nested input type.
+ * @param inputsPath - The generated inputs directory.
+ */
+const isConnectOnlyRelation = (nestedInputTypeName: string, inputsPath: string | null): boolean => {
+  const match = /^([A-Z][A-Za-z0-9]*?)(?:Create|Update)(?:Nested)?(?:One|Many)(?:Required)?Without([A-Z][A-Za-z0-9]*?)(?:Nested)?Input$/.exec(
+    nestedInputTypeName
+  );
+  if (!match) return false;
+  const [, target, back] = match;
+  const targetCreateInput = path.join(inputsPath || '', `${target}CreateInput.ts`);
+  if (!fs.existsSync(targetCreateInput)) return false;
+  const backField = back.charAt(0).toLowerCase() + back.slice(1);
+  return !getInputTypeDefinition(targetCreateInput).some((item) => item.name === backField);
+};
+
+/** The `connect`-only write of a {@link isConnectOnlyRelation} relation. */
+const connectOnlyCode = (field: FieldDefinition, accessor: string, indent: string): string =>
+  field.type.isList
+    ? `${indent}${field.name}: Array.isArray(${accessor}) && ${accessor}.length > 0 ? { connect: ${accessor}.map((item) => ({ id: item.id })) } : undefined,\n`
+    : `${indent}${field.name}: ${accessor} && ${accessor}.id !== undefined ? { connect: { id: ${accessor}.id } } : undefined,\n`;
+
 const handleCreateOperation = (
   field: FieldDefinition,
   accessor: string,
@@ -207,6 +243,9 @@ const handleCreateOperation = (
     }
 
     const nestedInputTypeName = capitalizeFirstLetter(field.type.name);
+    if (isConnectOnlyRelation(nestedInputTypeName, inputsPath)) {
+      return connectOnlyCode(field, accessor, indent);
+    }
     const nestedInputTypePath = path.join(
       inputsPath || '',
       `${nestedInputTypeName}.ts`
@@ -411,6 +450,9 @@ const handleUpdateOperation = (
     }
 
     const nestedInputTypeName = capitalizeFirstLetter(field.type.name);
+    if (isConnectOnlyRelation(nestedInputTypeName, inputsPath)) {
+      return connectOnlyCode(field, accessor, indent);
+    }
     const nestedInputTypePath = path.join(
       inputsPath || '',
       `${nestedInputTypeName}.ts`

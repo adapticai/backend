@@ -173,6 +173,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -2450,119 +2452,8 @@ import { logger } from './utils/logger';
           },
         }
       } : undefined,
-      parentInvestor: item.parentInvestor ? 
-        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
-    ? { connect: {
-            id: item.parentInvestor.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
-            organizationId: item.parentInvestor.organizationId !== undefined ? {
-                equals: item.parentInvestor.organizationId 
-               } : undefined,
-            name: item.parentInvestor.name !== undefined ? {
-                equals: item.parentInvestor.name 
-               } : undefined,
-            email: item.parentInvestor.email !== undefined ? {
-                equals: item.parentInvestor.email 
-               } : undefined,
-            type: item.parentInvestor.type !== undefined ? {
-                equals: item.parentInvestor.type 
-               } : undefined,
-            status: item.parentInvestor.status !== undefined ? {
-                equals: item.parentInvestor.status 
-               } : undefined,
-          },
-          create: {
-            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
-            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
-            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
-            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
-            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
-            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
-            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
-            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
-            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
-            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
-            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
-          },
-        }
-      } : undefined,
-      childInvestors: item.childInvestors ? 
-        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
-          connect:        item.childInvestors.map((item) => ({
-             id: item.id
-          }))
- }
- : { connectOrCreate: item.childInvestors.map((item) => ({
-          where: {
-            id: item.id !== undefined ? item.id : undefined,
-            organizationId: item.organizationId !== undefined ? {
-                equals: item.organizationId 
-               } : undefined,
-            name: item.name !== undefined ? {
-                equals: item.name 
-               } : undefined,
-            email: item.email !== undefined ? {
-                equals: item.email 
-               } : undefined,
-            type: item.type !== undefined ? {
-                equals: item.type 
-               } : undefined,
-            status: item.status !== undefined ? {
-                equals: item.status 
-               } : undefined,
-          },
-          create: {
-            name: item.name !== undefined ? item.name : undefined,
-            email: item.email !== undefined ? item.email : undefined,
-            type: item.type !== undefined ? item.type : undefined,
-            status: item.status !== undefined ? item.status : undefined,
-            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
-            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
-            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
-            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
-            notes: item.notes !== undefined ? item.notes : undefined,
-            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
-            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
-          },
-        }))
-      } : undefined,
-      officeOrganization: item.officeOrganization ? 
-        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
-    ? { connect: {
-            id: item.officeOrganization.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            name: item.officeOrganization.name !== undefined ? {
-                equals: item.officeOrganization.name 
-               } : undefined,
-          },
-          create: {
-            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
-            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
-            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
-            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
-            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
-            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
-                set: item.officeOrganization.emailDomains 
-               } : undefined,
-            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
-            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
-            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
-            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
-            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
-          },
-        }
-      } : undefined,
+      parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+      officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
       holdings: item.holdings ? 
         Array.isArray(item.holdings) && item.holdings.length > 0 &&  item.holdings.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
           connect:        item.holdings.map((item) => ({
@@ -3771,6 +3662,8 @@ import { logger } from './utils/logger';
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
           create: {
             name: item.name !== undefined ? item.name : undefined,
@@ -3784,6 +3677,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -3837,6 +3732,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -10518,266 +10415,8 @@ import { logger } from './utils/logger';
           },
         }
       } : undefined,
-      parentInvestor: item.parentInvestor ? 
-      typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && (Object.keys(item.parentInvestor)[0] === 'id' || Object.keys(item.parentInvestor)[0] === 'symbol')
-? {
-      connect: {
-        id: item.parentInvestor.id
-      }
-} : { upsert: {
-          where: {
-            id: item.parentInvestor.id !== undefined ? {
-                equals: item.parentInvestor.id
-              } : undefined,
-            organizationId: item.parentInvestor.organizationId !== undefined ? {
-                equals: item.parentInvestor.organizationId
-              } : undefined,
-            userId: item.parentInvestor.userId !== undefined ? {
-                equals: item.parentInvestor.userId
-              } : undefined,
-            customerId: item.parentInvestor.customerId !== undefined ? {
-                equals: item.parentInvestor.customerId
-              } : undefined,
-            name: item.parentInvestor.name !== undefined ? {
-                equals: item.parentInvestor.name
-              } : undefined,
-            email: item.parentInvestor.email !== undefined ? {
-                equals: item.parentInvestor.email
-              } : undefined,
-            type: item.parentInvestor.type !== undefined ? {
-                equals: item.parentInvestor.type
-              } : undefined,
-            status: item.parentInvestor.status !== undefined ? {
-                equals: item.parentInvestor.status
-              } : undefined,
-            parentInvestorId: item.parentInvestor.parentInvestorId !== undefined ? {
-                equals: item.parentInvestor.parentInvestorId
-              } : undefined,
-            officeOrganizationId: item.parentInvestor.officeOrganizationId !== undefined ? {
-                equals: item.parentInvestor.officeOrganizationId
-              } : undefined,
-          },
-          update: {
-            id: item.parentInvestor.id !== undefined ? {
-                set: item.parentInvestor.id
-              } : undefined,
-            name: item.parentInvestor.name !== undefined ? {
-                set: item.parentInvestor.name
-              } : undefined,
-            email: item.parentInvestor.email !== undefined ? {
-                set: item.parentInvestor.email
-              } : undefined,
-            type: item.parentInvestor.type !== undefined ? {
-                set: item.parentInvestor.type
-              } : undefined,
-            status: item.parentInvestor.status !== undefined ? {
-                set: item.parentInvestor.status
-              } : undefined,
-            kycStatus: item.parentInvestor.kycStatus !== undefined ? {
-                set: item.parentInvestor.kycStatus
-              } : undefined,
-            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? {
-                set: item.parentInvestor.jurisdiction
-              } : undefined,
-            joinedAt: item.parentInvestor.joinedAt !== undefined ? {
-                set: item.parentInvestor.joinedAt
-              } : undefined,
-            externalRef: item.parentInvestor.externalRef !== undefined ? {
-                set: item.parentInvestor.externalRef
-              } : undefined,
-            notes: item.parentInvestor.notes !== undefined ? {
-                set: item.parentInvestor.notes
-              } : undefined,
-            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? {
-                set: item.parentInvestor.registrationNumber
-              } : undefined,
-            deletedAt: item.parentInvestor.deletedAt !== undefined ? {
-                set: item.parentInvestor.deletedAt
-              } : undefined,
-          },
-          create: {
-            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
-            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
-            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
-            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
-            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
-            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
-            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
-            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
-            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
-            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
-            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
-          },
-        }
-      } : undefined,
-      childInvestors: item.childInvestors ? 
-      Array.isArray(item.childInvestors) && item.childInvestors.length > 0 && item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
-      connect: item.childInvestors.map((item) => ({
-        id: item.id
-      }))
-} : { upsert: item.childInvestors.map((item) => ({
-          where: {
-            id: item.id !== undefined ? item.id : undefined,
-            organizationId: item.organizationId !== undefined ? {
-                equals: item.organizationId
-              } : undefined,
-            userId: item.userId !== undefined ? {
-                equals: item.userId
-              } : undefined,
-            customerId: item.customerId !== undefined ? {
-                equals: item.customerId
-              } : undefined,
-            name: item.name !== undefined ? {
-                equals: item.name
-              } : undefined,
-            email: item.email !== undefined ? {
-                equals: item.email
-              } : undefined,
-            type: item.type !== undefined ? {
-                equals: item.type
-              } : undefined,
-            status: item.status !== undefined ? {
-                equals: item.status
-              } : undefined,
-            parentInvestorId: item.parentInvestorId !== undefined ? {
-                equals: item.parentInvestorId
-              } : undefined,
-            officeOrganizationId: item.officeOrganizationId !== undefined ? {
-                equals: item.officeOrganizationId
-              } : undefined,
-          },
-          update: {
-            id: item.id !== undefined ? {
-                set: item.id
-              } : undefined,
-            name: item.name !== undefined ? {
-                set: item.name
-              } : undefined,
-            email: item.email !== undefined ? {
-                set: item.email
-              } : undefined,
-            type: item.type !== undefined ? {
-                set: item.type
-              } : undefined,
-            status: item.status !== undefined ? {
-                set: item.status
-              } : undefined,
-            kycStatus: item.kycStatus !== undefined ? {
-                set: item.kycStatus
-              } : undefined,
-            jurisdiction: item.jurisdiction !== undefined ? {
-                set: item.jurisdiction
-              } : undefined,
-            joinedAt: item.joinedAt !== undefined ? {
-                set: item.joinedAt
-              } : undefined,
-            externalRef: item.externalRef !== undefined ? {
-                set: item.externalRef
-              } : undefined,
-            notes: item.notes !== undefined ? {
-                set: item.notes
-              } : undefined,
-            registrationNumber: item.registrationNumber !== undefined ? {
-                set: item.registrationNumber
-              } : undefined,
-            deletedAt: item.deletedAt !== undefined ? {
-                set: item.deletedAt
-              } : undefined,
-          },
-          create: {
-            name: item.name !== undefined ? item.name : undefined,
-            email: item.email !== undefined ? item.email : undefined,
-            type: item.type !== undefined ? item.type : undefined,
-            status: item.status !== undefined ? item.status : undefined,
-            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
-            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
-            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
-            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
-            notes: item.notes !== undefined ? item.notes : undefined,
-            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
-            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
-          },
-        }))
-      } : undefined,
-      officeOrganization: item.officeOrganization ? 
-      typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && (Object.keys(item.officeOrganization)[0] === 'id' || Object.keys(item.officeOrganization)[0] === 'symbol')
-? {
-      connect: {
-        id: item.officeOrganization.id
-      }
-} : { upsert: {
-          where: {
-            id: item.officeOrganization.id !== undefined ? {
-                equals: item.officeOrganization.id
-              } : undefined,
-            name: item.officeOrganization.name !== undefined ? {
-                equals: item.officeOrganization.name
-              } : undefined,
-            slug: item.officeOrganization.slug !== undefined ? {
-                equals: item.officeOrganization.slug
-              } : undefined,
-          },
-          update: {
-            id: item.officeOrganization.id !== undefined ? {
-                set: item.officeOrganization.id
-              } : undefined,
-            name: item.officeOrganization.name !== undefined ? {
-                set: item.officeOrganization.name
-              } : undefined,
-            slug: item.officeOrganization.slug !== undefined ? {
-                set: item.officeOrganization.slug
-              } : undefined,
-            logoUrl: item.officeOrganization.logoUrl !== undefined ? {
-                set: item.officeOrganization.logoUrl
-              } : undefined,
-            website: item.officeOrganization.website !== undefined ? {
-                set: item.officeOrganization.website
-              } : undefined,
-            businessType: item.officeOrganization.businessType !== undefined ? {
-                set: item.officeOrganization.businessType
-              } : undefined,
-            kind: item.officeOrganization.kind !== undefined ? {
-                set: item.officeOrganization.kind
-              } : undefined,
-            timeZone: item.officeOrganization.timeZone !== undefined ? {
-                set: item.officeOrganization.timeZone
-              } : undefined,
-            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
-                set: item.officeOrganization.emailDomains
-              } : undefined,
-            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? {
-                set: item.officeOrganization.jurisdiction
-              } : undefined,
-            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? {
-                set: item.officeOrganization.regulatoryStatus
-              } : undefined,
-            description: item.officeOrganization.description !== undefined ? {
-                set: item.officeOrganization.description
-              } : undefined,
-            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
-            deletedAt: item.officeOrganization.deletedAt !== undefined ? {
-                set: item.officeOrganization.deletedAt
-              } : undefined,
-          },
-          create: {
-            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
-            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
-            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
-            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
-            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
-            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
-                set: item.officeOrganization.emailDomains 
-               } : undefined,
-            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
-            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
-            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
-            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
-            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
-          },
-        }
-      } : undefined,
+      parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+      officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
       holdings: item.holdings ? 
       Array.isArray(item.holdings) && item.holdings.length > 0 && item.holdings.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
       connect: item.holdings.map((item) => ({
@@ -11180,119 +10819,8 @@ import { logger } from './utils/logger';
           },
         }
       } : undefined,
-      parentInvestor: item.parentInvestor ? 
-        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
-    ? { connect: {
-            id: item.parentInvestor.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
-            organizationId: item.parentInvestor.organizationId !== undefined ? {
-                equals: item.parentInvestor.organizationId 
-               } : undefined,
-            name: item.parentInvestor.name !== undefined ? {
-                equals: item.parentInvestor.name 
-               } : undefined,
-            email: item.parentInvestor.email !== undefined ? {
-                equals: item.parentInvestor.email 
-               } : undefined,
-            type: item.parentInvestor.type !== undefined ? {
-                equals: item.parentInvestor.type 
-               } : undefined,
-            status: item.parentInvestor.status !== undefined ? {
-                equals: item.parentInvestor.status 
-               } : undefined,
-          },
-          create: {
-            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
-            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
-            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
-            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
-            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
-            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
-            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
-            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
-            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
-            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
-            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
-          },
-        }
-      } : undefined,
-      childInvestors: item.childInvestors ? 
-        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
-          connect:        item.childInvestors.map((item) => ({
-             id: item.id
-          }))
- }
- : { connectOrCreate: item.childInvestors.map((item) => ({
-          where: {
-            id: item.id !== undefined ? item.id : undefined,
-            organizationId: item.organizationId !== undefined ? {
-                equals: item.organizationId 
-               } : undefined,
-            name: item.name !== undefined ? {
-                equals: item.name 
-               } : undefined,
-            email: item.email !== undefined ? {
-                equals: item.email 
-               } : undefined,
-            type: item.type !== undefined ? {
-                equals: item.type 
-               } : undefined,
-            status: item.status !== undefined ? {
-                equals: item.status 
-               } : undefined,
-          },
-          create: {
-            name: item.name !== undefined ? item.name : undefined,
-            email: item.email !== undefined ? item.email : undefined,
-            type: item.type !== undefined ? item.type : undefined,
-            status: item.status !== undefined ? item.status : undefined,
-            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
-            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
-            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
-            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
-            notes: item.notes !== undefined ? item.notes : undefined,
-            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
-            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
-          },
-        }))
-      } : undefined,
-      officeOrganization: item.officeOrganization ? 
-        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
-    ? { connect: {
-            id: item.officeOrganization.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            name: item.officeOrganization.name !== undefined ? {
-                equals: item.officeOrganization.name 
-               } : undefined,
-          },
-          create: {
-            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
-            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
-            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
-            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
-            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
-            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
-                set: item.officeOrganization.emailDomains 
-               } : undefined,
-            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
-            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
-            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
-            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
-            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
-          },
-        }
-      } : undefined,
+      parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+      officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
       holdings: item.holdings ? 
         Array.isArray(item.holdings) && item.holdings.length > 0 &&  item.holdings.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
           connect:        item.holdings.map((item) => ({
@@ -12909,6 +12437,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -15186,119 +14716,8 @@ import { logger } from './utils/logger';
           },
         }
       } : undefined,
-      parentInvestor: item.parentInvestor ? 
-        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
-    ? { connect: {
-            id: item.parentInvestor.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
-            organizationId: item.parentInvestor.organizationId !== undefined ? {
-                equals: item.parentInvestor.organizationId 
-               } : undefined,
-            name: item.parentInvestor.name !== undefined ? {
-                equals: item.parentInvestor.name 
-               } : undefined,
-            email: item.parentInvestor.email !== undefined ? {
-                equals: item.parentInvestor.email 
-               } : undefined,
-            type: item.parentInvestor.type !== undefined ? {
-                equals: item.parentInvestor.type 
-               } : undefined,
-            status: item.parentInvestor.status !== undefined ? {
-                equals: item.parentInvestor.status 
-               } : undefined,
-          },
-          create: {
-            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
-            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
-            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
-            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
-            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
-            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
-            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
-            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
-            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
-            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
-            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
-          },
-        }
-      } : undefined,
-      childInvestors: item.childInvestors ? 
-        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
-          connect:        item.childInvestors.map((item) => ({
-             id: item.id
-          }))
- }
- : { connectOrCreate: item.childInvestors.map((item) => ({
-          where: {
-            id: item.id !== undefined ? item.id : undefined,
-            organizationId: item.organizationId !== undefined ? {
-                equals: item.organizationId 
-               } : undefined,
-            name: item.name !== undefined ? {
-                equals: item.name 
-               } : undefined,
-            email: item.email !== undefined ? {
-                equals: item.email 
-               } : undefined,
-            type: item.type !== undefined ? {
-                equals: item.type 
-               } : undefined,
-            status: item.status !== undefined ? {
-                equals: item.status 
-               } : undefined,
-          },
-          create: {
-            name: item.name !== undefined ? item.name : undefined,
-            email: item.email !== undefined ? item.email : undefined,
-            type: item.type !== undefined ? item.type : undefined,
-            status: item.status !== undefined ? item.status : undefined,
-            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
-            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
-            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
-            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
-            notes: item.notes !== undefined ? item.notes : undefined,
-            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
-            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
-          },
-        }))
-      } : undefined,
-      officeOrganization: item.officeOrganization ? 
-        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
-    ? { connect: {
-            id: item.officeOrganization.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            name: item.officeOrganization.name !== undefined ? {
-                equals: item.officeOrganization.name 
-               } : undefined,
-          },
-          create: {
-            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
-            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
-            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
-            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
-            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
-            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
-                set: item.officeOrganization.emailDomains 
-               } : undefined,
-            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
-            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
-            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
-            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
-            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
-          },
-        }
-      } : undefined,
+      parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+      officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
       holdings: item.holdings ? 
         Array.isArray(item.holdings) && item.holdings.length > 0 &&  item.holdings.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
           connect:        item.holdings.map((item) => ({
@@ -16228,6 +15647,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -18505,119 +17926,8 @@ import { logger } from './utils/logger';
           },
         }
       } : undefined,
-      parentInvestor: item.parentInvestor ? 
-        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
-    ? { connect: {
-            id: item.parentInvestor.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
-            organizationId: item.parentInvestor.organizationId !== undefined ? {
-                equals: item.parentInvestor.organizationId 
-               } : undefined,
-            name: item.parentInvestor.name !== undefined ? {
-                equals: item.parentInvestor.name 
-               } : undefined,
-            email: item.parentInvestor.email !== undefined ? {
-                equals: item.parentInvestor.email 
-               } : undefined,
-            type: item.parentInvestor.type !== undefined ? {
-                equals: item.parentInvestor.type 
-               } : undefined,
-            status: item.parentInvestor.status !== undefined ? {
-                equals: item.parentInvestor.status 
-               } : undefined,
-          },
-          create: {
-            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
-            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
-            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
-            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
-            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
-            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
-            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
-            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
-            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
-            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
-            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
-          },
-        }
-      } : undefined,
-      childInvestors: item.childInvestors ? 
-        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
-          connect:        item.childInvestors.map((item) => ({
-             id: item.id
-          }))
- }
- : { connectOrCreate: item.childInvestors.map((item) => ({
-          where: {
-            id: item.id !== undefined ? item.id : undefined,
-            organizationId: item.organizationId !== undefined ? {
-                equals: item.organizationId 
-               } : undefined,
-            name: item.name !== undefined ? {
-                equals: item.name 
-               } : undefined,
-            email: item.email !== undefined ? {
-                equals: item.email 
-               } : undefined,
-            type: item.type !== undefined ? {
-                equals: item.type 
-               } : undefined,
-            status: item.status !== undefined ? {
-                equals: item.status 
-               } : undefined,
-          },
-          create: {
-            name: item.name !== undefined ? item.name : undefined,
-            email: item.email !== undefined ? item.email : undefined,
-            type: item.type !== undefined ? item.type : undefined,
-            status: item.status !== undefined ? item.status : undefined,
-            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
-            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
-            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
-            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
-            notes: item.notes !== undefined ? item.notes : undefined,
-            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
-            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
-          },
-        }))
-      } : undefined,
-      officeOrganization: item.officeOrganization ? 
-        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
-    ? { connect: {
-            id: item.officeOrganization.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            name: item.officeOrganization.name !== undefined ? {
-                equals: item.officeOrganization.name 
-               } : undefined,
-          },
-          create: {
-            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
-            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
-            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
-            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
-            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
-            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
-                set: item.officeOrganization.emailDomains 
-               } : undefined,
-            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
-            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
-            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
-            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
-            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
-          },
-        }
-      } : undefined,
+      parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+      officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
       holdings: item.holdings ? 
         Array.isArray(item.holdings) && item.holdings.length > 0 &&  item.holdings.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
           connect:        item.holdings.map((item) => ({
@@ -19511,6 +18821,8 @@ import { logger } from './utils/logger';
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
           create: {
             name: item.name !== undefined ? item.name : undefined,
@@ -19524,6 +18836,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -19577,6 +18891,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -26258,266 +25574,8 @@ import { logger } from './utils/logger';
           },
         }
       } : undefined,
-      parentInvestor: item.parentInvestor ? 
-      typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && (Object.keys(item.parentInvestor)[0] === 'id' || Object.keys(item.parentInvestor)[0] === 'symbol')
-? {
-      connect: {
-        id: item.parentInvestor.id
-      }
-} : { upsert: {
-          where: {
-            id: item.parentInvestor.id !== undefined ? {
-                equals: item.parentInvestor.id
-              } : undefined,
-            organizationId: item.parentInvestor.organizationId !== undefined ? {
-                equals: item.parentInvestor.organizationId
-              } : undefined,
-            userId: item.parentInvestor.userId !== undefined ? {
-                equals: item.parentInvestor.userId
-              } : undefined,
-            customerId: item.parentInvestor.customerId !== undefined ? {
-                equals: item.parentInvestor.customerId
-              } : undefined,
-            name: item.parentInvestor.name !== undefined ? {
-                equals: item.parentInvestor.name
-              } : undefined,
-            email: item.parentInvestor.email !== undefined ? {
-                equals: item.parentInvestor.email
-              } : undefined,
-            type: item.parentInvestor.type !== undefined ? {
-                equals: item.parentInvestor.type
-              } : undefined,
-            status: item.parentInvestor.status !== undefined ? {
-                equals: item.parentInvestor.status
-              } : undefined,
-            parentInvestorId: item.parentInvestor.parentInvestorId !== undefined ? {
-                equals: item.parentInvestor.parentInvestorId
-              } : undefined,
-            officeOrganizationId: item.parentInvestor.officeOrganizationId !== undefined ? {
-                equals: item.parentInvestor.officeOrganizationId
-              } : undefined,
-          },
-          update: {
-            id: item.parentInvestor.id !== undefined ? {
-                set: item.parentInvestor.id
-              } : undefined,
-            name: item.parentInvestor.name !== undefined ? {
-                set: item.parentInvestor.name
-              } : undefined,
-            email: item.parentInvestor.email !== undefined ? {
-                set: item.parentInvestor.email
-              } : undefined,
-            type: item.parentInvestor.type !== undefined ? {
-                set: item.parentInvestor.type
-              } : undefined,
-            status: item.parentInvestor.status !== undefined ? {
-                set: item.parentInvestor.status
-              } : undefined,
-            kycStatus: item.parentInvestor.kycStatus !== undefined ? {
-                set: item.parentInvestor.kycStatus
-              } : undefined,
-            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? {
-                set: item.parentInvestor.jurisdiction
-              } : undefined,
-            joinedAt: item.parentInvestor.joinedAt !== undefined ? {
-                set: item.parentInvestor.joinedAt
-              } : undefined,
-            externalRef: item.parentInvestor.externalRef !== undefined ? {
-                set: item.parentInvestor.externalRef
-              } : undefined,
-            notes: item.parentInvestor.notes !== undefined ? {
-                set: item.parentInvestor.notes
-              } : undefined,
-            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? {
-                set: item.parentInvestor.registrationNumber
-              } : undefined,
-            deletedAt: item.parentInvestor.deletedAt !== undefined ? {
-                set: item.parentInvestor.deletedAt
-              } : undefined,
-          },
-          create: {
-            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
-            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
-            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
-            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
-            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
-            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
-            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
-            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
-            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
-            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
-            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
-          },
-        }
-      } : undefined,
-      childInvestors: item.childInvestors ? 
-      Array.isArray(item.childInvestors) && item.childInvestors.length > 0 && item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
-      connect: item.childInvestors.map((item) => ({
-        id: item.id
-      }))
-} : { upsert: item.childInvestors.map((item) => ({
-          where: {
-            id: item.id !== undefined ? item.id : undefined,
-            organizationId: item.organizationId !== undefined ? {
-                equals: item.organizationId
-              } : undefined,
-            userId: item.userId !== undefined ? {
-                equals: item.userId
-              } : undefined,
-            customerId: item.customerId !== undefined ? {
-                equals: item.customerId
-              } : undefined,
-            name: item.name !== undefined ? {
-                equals: item.name
-              } : undefined,
-            email: item.email !== undefined ? {
-                equals: item.email
-              } : undefined,
-            type: item.type !== undefined ? {
-                equals: item.type
-              } : undefined,
-            status: item.status !== undefined ? {
-                equals: item.status
-              } : undefined,
-            parentInvestorId: item.parentInvestorId !== undefined ? {
-                equals: item.parentInvestorId
-              } : undefined,
-            officeOrganizationId: item.officeOrganizationId !== undefined ? {
-                equals: item.officeOrganizationId
-              } : undefined,
-          },
-          update: {
-            id: item.id !== undefined ? {
-                set: item.id
-              } : undefined,
-            name: item.name !== undefined ? {
-                set: item.name
-              } : undefined,
-            email: item.email !== undefined ? {
-                set: item.email
-              } : undefined,
-            type: item.type !== undefined ? {
-                set: item.type
-              } : undefined,
-            status: item.status !== undefined ? {
-                set: item.status
-              } : undefined,
-            kycStatus: item.kycStatus !== undefined ? {
-                set: item.kycStatus
-              } : undefined,
-            jurisdiction: item.jurisdiction !== undefined ? {
-                set: item.jurisdiction
-              } : undefined,
-            joinedAt: item.joinedAt !== undefined ? {
-                set: item.joinedAt
-              } : undefined,
-            externalRef: item.externalRef !== undefined ? {
-                set: item.externalRef
-              } : undefined,
-            notes: item.notes !== undefined ? {
-                set: item.notes
-              } : undefined,
-            registrationNumber: item.registrationNumber !== undefined ? {
-                set: item.registrationNumber
-              } : undefined,
-            deletedAt: item.deletedAt !== undefined ? {
-                set: item.deletedAt
-              } : undefined,
-          },
-          create: {
-            name: item.name !== undefined ? item.name : undefined,
-            email: item.email !== undefined ? item.email : undefined,
-            type: item.type !== undefined ? item.type : undefined,
-            status: item.status !== undefined ? item.status : undefined,
-            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
-            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
-            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
-            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
-            notes: item.notes !== undefined ? item.notes : undefined,
-            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
-            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
-          },
-        }))
-      } : undefined,
-      officeOrganization: item.officeOrganization ? 
-      typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && (Object.keys(item.officeOrganization)[0] === 'id' || Object.keys(item.officeOrganization)[0] === 'symbol')
-? {
-      connect: {
-        id: item.officeOrganization.id
-      }
-} : { upsert: {
-          where: {
-            id: item.officeOrganization.id !== undefined ? {
-                equals: item.officeOrganization.id
-              } : undefined,
-            name: item.officeOrganization.name !== undefined ? {
-                equals: item.officeOrganization.name
-              } : undefined,
-            slug: item.officeOrganization.slug !== undefined ? {
-                equals: item.officeOrganization.slug
-              } : undefined,
-          },
-          update: {
-            id: item.officeOrganization.id !== undefined ? {
-                set: item.officeOrganization.id
-              } : undefined,
-            name: item.officeOrganization.name !== undefined ? {
-                set: item.officeOrganization.name
-              } : undefined,
-            slug: item.officeOrganization.slug !== undefined ? {
-                set: item.officeOrganization.slug
-              } : undefined,
-            logoUrl: item.officeOrganization.logoUrl !== undefined ? {
-                set: item.officeOrganization.logoUrl
-              } : undefined,
-            website: item.officeOrganization.website !== undefined ? {
-                set: item.officeOrganization.website
-              } : undefined,
-            businessType: item.officeOrganization.businessType !== undefined ? {
-                set: item.officeOrganization.businessType
-              } : undefined,
-            kind: item.officeOrganization.kind !== undefined ? {
-                set: item.officeOrganization.kind
-              } : undefined,
-            timeZone: item.officeOrganization.timeZone !== undefined ? {
-                set: item.officeOrganization.timeZone
-              } : undefined,
-            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
-                set: item.officeOrganization.emailDomains
-              } : undefined,
-            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? {
-                set: item.officeOrganization.jurisdiction
-              } : undefined,
-            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? {
-                set: item.officeOrganization.regulatoryStatus
-              } : undefined,
-            description: item.officeOrganization.description !== undefined ? {
-                set: item.officeOrganization.description
-              } : undefined,
-            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
-            deletedAt: item.officeOrganization.deletedAt !== undefined ? {
-                set: item.officeOrganization.deletedAt
-              } : undefined,
-          },
-          create: {
-            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
-            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
-            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
-            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
-            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
-            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
-                set: item.officeOrganization.emailDomains 
-               } : undefined,
-            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
-            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
-            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
-            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
-            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
-          },
-        }
-      } : undefined,
+      parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+      officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
       holdings: item.holdings ? 
       Array.isArray(item.holdings) && item.holdings.length > 0 && item.holdings.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
       connect: item.holdings.map((item) => ({
@@ -26920,119 +25978,8 @@ import { logger } from './utils/logger';
           },
         }
       } : undefined,
-      parentInvestor: item.parentInvestor ? 
-        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
-    ? { connect: {
-            id: item.parentInvestor.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
-            organizationId: item.parentInvestor.organizationId !== undefined ? {
-                equals: item.parentInvestor.organizationId 
-               } : undefined,
-            name: item.parentInvestor.name !== undefined ? {
-                equals: item.parentInvestor.name 
-               } : undefined,
-            email: item.parentInvestor.email !== undefined ? {
-                equals: item.parentInvestor.email 
-               } : undefined,
-            type: item.parentInvestor.type !== undefined ? {
-                equals: item.parentInvestor.type 
-               } : undefined,
-            status: item.parentInvestor.status !== undefined ? {
-                equals: item.parentInvestor.status 
-               } : undefined,
-          },
-          create: {
-            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
-            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
-            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
-            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
-            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
-            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
-            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
-            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
-            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
-            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
-            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
-          },
-        }
-      } : undefined,
-      childInvestors: item.childInvestors ? 
-        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
-          connect:        item.childInvestors.map((item) => ({
-             id: item.id
-          }))
- }
- : { connectOrCreate: item.childInvestors.map((item) => ({
-          where: {
-            id: item.id !== undefined ? item.id : undefined,
-            organizationId: item.organizationId !== undefined ? {
-                equals: item.organizationId 
-               } : undefined,
-            name: item.name !== undefined ? {
-                equals: item.name 
-               } : undefined,
-            email: item.email !== undefined ? {
-                equals: item.email 
-               } : undefined,
-            type: item.type !== undefined ? {
-                equals: item.type 
-               } : undefined,
-            status: item.status !== undefined ? {
-                equals: item.status 
-               } : undefined,
-          },
-          create: {
-            name: item.name !== undefined ? item.name : undefined,
-            email: item.email !== undefined ? item.email : undefined,
-            type: item.type !== undefined ? item.type : undefined,
-            status: item.status !== undefined ? item.status : undefined,
-            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
-            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
-            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
-            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
-            notes: item.notes !== undefined ? item.notes : undefined,
-            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
-            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
-          },
-        }))
-      } : undefined,
-      officeOrganization: item.officeOrganization ? 
-        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
-    ? { connect: {
-            id: item.officeOrganization.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            name: item.officeOrganization.name !== undefined ? {
-                equals: item.officeOrganization.name 
-               } : undefined,
-          },
-          create: {
-            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
-            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
-            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
-            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
-            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
-            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
-                set: item.officeOrganization.emailDomains 
-               } : undefined,
-            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
-            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
-            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
-            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
-            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
-          },
-        }
-      } : undefined,
+      parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+      officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
       holdings: item.holdings ? 
         Array.isArray(item.holdings) && item.holdings.length > 0 &&  item.holdings.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
           connect:        item.holdings.map((item) => ({
@@ -28649,6 +27596,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -30926,119 +29875,8 @@ import { logger } from './utils/logger';
           },
         }
       } : undefined,
-      parentInvestor: item.parentInvestor ? 
-        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
-    ? { connect: {
-            id: item.parentInvestor.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
-            organizationId: item.parentInvestor.organizationId !== undefined ? {
-                equals: item.parentInvestor.organizationId 
-               } : undefined,
-            name: item.parentInvestor.name !== undefined ? {
-                equals: item.parentInvestor.name 
-               } : undefined,
-            email: item.parentInvestor.email !== undefined ? {
-                equals: item.parentInvestor.email 
-               } : undefined,
-            type: item.parentInvestor.type !== undefined ? {
-                equals: item.parentInvestor.type 
-               } : undefined,
-            status: item.parentInvestor.status !== undefined ? {
-                equals: item.parentInvestor.status 
-               } : undefined,
-          },
-          create: {
-            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
-            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
-            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
-            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
-            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
-            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
-            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
-            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
-            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
-            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
-            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
-          },
-        }
-      } : undefined,
-      childInvestors: item.childInvestors ? 
-        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
-          connect:        item.childInvestors.map((item) => ({
-             id: item.id
-          }))
- }
- : { connectOrCreate: item.childInvestors.map((item) => ({
-          where: {
-            id: item.id !== undefined ? item.id : undefined,
-            organizationId: item.organizationId !== undefined ? {
-                equals: item.organizationId 
-               } : undefined,
-            name: item.name !== undefined ? {
-                equals: item.name 
-               } : undefined,
-            email: item.email !== undefined ? {
-                equals: item.email 
-               } : undefined,
-            type: item.type !== undefined ? {
-                equals: item.type 
-               } : undefined,
-            status: item.status !== undefined ? {
-                equals: item.status 
-               } : undefined,
-          },
-          create: {
-            name: item.name !== undefined ? item.name : undefined,
-            email: item.email !== undefined ? item.email : undefined,
-            type: item.type !== undefined ? item.type : undefined,
-            status: item.status !== undefined ? item.status : undefined,
-            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
-            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
-            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
-            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
-            notes: item.notes !== undefined ? item.notes : undefined,
-            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
-            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
-          },
-        }))
-      } : undefined,
-      officeOrganization: item.officeOrganization ? 
-        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
-    ? { connect: {
-            id: item.officeOrganization.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            name: item.officeOrganization.name !== undefined ? {
-                equals: item.officeOrganization.name 
-               } : undefined,
-          },
-          create: {
-            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
-            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
-            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
-            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
-            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
-            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
-                set: item.officeOrganization.emailDomains 
-               } : undefined,
-            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
-            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
-            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
-            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
-            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
-          },
-        }
-      } : undefined,
+      parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+      officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
       holdings: item.holdings ? 
         Array.isArray(item.holdings) && item.holdings.length > 0 &&  item.holdings.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
           connect:        item.holdings.map((item) => ({
@@ -32092,6 +30930,8 @@ import { logger } from './utils/logger';
             deletedAt: item.deletedAt !== undefined ? {
                 set: item.deletedAt
               } : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
           create: {
             name: item.name !== undefined ? item.name : undefined,
@@ -32105,6 +30945,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -32158,6 +31000,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -38839,266 +37683,8 @@ import { logger } from './utils/logger';
           },
         }
       } : undefined,
-      parentInvestor: item.parentInvestor ? 
-      typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && (Object.keys(item.parentInvestor)[0] === 'id' || Object.keys(item.parentInvestor)[0] === 'symbol')
-? {
-      connect: {
-        id: item.parentInvestor.id
-      }
-} : { upsert: {
-          where: {
-            id: item.parentInvestor.id !== undefined ? {
-                equals: item.parentInvestor.id
-              } : undefined,
-            organizationId: item.parentInvestor.organizationId !== undefined ? {
-                equals: item.parentInvestor.organizationId
-              } : undefined,
-            userId: item.parentInvestor.userId !== undefined ? {
-                equals: item.parentInvestor.userId
-              } : undefined,
-            customerId: item.parentInvestor.customerId !== undefined ? {
-                equals: item.parentInvestor.customerId
-              } : undefined,
-            name: item.parentInvestor.name !== undefined ? {
-                equals: item.parentInvestor.name
-              } : undefined,
-            email: item.parentInvestor.email !== undefined ? {
-                equals: item.parentInvestor.email
-              } : undefined,
-            type: item.parentInvestor.type !== undefined ? {
-                equals: item.parentInvestor.type
-              } : undefined,
-            status: item.parentInvestor.status !== undefined ? {
-                equals: item.parentInvestor.status
-              } : undefined,
-            parentInvestorId: item.parentInvestor.parentInvestorId !== undefined ? {
-                equals: item.parentInvestor.parentInvestorId
-              } : undefined,
-            officeOrganizationId: item.parentInvestor.officeOrganizationId !== undefined ? {
-                equals: item.parentInvestor.officeOrganizationId
-              } : undefined,
-          },
-          update: {
-            id: item.parentInvestor.id !== undefined ? {
-                set: item.parentInvestor.id
-              } : undefined,
-            name: item.parentInvestor.name !== undefined ? {
-                set: item.parentInvestor.name
-              } : undefined,
-            email: item.parentInvestor.email !== undefined ? {
-                set: item.parentInvestor.email
-              } : undefined,
-            type: item.parentInvestor.type !== undefined ? {
-                set: item.parentInvestor.type
-              } : undefined,
-            status: item.parentInvestor.status !== undefined ? {
-                set: item.parentInvestor.status
-              } : undefined,
-            kycStatus: item.parentInvestor.kycStatus !== undefined ? {
-                set: item.parentInvestor.kycStatus
-              } : undefined,
-            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? {
-                set: item.parentInvestor.jurisdiction
-              } : undefined,
-            joinedAt: item.parentInvestor.joinedAt !== undefined ? {
-                set: item.parentInvestor.joinedAt
-              } : undefined,
-            externalRef: item.parentInvestor.externalRef !== undefined ? {
-                set: item.parentInvestor.externalRef
-              } : undefined,
-            notes: item.parentInvestor.notes !== undefined ? {
-                set: item.parentInvestor.notes
-              } : undefined,
-            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? {
-                set: item.parentInvestor.registrationNumber
-              } : undefined,
-            deletedAt: item.parentInvestor.deletedAt !== undefined ? {
-                set: item.parentInvestor.deletedAt
-              } : undefined,
-          },
-          create: {
-            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
-            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
-            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
-            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
-            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
-            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
-            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
-            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
-            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
-            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
-            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
-          },
-        }
-      } : undefined,
-      childInvestors: item.childInvestors ? 
-      Array.isArray(item.childInvestors) && item.childInvestors.length > 0 && item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
-      connect: item.childInvestors.map((item) => ({
-        id: item.id
-      }))
-} : { upsert: item.childInvestors.map((item) => ({
-          where: {
-            id: item.id !== undefined ? item.id : undefined,
-            organizationId: item.organizationId !== undefined ? {
-                equals: item.organizationId
-              } : undefined,
-            userId: item.userId !== undefined ? {
-                equals: item.userId
-              } : undefined,
-            customerId: item.customerId !== undefined ? {
-                equals: item.customerId
-              } : undefined,
-            name: item.name !== undefined ? {
-                equals: item.name
-              } : undefined,
-            email: item.email !== undefined ? {
-                equals: item.email
-              } : undefined,
-            type: item.type !== undefined ? {
-                equals: item.type
-              } : undefined,
-            status: item.status !== undefined ? {
-                equals: item.status
-              } : undefined,
-            parentInvestorId: item.parentInvestorId !== undefined ? {
-                equals: item.parentInvestorId
-              } : undefined,
-            officeOrganizationId: item.officeOrganizationId !== undefined ? {
-                equals: item.officeOrganizationId
-              } : undefined,
-          },
-          update: {
-            id: item.id !== undefined ? {
-                set: item.id
-              } : undefined,
-            name: item.name !== undefined ? {
-                set: item.name
-              } : undefined,
-            email: item.email !== undefined ? {
-                set: item.email
-              } : undefined,
-            type: item.type !== undefined ? {
-                set: item.type
-              } : undefined,
-            status: item.status !== undefined ? {
-                set: item.status
-              } : undefined,
-            kycStatus: item.kycStatus !== undefined ? {
-                set: item.kycStatus
-              } : undefined,
-            jurisdiction: item.jurisdiction !== undefined ? {
-                set: item.jurisdiction
-              } : undefined,
-            joinedAt: item.joinedAt !== undefined ? {
-                set: item.joinedAt
-              } : undefined,
-            externalRef: item.externalRef !== undefined ? {
-                set: item.externalRef
-              } : undefined,
-            notes: item.notes !== undefined ? {
-                set: item.notes
-              } : undefined,
-            registrationNumber: item.registrationNumber !== undefined ? {
-                set: item.registrationNumber
-              } : undefined,
-            deletedAt: item.deletedAt !== undefined ? {
-                set: item.deletedAt
-              } : undefined,
-          },
-          create: {
-            name: item.name !== undefined ? item.name : undefined,
-            email: item.email !== undefined ? item.email : undefined,
-            type: item.type !== undefined ? item.type : undefined,
-            status: item.status !== undefined ? item.status : undefined,
-            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
-            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
-            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
-            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
-            notes: item.notes !== undefined ? item.notes : undefined,
-            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
-            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
-          },
-        }))
-      } : undefined,
-      officeOrganization: item.officeOrganization ? 
-      typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && (Object.keys(item.officeOrganization)[0] === 'id' || Object.keys(item.officeOrganization)[0] === 'symbol')
-? {
-      connect: {
-        id: item.officeOrganization.id
-      }
-} : { upsert: {
-          where: {
-            id: item.officeOrganization.id !== undefined ? {
-                equals: item.officeOrganization.id
-              } : undefined,
-            name: item.officeOrganization.name !== undefined ? {
-                equals: item.officeOrganization.name
-              } : undefined,
-            slug: item.officeOrganization.slug !== undefined ? {
-                equals: item.officeOrganization.slug
-              } : undefined,
-          },
-          update: {
-            id: item.officeOrganization.id !== undefined ? {
-                set: item.officeOrganization.id
-              } : undefined,
-            name: item.officeOrganization.name !== undefined ? {
-                set: item.officeOrganization.name
-              } : undefined,
-            slug: item.officeOrganization.slug !== undefined ? {
-                set: item.officeOrganization.slug
-              } : undefined,
-            logoUrl: item.officeOrganization.logoUrl !== undefined ? {
-                set: item.officeOrganization.logoUrl
-              } : undefined,
-            website: item.officeOrganization.website !== undefined ? {
-                set: item.officeOrganization.website
-              } : undefined,
-            businessType: item.officeOrganization.businessType !== undefined ? {
-                set: item.officeOrganization.businessType
-              } : undefined,
-            kind: item.officeOrganization.kind !== undefined ? {
-                set: item.officeOrganization.kind
-              } : undefined,
-            timeZone: item.officeOrganization.timeZone !== undefined ? {
-                set: item.officeOrganization.timeZone
-              } : undefined,
-            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
-                set: item.officeOrganization.emailDomains
-              } : undefined,
-            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? {
-                set: item.officeOrganization.jurisdiction
-              } : undefined,
-            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? {
-                set: item.officeOrganization.regulatoryStatus
-              } : undefined,
-            description: item.officeOrganization.description !== undefined ? {
-                set: item.officeOrganization.description
-              } : undefined,
-            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
-            deletedAt: item.officeOrganization.deletedAt !== undefined ? {
-                set: item.officeOrganization.deletedAt
-              } : undefined,
-          },
-          create: {
-            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
-            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
-            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
-            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
-            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
-            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
-                set: item.officeOrganization.emailDomains 
-               } : undefined,
-            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
-            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
-            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
-            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
-            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
-          },
-        }
-      } : undefined,
+      parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+      officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
       holdings: item.holdings ? 
       Array.isArray(item.holdings) && item.holdings.length > 0 && item.holdings.every((item: unknown) => typeof item === 'object' && item !== null && ('id' in item || 'symbol' in item) && Object.keys(item).length === 1) ? {
       connect: item.holdings.map((item) => ({
@@ -39501,119 +38087,8 @@ import { logger } from './utils/logger';
           },
         }
       } : undefined,
-      parentInvestor: item.parentInvestor ? 
-        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
-    ? { connect: {
-            id: item.parentInvestor.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
-            organizationId: item.parentInvestor.organizationId !== undefined ? {
-                equals: item.parentInvestor.organizationId 
-               } : undefined,
-            name: item.parentInvestor.name !== undefined ? {
-                equals: item.parentInvestor.name 
-               } : undefined,
-            email: item.parentInvestor.email !== undefined ? {
-                equals: item.parentInvestor.email 
-               } : undefined,
-            type: item.parentInvestor.type !== undefined ? {
-                equals: item.parentInvestor.type 
-               } : undefined,
-            status: item.parentInvestor.status !== undefined ? {
-                equals: item.parentInvestor.status 
-               } : undefined,
-          },
-          create: {
-            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
-            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
-            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
-            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
-            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
-            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
-            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
-            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
-            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
-            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
-            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
-          },
-        }
-      } : undefined,
-      childInvestors: item.childInvestors ? 
-        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
-          connect:        item.childInvestors.map((item) => ({
-             id: item.id
-          }))
- }
- : { connectOrCreate: item.childInvestors.map((item) => ({
-          where: {
-            id: item.id !== undefined ? item.id : undefined,
-            organizationId: item.organizationId !== undefined ? {
-                equals: item.organizationId 
-               } : undefined,
-            name: item.name !== undefined ? {
-                equals: item.name 
-               } : undefined,
-            email: item.email !== undefined ? {
-                equals: item.email 
-               } : undefined,
-            type: item.type !== undefined ? {
-                equals: item.type 
-               } : undefined,
-            status: item.status !== undefined ? {
-                equals: item.status 
-               } : undefined,
-          },
-          create: {
-            name: item.name !== undefined ? item.name : undefined,
-            email: item.email !== undefined ? item.email : undefined,
-            type: item.type !== undefined ? item.type : undefined,
-            status: item.status !== undefined ? item.status : undefined,
-            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
-            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
-            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
-            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
-            notes: item.notes !== undefined ? item.notes : undefined,
-            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
-            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
-          },
-        }))
-      } : undefined,
-      officeOrganization: item.officeOrganization ? 
-        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
-    ? { connect: {
-            id: item.officeOrganization.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            name: item.officeOrganization.name !== undefined ? {
-                equals: item.officeOrganization.name 
-               } : undefined,
-          },
-          create: {
-            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
-            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
-            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
-            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
-            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
-            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
-                set: item.officeOrganization.emailDomains 
-               } : undefined,
-            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
-            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
-            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
-            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
-            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
-          },
-        }
-      } : undefined,
+      parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+      officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
       holdings: item.holdings ? 
         Array.isArray(item.holdings) && item.holdings.length > 0 &&  item.holdings.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
           connect:        item.holdings.map((item) => ({
@@ -41230,6 +39705,8 @@ import { logger } from './utils/logger';
             notes: item.notes !== undefined ? item.notes : undefined,
             registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
             deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
+        parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+        officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
           },
         }))
       } : undefined,
@@ -43507,119 +41984,8 @@ import { logger } from './utils/logger';
           },
         }
       } : undefined,
-      parentInvestor: item.parentInvestor ? 
-        typeof item.parentInvestor === 'object' && Object.keys(item.parentInvestor).length === 1 && Object.keys(item.parentInvestor)[0] === 'id'
-    ? { connect: {
-            id: item.parentInvestor.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.parentInvestor.id !== undefined ? item.parentInvestor.id : undefined,
-            organizationId: item.parentInvestor.organizationId !== undefined ? {
-                equals: item.parentInvestor.organizationId 
-               } : undefined,
-            name: item.parentInvestor.name !== undefined ? {
-                equals: item.parentInvestor.name 
-               } : undefined,
-            email: item.parentInvestor.email !== undefined ? {
-                equals: item.parentInvestor.email 
-               } : undefined,
-            type: item.parentInvestor.type !== undefined ? {
-                equals: item.parentInvestor.type 
-               } : undefined,
-            status: item.parentInvestor.status !== undefined ? {
-                equals: item.parentInvestor.status 
-               } : undefined,
-          },
-          create: {
-            name: item.parentInvestor.name !== undefined ? item.parentInvestor.name : undefined,
-            email: item.parentInvestor.email !== undefined ? item.parentInvestor.email : undefined,
-            type: item.parentInvestor.type !== undefined ? item.parentInvestor.type : undefined,
-            status: item.parentInvestor.status !== undefined ? item.parentInvestor.status : undefined,
-            kycStatus: item.parentInvestor.kycStatus !== undefined ? item.parentInvestor.kycStatus : undefined,
-            jurisdiction: item.parentInvestor.jurisdiction !== undefined ? item.parentInvestor.jurisdiction : undefined,
-            joinedAt: item.parentInvestor.joinedAt !== undefined ? item.parentInvestor.joinedAt : undefined,
-            externalRef: item.parentInvestor.externalRef !== undefined ? item.parentInvestor.externalRef : undefined,
-            notes: item.parentInvestor.notes !== undefined ? item.parentInvestor.notes : undefined,
-            registrationNumber: item.parentInvestor.registrationNumber !== undefined ? item.parentInvestor.registrationNumber : undefined,
-            deletedAt: item.parentInvestor.deletedAt !== undefined ? item.parentInvestor.deletedAt : undefined,
-          },
-        }
-      } : undefined,
-      childInvestors: item.childInvestors ? 
-        Array.isArray(item.childInvestors) && item.childInvestors.length > 0 &&  item.childInvestors.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
-          connect:        item.childInvestors.map((item) => ({
-             id: item.id
-          }))
- }
- : { connectOrCreate: item.childInvestors.map((item) => ({
-          where: {
-            id: item.id !== undefined ? item.id : undefined,
-            organizationId: item.organizationId !== undefined ? {
-                equals: item.organizationId 
-               } : undefined,
-            name: item.name !== undefined ? {
-                equals: item.name 
-               } : undefined,
-            email: item.email !== undefined ? {
-                equals: item.email 
-               } : undefined,
-            type: item.type !== undefined ? {
-                equals: item.type 
-               } : undefined,
-            status: item.status !== undefined ? {
-                equals: item.status 
-               } : undefined,
-          },
-          create: {
-            name: item.name !== undefined ? item.name : undefined,
-            email: item.email !== undefined ? item.email : undefined,
-            type: item.type !== undefined ? item.type : undefined,
-            status: item.status !== undefined ? item.status : undefined,
-            kycStatus: item.kycStatus !== undefined ? item.kycStatus : undefined,
-            jurisdiction: item.jurisdiction !== undefined ? item.jurisdiction : undefined,
-            joinedAt: item.joinedAt !== undefined ? item.joinedAt : undefined,
-            externalRef: item.externalRef !== undefined ? item.externalRef : undefined,
-            notes: item.notes !== undefined ? item.notes : undefined,
-            registrationNumber: item.registrationNumber !== undefined ? item.registrationNumber : undefined,
-            deletedAt: item.deletedAt !== undefined ? item.deletedAt : undefined,
-          },
-        }))
-      } : undefined,
-      officeOrganization: item.officeOrganization ? 
-        typeof item.officeOrganization === 'object' && Object.keys(item.officeOrganization).length === 1 && Object.keys(item.officeOrganization)[0] === 'id'
-    ? { connect: {
-            id: item.officeOrganization.id
-            }
-          }
-    : { connectOrCreate: {
-          where: {
-            id: item.officeOrganization.id !== undefined ? item.officeOrganization.id : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            name: item.officeOrganization.name !== undefined ? {
-                equals: item.officeOrganization.name 
-               } : undefined,
-          },
-          create: {
-            name: item.officeOrganization.name !== undefined ? item.officeOrganization.name : undefined,
-            slug: item.officeOrganization.slug !== undefined ? item.officeOrganization.slug : undefined,
-            logoUrl: item.officeOrganization.logoUrl !== undefined ? item.officeOrganization.logoUrl : undefined,
-            website: item.officeOrganization.website !== undefined ? item.officeOrganization.website : undefined,
-            businessType: item.officeOrganization.businessType !== undefined ? item.officeOrganization.businessType : undefined,
-            kind: item.officeOrganization.kind !== undefined ? item.officeOrganization.kind : undefined,
-            timeZone: item.officeOrganization.timeZone !== undefined ? item.officeOrganization.timeZone : undefined,
-            emailDomains: item.officeOrganization.emailDomains !== undefined ? {
-                set: item.officeOrganization.emailDomains 
-               } : undefined,
-            jurisdiction: item.officeOrganization.jurisdiction !== undefined ? item.officeOrganization.jurisdiction : undefined,
-            regulatoryStatus: item.officeOrganization.regulatoryStatus !== undefined ? item.officeOrganization.regulatoryStatus : undefined,
-            description: item.officeOrganization.description !== undefined ? item.officeOrganization.description : undefined,
-            tradingDefaults: item.officeOrganization.tradingDefaults !== undefined ? item.officeOrganization.tradingDefaults : undefined,
-            deletedAt: item.officeOrganization.deletedAt !== undefined ? item.officeOrganization.deletedAt : undefined,
-          },
-        }
-      } : undefined,
+      parentInvestor: item.parentInvestor && item.parentInvestor.id !== undefined ? { connect: { id: item.parentInvestor.id } } : undefined,
+      officeOrganization: item.officeOrganization && item.officeOrganization.id !== undefined ? { connect: { id: item.officeOrganization.id } } : undefined,
       holdings: item.holdings ? 
         Array.isArray(item.holdings) && item.holdings.length > 0 &&  item.holdings.every((item: unknown) => typeof item === 'object' && item !== null && 'id' in item && Object.keys(item).length === 1) ? {
           connect:        item.holdings.map((item) => ({

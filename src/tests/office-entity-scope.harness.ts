@@ -299,6 +299,20 @@ async function main(): Promise<void> {
     // Probing an entity's columns from outside the investor reads.
     const PROBE = `query { organizations(where: { investors: { some: { registrationNumber: { equals: "REG-1" } } } }) { id } }`;
     steps['probe.mallory'] = await run(schema, prisma, P.mallory, PROBE);
+    steps['probe.malloryCount'] = await run(
+      schema,
+      prisma,
+      P.mallory,
+      `query ($id: String!) { organizations(where: { id: { equals: $id } }) { id _count { investors(where: { registrationNumber: { equals: "REG-1" } }) } } }`,
+      { id: manager.id }
+    );
+    steps['probe.serviceCount'] = await run(
+      schema,
+      prisma,
+      SERVICE,
+      `query ($id: String!) { organizations(where: { id: { equals: $id } }) { id _count { investors(where: { registrationNumber: { equals: "REG-1" } }) } } }`,
+      { id: manager.id }
+    );
     steps['probe.service'] = await run(schema, prisma, SERVICE, PROBE);
 
     // Grants and groups.

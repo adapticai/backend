@@ -304,6 +304,18 @@ export function createTenancyScopingMiddleware(
       if (info.returnType !== undefined && getNamedType(info.returnType).name === 'Investor') {
         return visibleInvestorRelation(context, now, proceed);
       }
+      // A nested field with arguments (a relation's `where`, a `_count`
+      // field's `where`) is held to the same filter rule as a root: counting
+      // an organization's investors by registration number would probe an
+      // entity the reader cannot see.
+      if (args !== undefined && args !== null && Object.keys(args).length > 0) {
+        const caller = context.principal;
+        const privileged = caller?.kind === 'server' || caller?.kind === 'admin';
+        if (!privileged && namesOfficeEntityColumn(info, args as Record<string, unknown>)) {
+          tenancyScopingDecisionsTotal.inc({ mode: 'enforce', model: 'Investor', operation: info.fieldName, decision: 'deny' });
+          throw forbidden("Access denied: an office entity's columns are filtered only through the investor reads");
+        }
+      }
       return proceed();
     }
     const governed = classifyGovernedField(info.fieldName);
