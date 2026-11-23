@@ -96,7 +96,7 @@ import {
   type MembershipVerdict,
 } from './membership-write-authority';
 import type { BackendPrincipal } from './token-verifier';
-import { DESK_MODELS, GOVERNED_MODELS } from './tenancy-scope';
+import { ACCESS_MODELS, DESK_MODELS, GOVERNED_MODELS } from './tenancy-scope';
 
 /** Operating mode of the mutation guard. See the module doc. */
 export type MutationAuthMode = 'off' | 'shadow' | 'enforce';
@@ -185,7 +185,8 @@ export const SERVICE_PRINCIPAL_ONLY_MODELS: ReadonlySet<string> = new Set<string
 
 /**
  * Targets decided at `enforce` in every mode, `off` included, whatever the
- * environment says: the desk models and the TOTP mutations.
+ * environment says: the desk models, the access models and the TOTP
+ * mutations.
  *
  * `MUTATION_AUTH_MODE` stages the guard for models that had live writers
  * before it existed — shadow proves no legitimate writer is refused, `off`
@@ -193,10 +194,14 @@ export const SERVICE_PRINCIPAL_ONLY_MODELS: ReadonlySet<string> = new Set<string
  * and have never been written unguarded, so there is no writer for shadow to
  * protect and nothing for `off` to restore; holding them in shadow would let
  * anyone write a user's push endpoints, feature overrides or second factor
- * while the would-deny series accumulated.
+ * while the would-deny series accumulated. The access models
+ * (`RoleAssignment`, `AuditorGrant`, `EntityGroup`) grant authority: held in
+ * shadow, any signed-in user could assign themselves a workspace role or an
+ * auditor grant and only a log line would record it.
  */
 export const ALWAYS_ENFORCED_MUTATION_MODELS: ReadonlySet<string> = new Set<string>([
   ...DESK_MODELS,
+  ...ACCESS_MODELS,
   ...TOTP_CUSTOM_MUTATIONS,
 ]);
 
@@ -351,6 +356,10 @@ export const MODEL_WRITE_RULES: ReadonlyMap<string, ModelWriteRule> = new Map<
   // second factor only by the backend's own TOTP mutations.
   ['FeatureFlagOverride', { policy: 'service_only' }],
   ['UserTotp', { policy: 'service_only' }],
+  // The access models grant a workspace role, an auditor's reach or an
+  // office's entity groups: written by the service (and admins) only, until a
+  // rule naming who may grant what exists.
+  ...ACCESS_MODELS.map((model): [string, ModelWriteRule] => [model, { policy: 'service_only' }]),
   ['MandateApproval', { policy: 'authenticated', userActions: ONLY('create') }],
   ['Alert', { policy: 'authenticated', userActions: ONLY('update') }],
   ['AuditLog', { policy: 'authenticated', userActions: ONLY('create') }],
@@ -411,6 +420,7 @@ export type MutationAuthReason =
   | 'reserved_audit_source'
   | 'audit_actor_mismatch'
   | 'ledger_fund_reserved'
+  | 'organization_kind_reserved'
   | 'config_key_not_user_scoped'
   | 'nested_write_not_user_writable'
   | 'nested_entitlement_write';
@@ -454,6 +464,7 @@ export interface MutationFacts {
     | 'reserved_audit_source'
     | 'audit_actor_mismatch'
     | 'ledger_fund_reserved'
+    | 'organization_kind_reserved'
     | 'config_key_not_user_scoped'
     | null;
 }

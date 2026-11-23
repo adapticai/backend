@@ -20,6 +20,13 @@
  *   is written by the service principal; a user-authored row setting it would
  *   be served as a ledger entry of a fund the user may not even belong to, so
  *   a user may not set it at all (`ledger_fund_reserved`).
+ * - **Organization.** `kind` decides whether the organization is a manager
+ *   or an allocator office, and with it which workspace every member is
+ *   given. Being inside the tenant (the `tenant_scoped` rule) is not
+ *   authority over that, so a user may not set it on any write
+ *   (`organization_kind_reserved`); the service sets it when it provisions an
+ *   office. The column was born after the guard, so the refusal holds in
+ *   every mode ({@link ALWAYS_ENFORCED_CONTENT_REFUSALS}).
  * - **Configuration.** The table also holds system rows (LLM alias routing,
  *   engine settings) keyed by a unique `configKey`. The platform's per-user
  *   preference rows live under `platform.web.<surface>.user.<userId>`; a user
@@ -57,8 +64,19 @@ export type ContentRefusal = Extract<
   | 'reserved_audit_source'
   | 'audit_actor_mismatch'
   | 'ledger_fund_reserved'
+  | 'organization_kind_reserved'
   | 'config_key_not_user_scoped'
 >;
+
+/**
+ * Content refusals decided at `enforce` whatever the guard's mode: each
+ * protects a column no user writer ever had, so there is no legacy writer for
+ * shadow to protect, and in shadow the forged value would be served as fact.
+ */
+export const ALWAYS_ENFORCED_CONTENT_REFUSALS: ReadonlySet<ContentRefusal> = new Set<ContentRefusal>([
+  'ledger_fund_reserved',
+  'organization_kind_reserved',
+]);
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -85,6 +103,19 @@ function auditLogRefusal(args: Record<string, unknown>, callerId: string): Conte
     return 'audit_actor_mismatch';
   }
   if (data.fundId !== undefined && data.fundId !== null) return 'ledger_fund_reserved';
+  return null;
+}
+
+/** `Organization` fields no user may set (see the module doc). */
+export const ORGANIZATION_RESERVED_FIELDS: ReadonlySet<string> = new Set(['kind']);
+
+function organizationRefusal(args: Record<string, unknown>): ContentRefusal | null {
+  for (const payload of [args.data, args.create, args.update]) {
+    const record = asRecord(payload);
+    if (record && definedKeys(record).some((key) => ORGANIZATION_RESERVED_FIELDS.has(key))) {
+      return 'organization_kind_reserved';
+    }
+  }
   return null;
 }
 
@@ -120,6 +151,8 @@ export function userContentRefusal(
       return auditLogRefusal(args, callerId);
     case 'Configuration':
       return configurationRefusal(args, callerId);
+    case 'Organization':
+      return organizationRefusal(args);
     default:
       return null;
   }

@@ -122,8 +122,22 @@ export const DESK_MODELS = [
  * every SYSTEM row exactly as readable as before, so a staged rollout has no
  * existing reader to protect, and holding it in shadow would serve every
  * fund's drafts to any signed-in user.
+ *
+ * The access models ({@link ACCESS_MODELS}) are read-scoped for the same
+ * reason they are kept out of {@link GOVERNED_MODELS}: they grant authority,
+ * so no user writes them through the generated mutations (they stay
+ * `service_only`), and a member reads only their own organization's rows.
  */
-export const READ_SCOPED_MODELS = ['Strategy'] as const;
+export const READ_SCOPED_MODELS = ['Strategy', 'RoleAssignment', 'AuditorGrant', 'EntityGroup'] as const;
+
+/**
+ * The access models: who holds a per-workspace role (`RoleAssignment`), which
+ * auditor may read which entities (`AuditorGrant`), and an office's entity
+ * groups (`EntityGroup`). Each belongs to one organization, and a member reads
+ * only their own organization's rows. They were born after the tenancy guard,
+ * so they are scoped in every mode and refuse an unauthenticated read.
+ */
+export const ACCESS_MODELS = ['RoleAssignment', 'AuditorGrant', 'EntityGroup'] as const;
 
 /** A model scoped on read only (see {@link READ_SCOPED_MODELS}). */
 export type ReadScopedModel = (typeof READ_SCOPED_MODELS)[number];
@@ -219,6 +233,9 @@ const PLURAL_FIELD: Record<ScopedModel, string> = {
   DeskDecision: 'deskDecisions',
   FeatureFlagOverride: 'featureFlagOverrides',
   Strategy: 'strategies',
+  RoleAssignment: 'roleAssignments',
+  AuditorGrant: 'auditorGrants',
+  EntityGroup: 'entityGroups',
 };
 
 /** The read fields typegraphql-prisma generates for a model. */
@@ -424,6 +441,9 @@ function eq(value: string): { equals: string } {
  *     `actorUserId == userId`
  *   - NotificationDelivery → `recipientUserId == userId`
  *   - NotificationPreference → `userId == userId`
+ *   - RoleAssignment → `organizationId ∈ orgIds`
+ *   - AuditorGrant → `officeOrganizationId ∈ orgIds`
+ *   - EntityGroup → `officeId ∈ orgIds`
  *
  * @param model - The governed model.
  * @param ent - The caller's entitlement.
@@ -474,6 +494,12 @@ export function buildScopeWhere(
       return { OR: [{ userId: eq(ent.userId) }, { organizationId: { in: orgIds } }] };
     case 'Strategy':
       return strategyReadScope(fundIds);
+    case 'RoleAssignment':
+      return { organizationId: { in: orgIds } };
+    case 'AuditorGrant':
+      return { officeOrganizationId: { in: orgIds } };
+    case 'EntityGroup':
+      return { officeId: { in: orgIds } };
   }
 }
 
@@ -652,6 +678,12 @@ function singleDataInScope(
     case 'Strategy':
       // No create is classified for Strategy: a user creates one only through
       // createStrategyDraft, which checks the fund itself.
+      return false;
+    case 'RoleAssignment':
+    case 'AuditorGrant':
+    case 'EntityGroup':
+      // Read-scoped only: no create is classified, and the mutation guard
+      // holds every generated write of an access model to the service.
       return false;
   }
 }
@@ -867,6 +899,12 @@ function readAlreadyScoped(
       return false;
     case 'Strategy':
       return inFund('fundId');
+    case 'RoleAssignment':
+      return inOrg('organizationId');
+    case 'AuditorGrant':
+      return inOrg('officeOrganizationId');
+    case 'EntityGroup':
+      return inOrg('officeId');
   }
 }
 

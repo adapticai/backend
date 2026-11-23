@@ -403,3 +403,64 @@ describe('tenancy-scoping middleware — authored strategies (G-STR-06)', () => 
     expect(args.where).toEqual({ id: 'x' });
   });
 });
+
+describe('tenancy-scoping middleware — access models (AG-29, GAP-MO-ORG-02)', () => {
+  const ACCESS_READS: ReadonlyArray<readonly [string, string, Record<string, unknown>]> = [
+    ['RoleAssignment', 'roleAssignments', { organizationId: { in: [ORG_A] } }],
+    ['RoleAssignment', 'getRoleAssignment', { organizationId: { in: [ORG_A] } }],
+    ['AuditorGrant', 'auditorGrants', { officeOrganizationId: { in: [ORG_A] } }],
+    ['AuditorGrant', 'groupByAuditorGrant', { officeOrganizationId: { in: [ORG_A] } }],
+    ['EntityGroup', 'entityGroups', { officeId: { in: [ORG_A] } }],
+    ['EntityGroup', 'findFirstEntityGroupOrThrow', { officeId: { in: [ORG_A] } }],
+  ];
+
+  it.each(['off', 'shadow', 'enforce'] as const)(
+    "scopes a member's read of every access model to their own organizations in %s mode",
+    async (mode) => {
+      for (const [, fieldName, scope] of ACCESS_READS) {
+        const args: Record<string, unknown> = { where: { id: { equals: 'row-1' } } };
+        const result = await run({ mode, fieldName, args, entitlement: ENTITLEMENT });
+        expect(result.error, fieldName).toBeUndefined();
+        expect(result.nextCalls, fieldName).toBe(1);
+        expect(args.where, fieldName).toEqual({ id: { equals: 'row-1' }, AND: [scope] });
+      }
+    }
+  );
+
+  it('scopes a member of no organization to nothing (empty id set)', async () => {
+    const args: Record<string, unknown> = {};
+    const result = await run({
+      mode: 'off',
+      fieldName: 'auditorGrants',
+      args,
+      entitlement: { userId: USER, orgIds: [], fundIds: [] },
+    });
+    expect(result.nextCalls).toBe(1);
+    expect(args.where).toEqual({ AND: [{ officeOrganizationId: { in: [] } }] });
+  });
+
+  it.each(['roleAssignments', 'auditorGrants', 'entityGroups'])(
+    'refuses an unauthenticated read of %s even with scoping off',
+    async (fieldName) => {
+      const result = await run({ mode: 'off', principal: null, fieldName });
+      expect(result.nextCalls).toBe(0);
+      expect((result.error as { extensions?: { code?: string } }).extensions?.code).toBe('UNAUTHENTICATED');
+    }
+  );
+
+  it('never scopes the service principal', async () => {
+    const args: Record<string, unknown> = { where: { userId: { equals: USER } } };
+    const result = await run({ mode: 'enforce', principal: SERVER_PRINCIPAL, fieldName: 'roleAssignments', args });
+    expect(result.nextCalls).toBe(1);
+    expect(args.where).toEqual({ userId: { equals: USER } });
+  });
+
+  it('classifies no access-model write: those stay with the mutation guard (service_only for a user)', async () => {
+    for (const fieldName of ['createOneRoleAssignment', 'updateOneAuditorGrant', 'upsertOneEntityGroup']) {
+      const args: Record<string, unknown> = { where: { id: 'x' }, data: {} };
+      const result = await run({ mode: 'enforce', parentTypeName: 'Mutation', fieldName, args });
+      expect(result.nextCalls, fieldName).toBe(1);
+      expect(args.where, fieldName).toEqual({ id: 'x' });
+    }
+  });
+});
