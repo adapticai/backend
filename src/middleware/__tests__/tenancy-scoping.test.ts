@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import type { GraphQLResolveInfo } from 'graphql';
+import { GraphQLInputObjectType, GraphQLList, GraphQLObjectType, GraphQLString, type GraphQLResolveInfo } from 'graphql';
 import type { ResolverData } from 'type-graphql';
 import type { BackendPrincipal } from '../../auth/token-verifier';
 import {
@@ -10,6 +10,7 @@ import {
   buildScopeWhere,
   injectScopeWhere,
   type Entitlement,
+  type OfficeScope,
   type TenancyScopingMode,
 } from '../../auth/tenancy-scope';
 
@@ -79,13 +80,20 @@ interface RunOptions {
   args?: Record<string, unknown>;
   /** Pre-seed the memoised entitlement (skips Prisma resolution). */
   entitlement?: Entitlement;
+  /** Pre-seed the memoised office scope (skips Prisma resolution). */
+  officeScope?: OfficeScope;
   prisma?: unknown;
+  /** A full resolve info, for tests that need the field's declared types. */
+  info?: GraphQLResolveInfo;
+  /** What the downstream resolver returns. */
+  resolved?: unknown;
 }
 
 async function run(opts: RunOptions): Promise<{
   args: Record<string, unknown>;
   nextCalls: number;
   error?: unknown;
+  result?: unknown;
 }> {
   const middleware = createTenancyScopingMiddleware({
     modeProvider: () => opts.mode,
@@ -97,21 +105,25 @@ async function run(opts: RunOptions): Promise<{
   if (opts.entitlement) {
     context.__tenancyEntitlement = Promise.resolve(opts.entitlement);
   }
+  if (opts.officeScope) {
+    context.__tenancyOfficeScope = Promise.resolve(opts.officeScope);
+  }
   const args = opts.args ?? {};
   const action: ResolverData<TenancyScopingContext> = {
     root: {},
     args,
     context,
-    info: makeInfo(opts.parentTypeName ?? 'Query', opts.fieldName),
+    info: opts.info ?? makeInfo(opts.parentTypeName ?? 'Query', opts.fieldName),
   };
-  const next = vi.fn().mockResolvedValue('ok');
+  const next = vi.fn().mockResolvedValue(opts.resolved === undefined ? 'ok' : opts.resolved);
   let error: unknown;
+  let result: unknown;
   try {
-    await middleware(action, next);
+    result = await middleware(action, next);
   } catch (e) {
     error = e;
   }
-  return { args, nextCalls: next.mock.calls.length, error };
+  return { args, nextCalls: next.mock.calls.length, error, result };
 }
 
 describe('tenancy-scoping middleware — off mode', () => {
@@ -408,18 +420,28 @@ describe('tenancy-scoping middleware — access models (AG-29, GAP-MO-ORG-02)', 
   const ACCESS_READS: ReadonlyArray<readonly [string, string, Record<string, unknown>]> = [
     ['RoleAssignment', 'roleAssignments', { organizationId: { in: [ORG_A] } }],
     ['RoleAssignment', 'getRoleAssignment', { organizationId: { in: [ORG_A] } }],
-    ['AuditorGrant', 'auditorGrants', { officeOrganizationId: { in: [ORG_A] } }],
-    ['AuditorGrant', 'groupByAuditorGrant', { officeOrganizationId: { in: [ORG_A] } }],
+    ['AuditorGrant', 'auditorGrants', { OR: [{ userId: { equals: USER } }, { officeOrganizationId: { in: [ORG_A] } }] }],
+    [
+      'AuditorGrant',
+      'groupByAuditorGrant',
+      { OR: [{ userId: { equals: USER } }, { officeOrganizationId: { in: [ORG_A] } }] },
+    ],
     ['EntityGroup', 'entityGroups', { officeId: { in: [ORG_A] } }],
     ['EntityGroup', 'findFirstEntityGroupOrThrow', { officeId: { in: [ORG_A] } }],
   ];
 
   it.each(['off', 'shadow', 'enforce'] as const)(
-    "scopes a member's read of every access model to their own organizations in %s mode",
+    "scopes a member's read of every access model to their own organizations, grants and groups to the offices they see all of, in %s mode",
     async (mode) => {
       for (const [, fieldName, scope] of ACCESS_READS) {
         const args: Record<string, unknown> = { where: { id: { equals: 'row-1' } } };
-        const result = await run({ mode, fieldName, args, entitlement: ENTITLEMENT });
+        const result = await run({
+          mode,
+          fieldName,
+          args,
+          entitlement: ENTITLEMENT,
+          officeScope: { allOfficeIds: [ORG_A], listed: [], managerOrgIds: [] },
+        });
         expect(result.error, fieldName).toBeUndefined();
         expect(result.nextCalls, fieldName).toBe(1);
         expect(args.where, fieldName).toEqual({ id: { equals: 'row-1' }, AND: [scope] });
@@ -427,16 +449,19 @@ describe('tenancy-scoping middleware — access models (AG-29, GAP-MO-ORG-02)', 
     }
   );
 
-  it('scopes a member of no organization to nothing (empty id set)', async () => {
+  it('scopes a member of no organization to their own grants only (empty office set)', async () => {
     const args: Record<string, unknown> = {};
     const result = await run({
       mode: 'off',
       fieldName: 'auditorGrants',
       args,
       entitlement: { userId: USER, orgIds: [], fundIds: [] },
+      officeScope: { allOfficeIds: [], listed: [], managerOrgIds: [] },
     });
     expect(result.nextCalls).toBe(1);
-    expect(args.where).toEqual({ AND: [{ officeOrganizationId: { in: [] } }] });
+    expect(args.where).toEqual({
+      AND: [{ OR: [{ userId: { equals: USER } }, { officeOrganizationId: { in: [] } }] }],
+    });
   });
 
   it.each(['roleAssignments', 'auditorGrants', 'entityGroups'])(
@@ -462,5 +487,133 @@ describe('tenancy-scoping middleware — access models (AG-29, GAP-MO-ORG-02)', 
       expect(result.nextCalls, fieldName).toBe(1);
       expect(args.where, fieldName).toEqual({ id: 'x' });
     }
+  });
+});
+
+describe('tenancy-scoping middleware — office entities (AG-10, AG-29)', () => {
+  const OFFICE = '11111111-aaaa-aaaa-aaaa-111111111111';
+  const LISTED = { allOfficeIds: [], listed: [{ officeId: OFFICE, investorIds: ['inv-1'] }], managerOrgIds: [] };
+  const legacy = { id: 'legacy', officeOrganizationId: null, organizationId: ORG_A };
+  const inv1 = { id: 'inv-1', officeOrganizationId: OFFICE, organizationId: OFFICE };
+  const inv2 = { id: 'inv-2', officeOrganizationId: OFFICE, organizationId: OFFICE };
+  const relationInfo = (many: boolean): GraphQLResolveInfo => {
+    const investor = new GraphQLObjectType({ name: 'Investor', fields: { id: { type: GraphQLString } } });
+    return {
+      parentType: { name: 'Organization' },
+      fieldName: 'investors',
+      returnType: many ? new GraphQLList(investor) : investor,
+    } as unknown as GraphQLResolveInfo;
+  };
+
+  it.each(['off', 'shadow', 'enforce'] as const)(
+    "scopes a user's investor read to rows no office owns and their entity scope in %s mode",
+    async (mode) => {
+      const args: Record<string, unknown> = { where: { officeOrganizationId: { equals: OFFICE } } };
+      const result = await run({ mode, fieldName: 'investors', args, entitlement: ENTITLEMENT, officeScope: LISTED });
+      expect(result.nextCalls).toBe(1);
+      expect(args.where).toEqual({
+        officeOrganizationId: { equals: OFFICE },
+        AND: [
+          {
+            OR: [
+              { officeOrganizationId: { equals: null } },
+              { organizationId: { in: [] } },
+              { officeOrganizationId: { in: [] } },
+              { officeOrganizationId: { equals: OFFICE }, id: { in: ['inv-1'] } },
+            ],
+          },
+        ],
+      });
+    }
+  );
+
+  it('holds an unauthenticated investor read to rows no office owns', async () => {
+    const args: Record<string, unknown> = {};
+    const result = await run({ mode: 'off', principal: null, fieldName: 'aggregateInvestor', args });
+    expect(result.nextCalls).toBe(1);
+    expect(args.where).toEqual({ AND: [{ officeOrganizationId: { equals: null } }] });
+  });
+
+  it("holds a user's investor update and delete to rows no office owns, in every mode", async () => {
+    for (const fieldName of ['updateManyInvestor', 'deleteManyInvestor', 'updateOneInvestor', 'upsertOneInvestor']) {
+      const args: Record<string, unknown> = { where: { officeOrganizationId: { equals: OFFICE } } };
+      const result = await run({
+        mode: 'off',
+        parentTypeName: 'Mutation',
+        fieldName,
+        args,
+        entitlement: ENTITLEMENT,
+        officeScope: { allOfficeIds: [OFFICE], listed: [], managerOrgIds: [] },
+      });
+      expect(result.nextCalls, fieldName).toBe(1);
+      expect(args.where, fieldName).toEqual({
+        officeOrganizationId: { equals: OFFICE },
+        AND: [{ officeOrganizationId: { equals: null } }],
+      });
+    }
+  });
+
+  it("narrows a relation's investors to the rows the reader may see, and nulls a single hidden one", async () => {
+    const list = await run({
+      mode: 'off',
+      fieldName: 'investors',
+      info: relationInfo(true),
+      officeScope: LISTED,
+      resolved: [legacy, inv1, inv2],
+    });
+    expect(list.result).toEqual([legacy, inv1]);
+    const single = await run({
+      mode: 'off',
+      fieldName: 'parentInvestor',
+      info: relationInfo(false),
+      officeScope: LISTED,
+      resolved: inv2,
+    });
+    expect(single.result).toBeNull();
+    const anonymous = await run({
+      mode: 'off',
+      principal: null,
+      fieldName: 'investors',
+      info: relationInfo(true),
+      resolved: [legacy, inv1],
+    });
+    expect(anonymous.result).toEqual([legacy]);
+  });
+
+  it("serves a relation's rows no office owns without resolving any scope, and the service everything", async () => {
+    const plain = await run({ mode: 'enforce', fieldName: 'investors', info: relationInfo(true), resolved: [legacy] });
+    expect(plain.error).toBeUndefined();
+    expect(plain.result).toEqual([legacy]);
+    const service = await run({
+      mode: 'enforce',
+      principal: SERVER_PRINCIPAL,
+      fieldName: 'investors',
+      info: relationInfo(true),
+      resolved: [legacy, inv1, inv2],
+    });
+    expect(service.result).toEqual([legacy, inv1, inv2]);
+  });
+
+  it("refuses a filter on an office entity's columns outside the investor reads, for a user and no principal, in every mode", async () => {
+    const filter = new GraphQLInputObjectType({ name: 'StringNullableFilter', fields: { equals: { type: GraphQLString } } });
+    const investorWhere = new GraphQLInputObjectType({
+      name: 'InvestorWhereInput',
+      fields: { registrationNumber: { type: filter } },
+    });
+    const relation = new GraphQLInputObjectType({ name: 'InvestorListRelationFilter', fields: { some: { type: investorWhere } } });
+    const orgWhere = new GraphQLInputObjectType({ name: 'OrganizationWhereInput', fields: { investors: { type: relation } } });
+    const query = new GraphQLObjectType({
+      name: 'Query',
+      fields: { organizations: { type: GraphQLString, args: { where: { type: orgWhere } } } },
+    });
+    const info = { parentType: query, fieldName: 'organizations' } as unknown as GraphQLResolveInfo;
+    const where = { investors: { some: { registrationNumber: { equals: 'REG-1' } } } };
+    for (const principal of [USER_PRINCIPAL, null]) {
+      const result = await run({ mode: 'off', principal, fieldName: 'organizations', info, args: { where } });
+      expect(result.nextCalls).toBe(0);
+      expect((result.error as { extensions?: { code?: string } }).extensions?.code).toBe('FORBIDDEN');
+    }
+    const service = await run({ mode: 'off', principal: SERVER_PRINCIPAL, fieldName: 'organizations', info, args: { where } });
+    expect(service.nextCalls).toBe(1);
   });
 });

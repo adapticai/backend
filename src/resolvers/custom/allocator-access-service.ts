@@ -12,9 +12,12 @@
  * Who may ask:
  *
  * - no principal is refused (`UNAUTHENTICATED`);
- * - a user reads only rows of organizations they belong to (the tenancy
- *   entitlement, `resolveEntitlement`), and the entity view only for
- *   themselves;
+ * - a user reads the role assignments of organizations they belong to (the
+ *   tenancy entitlement, `resolveEntitlement`); the auditor grants issued to
+ *   them, wherever they are a member or not (an external auditor reads their
+ *   own grant with their own token), and every grant of an office where they
+ *   see all entities (a grant names entities, so a member with a listed scope
+ *   does not read other people's); and the entity view only for themselves;
  * - the service and admin principals read unscoped, and name the person whose
  *   entity view they resolve (the platform resolves it at sign-in).
  *
@@ -38,7 +41,9 @@ import {
 } from '../../auth/allocator-access';
 import {
   resolveEntitlement,
+  resolveOfficeScope,
   type EntitlementPrismaClient,
+  type OfficeScopePrismaClient,
 } from '../../auth/tenancy-scope';
 import type { BackendPrincipal } from '../../auth/token-verifier';
 import type { InvestorKycStatus, InvestorStatus, InvestorType } from '@prisma/client';
@@ -99,14 +104,15 @@ export interface AllocatorAccessPrisma extends EntitlementPrismaClient {
       where: Where;
       orderBy: Where;
     }): Promise<R[]>;
-  };
+  } & OfficeScopePrismaClient['auditorGrant'];
   roleAssignment: {
     findMany<R extends RoleAssignmentRow>(args: {
       where: Where;
       orderBy: Where;
     }): Promise<R[]>;
   };
-  orgMembership: EntitlementPrismaClient['orgMembership'] & {
+  orgMembership: EntitlementPrismaClient['orgMembership'] &
+    OfficeScopePrismaClient['orgMembership'] & {
     findFirst(args: {
       where: { organizationId: string; userId: string };
       select: { entityScopeAll: true; entityScopeIds: true };
@@ -238,14 +244,20 @@ export async function activeAuditorGrants<R extends AuditorGrantRow>(
   const organizationId = idArg('officeOrganizationId', filter.organizationId);
   const userId = idArg('userId', filter.userId);
   const now = clock();
-  const orgIds = await readableOrgIds(prisma, caller);
+  const and: Where[] = [activeAuditorGrantWhere(now)];
+  if (caller.kind !== 'server' && caller.kind !== 'admin') {
+    const office = await resolveOfficeScope(prisma, caller.sub, now);
+    and.push({
+      OR: [
+        { userId: { equals: caller.sub } },
+        { officeOrganizationId: { in: [...office.allOfficeIds] } },
+      ],
+    });
+  }
+  if (organizationId !== undefined) and.push({ officeOrganizationId: { equals: organizationId } });
+  if (userId !== undefined) and.push({ userId: { equals: userId } });
   const rows = await prisma.auditorGrant.findMany<R>({
-    where: scopedWhere(
-      activeAuditorGrantWhere(now),
-      'officeOrganizationId',
-      orgIds,
-      { organizationId, userId }
-    ),
+    where: { AND: and },
     orderBy: { expiresAt: 'asc' },
   });
   return rows.filter((row) => isAuditorGrantActive(row, now));

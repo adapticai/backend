@@ -8,7 +8,7 @@ import { runTsNodeHarness } from '../middleware/__tests__/ts-node-harness';
  * generated resolvers, and every new column reads as its documented
  * meaning-preserving value.
  *
- * SKIPPED IN CI: it runs only when ACCESS_PRE_DATABASE_URL points at a fresh,
+ * Needs ACCESS_PRE_DATABASE_URL pointing at a fresh,
  * disposable database migrated to 20261121130000 and not past it. Locally:
  *
  *   createdb w2b_pre && (move this migration aside) prisma migrate deploy && (restore it)
@@ -52,7 +52,13 @@ function without(row: Row, keys: string[]): Row {
   );
 }
 
-describe.skipIf(!DATABASE_URL)(
+// The database is provisioned for every run (scripts/test-db/global-setup.ts);
+// without it this suite fails rather than skips, since a skip reads as a pass.
+if (!DATABASE_URL) {
+  throw new Error('No database for this suite: scripts/test-db/global-setup.ts provisions one on every run.');
+}
+
+describe(
   'allocator identity migration on pre-existing rows',
   () => {
     let report: Report;

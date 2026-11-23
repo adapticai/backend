@@ -19,7 +19,9 @@
  *   fund's desk ledger, which is the engine's record of what the desk did and
  *   is written by the service principal; a user-authored row setting it would
  *   be served as a ledger entry of a fund the user may not even belong to, so
- *   a user may not set it at all (`ledger_fund_reserved`).
+ *   a user may not set it at all (`ledger_fund_reserved`). A user may not tag
+ *   their entry for every workspace (`audit_workspace_reserved`, see
+ *   {@link USER_RESERVED_AUDIT_WORKSPACES}).
  * - **Organization.** `kind` decides whether the organization is a manager
  *   or an allocator office, and with it which workspace every member is
  *   given. Being inside the tenant (the `tenant_scoped` rule) is not
@@ -36,7 +38,8 @@
  * @module auth/user-write-content
  */
 
-import type { MutationAuthReason, MutationTarget } from './mutation-authorization';
+import type { MutationAuthMode, MutationAuthReason, MutationTarget } from './mutation-authorization';
+import type { BackendPrincipal } from './token-verifier';
 
 /** The `User` fields a user may set on their own row. */
 export const USER_SELF_WRITABLE_FIELDS: ReadonlySet<string> = new Set([
@@ -54,6 +57,17 @@ export const USER_SELF_WRITABLE_FIELDS: ReadonlySet<string> = new Set([
 /** `AuditLog.metadata.source` values only the backend itself may write. */
 export const RESERVED_AUDIT_SOURCES: ReadonlySet<string> = new Set(['mutation-auth-guard']);
 
+/**
+ * `AuditLog.workspace` tags a user may not put on an entry they author.
+ * `SHARED` and `ORGANISATION` open an entry to every workspace of the
+ * organization, across the wall between Strategy and Fund; the backend cannot
+ * tell which side of the wall a user writes from, so only the service, which
+ * can, tags an entry for everyone. A user may still tag their own entry with
+ * their workspace (`STRATEGY`, `FUND`) or leave it untagged, which the
+ * platform seals for every viewer without Strategy access.
+ */
+export const USER_RESERVED_AUDIT_WORKSPACES: ReadonlySet<string> = new Set(['SHARED', 'ORGANISATION']);
+
 /** A per-user platform preference key: `platform.web.<surface>.user.<userId>`. */
 const USER_CONFIG_KEY = /^platform\.web\.[a-z0-9][a-z0-9-]*\.user\.([0-9a-f-]{36})$/;
 
@@ -64,6 +78,7 @@ export type ContentRefusal = Extract<
   | 'reserved_audit_source'
   | 'audit_actor_mismatch'
   | 'ledger_fund_reserved'
+  | 'audit_workspace_reserved'
   | 'organization_kind_reserved'
   | 'config_key_not_user_scoped'
 >;
@@ -75,6 +90,7 @@ export type ContentRefusal = Extract<
  */
 export const ALWAYS_ENFORCED_CONTENT_REFUSALS: ReadonlySet<ContentRefusal> = new Set<ContentRefusal>([
   'ledger_fund_reserved',
+  'audit_workspace_reserved',
   'organization_kind_reserved',
 ]);
 
@@ -103,24 +119,31 @@ function auditLogRefusal(args: Record<string, unknown>, callerId: string): Conte
     return 'audit_actor_mismatch';
   }
   if (data.fundId !== undefined && data.fundId !== null) return 'ledger_fund_reserved';
+  const workspace = data.workspace;
+  if (typeof workspace === 'string' && USER_RESERVED_AUDIT_WORKSPACES.has(workspace)) return 'audit_workspace_reserved';
   return null;
 }
 
 /**
  * Columns born after the guard that carry authority: an organization's kind
- * (which workspace its members are given) and a membership's entity scope
- * (which office entities its holder sees). A user mutation that sets one,
+ * (which workspace its members are given), a membership's entity scope
+ * (which office entities its holder sees), and an entity's office and parent
+ * (which office's members are served it, and where in that office's tree). A user mutation that sets one,
  * at the root or through any nested write, is decided at `enforce` whatever
  * the guard's mode: there is no legacy writer for shadow to protect, and in
  * shadow a member could widen their own scope or retype their organization
  * with only a log line to show for it. Enforcement then applies the model's
  * ordinary rule: `membership_authority` for a membership (OWNER or ADMIN of
- * the organization), `organization_kind_reserved` for the kind, and the
- * nested-write allowlist for any nested path.
+ * the organization), `organization_kind_reserved` for the kind, `service_only`
+ * for an entity, and the nested-write allowlist for any nested path.
  */
 export const RESERVED_COLUMNS: ReadonlyMap<string, ReadonlySet<string>> = new Map<string, ReadonlySet<string>>([
   ['Organization', new Set(['kind'])],
   ['OrgMembership', new Set(['entityScopeAll', 'entityScopeIds'])],
+  // Which office owns an entity and where it sits in the office's tree: the
+  // scalar keys and the relation keys that set the same foreign keys
+  // (`connect`, `create`, `disconnect`).
+  ['Investor', new Set(['officeOrganizationId', 'officeOrganization', 'parentInvestorId', 'parentInvestor'])],
 ]);
 
 /**
@@ -130,6 +153,44 @@ export const RESERVED_COLUMNS: ReadonlyMap<string, ReadonlySet<string>> = new Ma
  */
 export function writesReservedColumn(columns: ReadonlyArray<{ model: string; column: string }>): boolean {
   return columns.some(({ model, column }) => RESERVED_COLUMNS.get(model)?.has(column) === true);
+}
+
+/** What {@link escalatedMutationMode} decides from. */
+export interface ModeEscalationInput {
+  /** The verified caller, or `null` when there is none. */
+  readonly principal: Pick<BackendPrincipal, 'kind'> | null;
+  /** The content refusal for a user's write ({@link userContentRefusal}), or `null`. */
+  readonly contentRefusal: ContentRefusal | null;
+  /** Every field the payload sets, root and nested, from `findNestedWrites`. */
+  readonly columns: ReadonlyArray<{ model: string; column: string }>;
+  /** The mode the guard's configuration gives the mutation's models. */
+  readonly mode: MutationAuthMode;
+}
+
+/**
+ * The mode a mutation is decided at, after the escalations no configuration
+ * can lower:
+ *
+ * - a user's write whose content refusal is in
+ *   {@link ALWAYS_ENFORCED_CONTENT_REFUSALS} (a forged ledger entry, a
+ *   workspace-wide audit tag, an organization's kind) is decided at `enforce`,
+ *   `off` included;
+ * - a payload that sets a {@link RESERVED_COLUMNS} column, at the root or in
+ *   any nested write, is decided at `enforce` for every principal but the
+ *   service and admins.
+ *
+ * Every other mutation keeps its configured mode. Pure, so the escalation is
+ * provable without a database or a schema.
+ *
+ * @param input - The caller, the content refusal, the written columns and the configured mode.
+ * @returns The mode to decide the mutation at.
+ */
+export function escalatedMutationMode(input: ModeEscalationInput): MutationAuthMode {
+  const { principal, contentRefusal, columns, mode } = input;
+  if (contentRefusal !== null && ALWAYS_ENFORCED_CONTENT_REFUSALS.has(contentRefusal)) return 'enforce';
+  const unprivileged = principal?.kind !== 'server' && principal?.kind !== 'admin';
+  if (unprivileged && writesReservedColumn(columns)) return 'enforce';
+  return mode;
 }
 
 /** `Organization` fields no user may set (see the module doc). */

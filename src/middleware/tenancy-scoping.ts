@@ -39,7 +39,7 @@
  */
 
 import type { MiddlewareFn } from 'type-graphql';
-import { GraphQLError } from 'graphql';
+import { GraphQLError, getNamedType, type GraphQLResolveInfo } from 'graphql';
 import type { BackendPrincipal } from '../auth/token-verifier';
 import {
   anonymousScopeWhere,
@@ -50,13 +50,18 @@ import {
   getTenancyScopingMode,
   hasCreateParent,
   injectScopeWhere,
+  investorRowVisible,
   isAlwaysEnforced,
+  OFFICE_SCOPED_MODELS,
   parentScopedCreateInScope,
   resolveEntitlement,
+  resolveOfficeScope,
   type AccessAssessment,
   type EntitlementPrismaClient,
   type Entitlement,
   type GovernedField,
+  type OfficeScope,
+  type OfficeScopePrismaClient,
   type ParentScopePrismaClient,
   type TenancyScopingMode,
   type WhereFragment,
@@ -75,6 +80,8 @@ export interface TenancyScopingContext {
   prisma?: unknown;
   /** @internal per-request memoised entitlement resolution. */
   __tenancyEntitlement?: Promise<Entitlement>;
+  /** @internal per-request memoised office (entity) scope resolution. */
+  __tenancyOfficeScope?: Promise<OfficeScope>;
 }
 
 /**
@@ -135,10 +142,137 @@ function getEntitlement(
   return context.__tenancyEntitlement;
 }
 
+/**
+ * Resolve (and memoise for the request) the caller's office scope. Throws
+ * when the Prisma client is missing, so the caller fails closed.
+ */
+function getOfficeScope(
+  context: TenancyScopingContext,
+  userId: string,
+  now: () => Date
+): Promise<OfficeScope> {
+  if (!context.__tenancyOfficeScope) {
+    const prisma = context.prisma as OfficeScopePrismaClient | undefined;
+    context.__tenancyOfficeScope = prisma
+      ? resolveOfficeScope(prisma, userId, now())
+      : Promise.reject(new Error('tenancy scoping: Prisma client missing from context'));
+  }
+  return context.__tenancyOfficeScope;
+}
+
+/**
+ * The `Investor` columns an office's entity carries that no row before
+ * offices had: which office owns it, where it sits in the office's tree, and
+ * its registration number. A filter or ordering on them from outside an
+ * investor-scoped root would let a caller probe an entity they cannot read
+ * (`holdings(where: { investor: { is: { registrationNumber: … } } })`), so a
+ * user or anonymous caller may not name them there.
+ */
+const OFFICE_ENTITY_FILTER_KEYS: ReadonlySet<string> = new Set([
+  'officeOrganizationId',
+  'officeOrganization',
+  'parentInvestorId',
+  'parentInvestor',
+  'registrationNumber',
+]);
+
+/**
+ * The roots whose scope is the investor scope itself (an entity, or one of its
+ * records through its entity): a filter on an office entity's columns there is
+ * ANDed with that scope, so it matches only rows the reader may see.
+ */
+const INVESTOR_SCOPED_ROOT_MODELS: ReadonlySet<string> = new Set([
+  'Investor',
+  'Holding',
+  'InvestorTransaction',
+  'InvestorDocument',
+  'TaxDocument',
+]);
+
+/** Whether a GraphQL input type filters or orders `Investor` rows. */
+function isInvestorFilterType(name: string): boolean {
+  return name === 'InvestorWhereInput' || name.startsWith('InvestorOrderBy');
+}
+
+/**
+ * Whether a root field's arguments filter or order `Investor` rows by an
+ * {@link OFFICE_ENTITY_FILTER_KEYS} column anywhere in their tree. Walks the
+ * argument values against their declared input types, so a key is only
+ * matched where it is an `Investor` column.
+ */
+export function namesOfficeEntityColumn(
+  info: Pick<GraphQLResolveInfo, 'parentType' | 'fieldName'>,
+  args: Record<string, unknown>
+): boolean {
+  // A parent type that is not a GraphQL object type has no declared arguments to walk.
+  if (typeof info.parentType?.getFields !== 'function') return false;
+  const field = info.parentType.getFields()[info.fieldName];
+  if (!field) return false;
+  const visit = (type: unknown, value: unknown): boolean => {
+    if (value === null || value === undefined || typeof value !== 'object') return false;
+    const named = getNamedType(type as Parameters<typeof getNamedType>[0]);
+    if (!named || !('getFields' in named) || typeof named.getFields !== 'function') return false;
+    const items: unknown[] = Array.isArray(value) ? value : [value];
+    const fields = named.getFields() as Record<string, { type: unknown }>;
+    return items.some((item) => {
+      if (item === null || typeof item !== 'object') return false;
+      const record = item as Record<string, unknown>;
+      return Object.keys(record).some((key) => {
+        if (record[key] === undefined) return false;
+        if (isInvestorFilterType(named.name) && OFFICE_ENTITY_FILTER_KEYS.has(key)) return true;
+        const child = fields[key];
+        return child !== undefined && visit(child.type, record[key]);
+      });
+    });
+  };
+  return field.args.some((arg) => visit(arg.type, args[arg.name]));
+}
+
 /** Options for {@link createTenancyScopingMiddleware}, primarily for tests. */
 export interface TenancyScopingMiddlewareOptions {
   /** Override the mode resolver (defaults to reading `TENANCY_SCOPING_MODE`). */
   modeProvider?: () => TenancyScopingMode;
+  /** The clock auditor grants are judged at (defaults to the wall clock). */
+  now?: () => Date;
+}
+
+/**
+ * Serve a relation's `Investor` result only as far as the reader may see it:
+ * a list keeps its visible rows, a single row the reader may not see is
+ * `null`. Service and admin callers are never narrowed.
+ */
+async function visibleInvestorRelation(
+  context: TenancyScopingContext,
+  now: () => Date,
+  proceed: () => Promise<unknown>
+): Promise<unknown> {
+  const principal = context.principal;
+  if (principal && (principal.kind === 'server' || principal.kind === 'admin')) return proceed();
+  const result = await proceed();
+  if (result === null || result === undefined) return result;
+  const rows: unknown[] = Array.isArray(result) ? result : [result];
+  const hasOfficeRow = rows.some(
+    (row) => row !== null && typeof row === 'object' && (row as { officeOrganizationId?: unknown }).officeOrganizationId !== null
+  );
+  // Rows no office owns are served as before, without resolving any scope.
+  if (!hasOfficeRow) return result;
+  let office: OfficeScope | null = null;
+  if (principal) {
+    try {
+      office = await getOfficeScope(context, principal.sub, now);
+    } catch (error) {
+      logger.error('[tenancy-scope] office scope unavailable — withholding office entities', {
+        userId: principal.sub,
+        detail: error instanceof Error ? error.message : String(error),
+      });
+      office = null;
+    }
+  }
+  const visible = (row: unknown): boolean =>
+    row !== null && typeof row === 'object' && investorRowVisible(row as Record<string, unknown>, office);
+  tenancyScopingDecisionsTotal.inc({ mode: 'enforce', model: 'Investor', operation: 'relation', decision: 'restrict' });
+  if (Array.isArray(result)) return result.filter(visible);
+  return visible(result) ? result : null;
 }
 
 /**
@@ -151,20 +285,46 @@ export function createTenancyScopingMiddleware(
   options: TenancyScopingMiddlewareOptions = {}
 ): MiddlewareFn<TenancyScopingContext> {
   const resolveMode = options.modeProvider ?? getTenancyScopingMode;
+  const now = options.now ?? ((): Date => new Date());
 
   return async ({ context, args, info }, next) => {
     // `next` is typed `() => Promise<any>` by type-graphql. Widen it once to a
     // typed pass-through so returning it downstream is not an unsafe-any return.
     const proceed = (): Promise<unknown> => next() as Promise<unknown>;
 
-    // Only the root Query/Mutation entry points are scoped. Nested relation
-    // resolvers (parentType is a model) and every non-governed field short out
-    // here — the cheapest possible path for the hot resolver stack.
+    // Only the root Query/Mutation entry points are scoped, with one
+    // exception: a relation that returns `Investor` rows (an organization's
+    // investors, a holding's investor, an entity's parent) is narrowed to the
+    // rows the reader may see, so an office's entity is never served around
+    // the root scope. Every other nested resolver and every non-governed
+    // field short out here — the cheapest possible path for the hot resolver
+    // stack.
     const parentTypeName = info.parentType?.name;
     if (parentTypeName !== 'Query' && parentTypeName !== 'Mutation') {
+      if (info.returnType !== undefined && getNamedType(info.returnType).name === 'Investor') {
+        return visibleInvestorRelation(context, now, proceed);
+      }
       return proceed();
     }
     const governed = classifyGovernedField(info.fieldName);
+    // Outside the investor-scoped roots, whose scope already holds every
+    // filter to the rows the reader may see, a user or anonymous caller may
+    // not filter or order by an office entity's columns (see
+    // OFFICE_ENTITY_FILTER_KEYS). Decided in every mode: the columns were born
+    // after the guard, so no existing caller names them.
+    if (governed === null || !INVESTOR_SCOPED_ROOT_MODELS.has(governed.model)) {
+      const caller = context.principal;
+      const privileged = caller?.kind === 'server' || caller?.kind === 'admin';
+      if (!privileged && namesOfficeEntityColumn(info, (args ?? {}) as Record<string, unknown>)) {
+        tenancyScopingDecisionsTotal.inc({
+          mode: 'enforce',
+          model: 'Investor',
+          operation: info.fieldName,
+          decision: 'deny',
+        });
+        throw forbidden("Access denied: an office entity's columns are filtered only through the investor reads");
+      }
+    }
     if (!governed) return proceed();
 
     // An always-enforced (desk) model is scoped whatever the configured mode;
@@ -283,10 +443,24 @@ export function createTenancyScopingMiddleware(
     // narrower than the read scope for models a member may read but only the
     // author may change (a shared Ada conversation).
     const scopeFor = parentTypeName === 'Mutation' ? buildWriteScopeWhere : buildScopeWhere;
+    let office: OfficeScope | undefined;
+    if (OFFICE_SCOPED_MODELS.has(governed.model)) {
+      try {
+        office = await getOfficeScope(context, userId, now);
+      } catch (error) {
+        logger.error('[tenancy-scope] enforce: office scope resolution failed — denying', {
+          model: governed.model,
+          operation: info.fieldName,
+          userId,
+          detail: error instanceof Error ? error.message : String(error),
+        });
+        throw forbidden('Access denied: office scope unavailable');
+      }
+    }
     if (governed.opKind === 'whereScope') {
       const scoped = injectScopeWhere(
         (args.where as WhereFragment | undefined) ?? undefined,
-        scopeFor(governed.model, entitlement)
+        scopeFor(governed.model, entitlement, office)
       );
       (args as { where?: unknown }).where = scoped;
       return proceed();
@@ -309,7 +483,7 @@ export function createTenancyScopingMiddleware(
     if (governed.opKind === 'upsertScope') {
       const scoped = injectScopeWhere(
         (args.where as WhereFragment | undefined) ?? undefined,
-        scopeFor(governed.model, entitlement)
+        scopeFor(governed.model, entitlement, office)
       );
       (args as { where?: unknown }).where = scoped;
     }

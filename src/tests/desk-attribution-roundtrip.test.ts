@@ -6,8 +6,8 @@ import { runTsNodeHarness } from '../middleware/__tests__/ts-node-harness';
  * sequence through the generated GraphQL resolvers against a real Postgres
  * built from the migration history (`desk-attribution-roundtrip.harness.ts`).
  *
- * SKIPPED IN CI: it runs only when DESK_IT_DATABASE_URL points at a
- * disposable migrated database, and CI has none. Run it locally:
+ * Needs DESK_IT_DATABASE_URL pointing at a
+ * disposable migrated database, which scripts/test-db/global-setup.ts provisions on every run. Run it locally:
  *
  *   DESK_IT_DATABASE_URL=postgresql://postgres@127.0.0.1:5499/desk_it \
  *     npx vitest run src/tests/desk-attribution-roundtrip.test.ts
@@ -26,7 +26,13 @@ interface Report {
 const DATABASE_URL = process.env.DESK_IT_DATABASE_URL;
 const HARNESS_TIMEOUT_MS = 300_000;
 
-describe.skipIf(!DATABASE_URL)('desk attribution and ledger fields against a migrated Postgres', () => {
+// The database is provisioned for every run (scripts/test-db/global-setup.ts);
+// without it this suite fails rather than skips, since a skip reads as a pass.
+if (!DATABASE_URL) {
+  throw new Error('No database for this suite: scripts/test-db/global-setup.ts provisions one on every run.');
+}
+
+describe('desk attribution and ledger fields against a migrated Postgres', () => {
   let report: Report;
   const step = (name: string): StepResult => report.steps[name];
 

@@ -32,6 +32,15 @@
  * the engine's server-to-server `adaptic.*` traffic is never scoped.
  */
 
+import {
+  activeAuditorGrantWhere,
+  isAuditorGrantActive,
+  resolveEntityScope,
+  withGrantedEntities,
+  type EntityScope,
+  type EntityScopeColumns,
+} from './allocator-access';
+
 // -----------------------------------------------------------------------------
 // Modes
 // -----------------------------------------------------------------------------
@@ -127,8 +136,37 @@ export const DESK_MODELS = [
  * reason they are kept out of {@link GOVERNED_MODELS}: they grant authority,
  * so no user writes them through the generated mutations (they stay
  * `service_only`), and a member reads only their own organization's rows.
+ *
+ * `Investor` holds two kinds of row too. A row no allocator office owns
+ * (`officeOrganizationId` NULL, every row that predates offices) stays exactly
+ * as readable as it always was. A row an office owns is an entity of that
+ * office, and is read only within the reader's entity scope there
+ * ({@link OfficeScope}): every entity of an office where their membership has
+ * `entityScopeAll`, otherwise the entities their membership lists or their
+ * active auditor grants name. The manager whose register the row is in
+ * (`organizationId`, a MANAGER organization the reader belongs to) reads it
+ * too: an office's entity investing in a fund is that fund's investor. A
+ * caller with no identity, or none of these, reads none. The investor's
+ * records (`Holding`, `InvestorTransaction`, `InvestorDocument`,
+ * `TaxDocument`) are read under the same rule, through their investor, so an
+ * entity hidden at the root is not served through its records. Like `Strategy`, the predicate leaves every other row
+ * as readable as before, so it holds in every mode. Its update, delete and
+ * upsert fields are classified too, held to the rows no office owns
+ * ({@link buildWriteScopeWhere}): an office's entities are the service's to
+ * write, which is what the mutation guard's `service_only` rule says once it
+ * enforces.
  */
-export const READ_SCOPED_MODELS = ['Strategy', 'RoleAssignment', 'AuditorGrant', 'EntityGroup'] as const;
+export const READ_SCOPED_MODELS = [
+  'Strategy',
+  'RoleAssignment',
+  'AuditorGrant',
+  'EntityGroup',
+  'Investor',
+  'Holding',
+  'InvestorTransaction',
+  'InvestorDocument',
+  'TaxDocument',
+] as const;
 
 /**
  * The access models: who holds a per-workspace role (`RoleAssignment`), which
@@ -138,6 +176,26 @@ export const READ_SCOPED_MODELS = ['Strategy', 'RoleAssignment', 'AuditorGrant',
  * so they are scoped in every mode and refuse an unauthenticated read.
  */
 export const ACCESS_MODELS = ['RoleAssignment', 'AuditorGrant', 'EntityGroup'] as const;
+
+/**
+ * A read-scoped model whose user writes are also held to a scope, in every
+ * mode ({@link buildWriteScopeWhere}). Only {@link READ_SCOPED_MODELS} members.
+ */
+const WRITE_HELD_READ_SCOPED_MODELS = ['Investor'] as const;
+
+/**
+ * The models whose user scope depends on the caller's entity scope in each
+ * allocator office ({@link OfficeScope}), not only on their organizations.
+ */
+export const OFFICE_SCOPED_MODELS: ReadonlySet<string> = new Set<string>([
+  'Investor',
+  'Holding',
+  'InvestorTransaction',
+  'InvestorDocument',
+  'TaxDocument',
+  'AuditorGrant',
+  'EntityGroup',
+]);
 
 /** A model scoped on read only (see {@link READ_SCOPED_MODELS}). */
 export type ReadScopedModel = (typeof READ_SCOPED_MODELS)[number];
@@ -236,6 +294,11 @@ const PLURAL_FIELD: Record<ScopedModel, string> = {
   RoleAssignment: 'roleAssignments',
   AuditorGrant: 'auditorGrants',
   EntityGroup: 'entityGroups',
+  Investor: 'investors',
+  Holding: 'holdings',
+  InvestorTransaction: 'investorTransactions',
+  InvestorDocument: 'investorDocuments',
+  TaxDocument: 'taxDocuments',
 };
 
 /** The read fields typegraphql-prisma generates for a model. */
@@ -265,6 +328,20 @@ const GOVERNED_FIELD_MAP: ReadonlyMap<string, GovernedField> = (() => {
   const map = new Map<string, GovernedField>();
   for (const model of READ_SCOPED_MODELS) {
     for (const field of readFieldsOf(model)) {
+      map.set(field, { model, opKind: 'whereScope' });
+    }
+  }
+  for (const model of WRITE_HELD_READ_SCOPED_MODELS) {
+    for (const field of [
+      `updateOne${model}`,
+      `updateMany${model}`,
+      `deleteOne${model}`,
+      `deleteMany${model}`,
+      // An upsert's `where` decides which row its update branch writes; held
+      // to the write scope, an office's entity is never found, and the create
+      // branch is the mutation guard's to decide.
+      `upsertOne${model}`,
+    ]) {
       map.set(field, { model, opKind: 'whereScope' });
     }
   }
@@ -391,6 +468,156 @@ export async function resolveEntitlement(
 }
 
 // -----------------------------------------------------------------------------
+// Office (entity) scope resolution
+// -----------------------------------------------------------------------------
+
+/** The entities of one allocator office a caller may read, when not every one. */
+export interface OfficeEntityList {
+  readonly officeId: string;
+  readonly investorIds: readonly string[];
+}
+
+/**
+ * A user's entity scope across allocator offices: the offices where their
+ * membership has `entityScopeAll`, and for every other office they belong to
+ * or hold an active auditor grant in, exactly the entities listed. Fails
+ * closed: an office missing from both lists is an office whose entities the
+ * caller does not see.
+ */
+export interface OfficeScope {
+  readonly allOfficeIds: readonly string[];
+  readonly listed: readonly OfficeEntityList[];
+  /**
+   * The MANAGER organizations the caller belongs to: an office-owned entity
+   * on one of their registers (`Investor.organizationId`) is their investor.
+   */
+  readonly managerOrgIds: readonly string[];
+}
+
+/** The scope that sees no office's entities. */
+export const NO_OFFICE_SCOPE: OfficeScope = { allOfficeIds: [], listed: [], managerOrgIds: [] };
+
+/** The Prisma delegates {@link resolveOfficeScope} reads; narrow so a test can pass a fake. */
+export interface OfficeScopePrismaClient {
+  orgMembership: {
+    findMany(args: {
+      where: { userId: string };
+      select: {
+        organizationId: true;
+        entityScopeAll: true;
+        entityScopeIds: true;
+        organization: { select: { kind: true } };
+      };
+    }): Promise<Array<{ organizationId: string; organization: { kind: string } | null } & EntityScopeColumns>>;
+  };
+  auditorGrant: {
+    findMany(args: {
+      where: Record<string, unknown>;
+      select: { officeOrganizationId: true; entityIds: true; expiresAt: true; revokedAt: true };
+    }): Promise<
+      Array<{ officeOrganizationId: string; entityIds: string[] | null; expiresAt: Date; revokedAt: Date | null }>
+    >;
+  };
+}
+
+/**
+ * Resolve a user's {@link OfficeScope} from their memberships and the auditor
+ * grants active at `now` ({@link isAuditorGrantActive}, checked per row as
+ * well as in the query). Each office's scope is the membership's
+ * ({@link resolveEntityScope}) widened by that office's grants
+ * ({@link withGrantedEntities}), the same rule `officeEntities` serves.
+ *
+ * @param prisma - Prisma client (or a structural subset).
+ * @param userId - The caller's user id (JWT `sub`).
+ * @param now - The instant grants are judged at.
+ * @returns The resolved scope.
+ */
+export async function resolveOfficeScope(
+  prisma: OfficeScopePrismaClient,
+  userId: string,
+  now: Date
+): Promise<OfficeScope> {
+  const [memberships, grants] = await Promise.all([
+    prisma.orgMembership.findMany({
+      where: { userId },
+      select: {
+        organizationId: true,
+        entityScopeAll: true,
+        entityScopeIds: true,
+        organization: { select: { kind: true } },
+      },
+    }),
+    prisma.auditorGrant.findMany({
+      where: { AND: [activeAuditorGrantWhere(now), { userId: { equals: userId } }] },
+      select: { officeOrganizationId: true, entityIds: true, expiresAt: true, revokedAt: true },
+    }),
+  ]);
+  const scopes = new Map<string, EntityScope>();
+  const managerOrgIds: string[] = [];
+  for (const membership of memberships) {
+    scopes.set(membership.organizationId, resolveEntityScope(membership));
+    // Only a kind read as MANAGER makes a register the caller's; an absent
+    // organization or any other kind does not.
+    if (membership.organization?.kind === 'MANAGER') managerOrgIds.push(membership.organizationId);
+  }
+  for (const grant of grants) {
+    if (!isAuditorGrantActive(grant, now)) continue;
+    const base = scopes.get(grant.officeOrganizationId) ?? resolveEntityScope(null);
+    scopes.set(grant.officeOrganizationId, withGrantedEntities(base, grant.entityIds ?? []));
+  }
+  const allOfficeIds: string[] = [];
+  const listed: OfficeEntityList[] = [];
+  for (const [officeId, scope] of scopes) {
+    if (scope.all) allOfficeIds.push(officeId);
+    else if (scope.investorIds.length > 0) listed.push({ officeId, investorIds: scope.investorIds });
+  }
+  return { allOfficeIds, listed, managerOrgIds: unique(managerOrgIds) };
+}
+
+/**
+ * The `Investor` rows a user may READ: every row no office owns, every entity
+ * of an office where they see all, and the listed entities of the others.
+ * Filter-object forms throughout (see {@link eq}).
+ */
+function investorReadScope(office: OfficeScope): WhereFragment {
+  return {
+    OR: [
+      { officeOrganizationId: { equals: null } },
+      { organizationId: { in: [...office.managerOrgIds] } },
+      { officeOrganizationId: { in: [...office.allOfficeIds] } },
+      ...office.listed.map((entry) => ({
+        officeOrganizationId: { equals: entry.officeId },
+        id: { in: [...entry.investorIds] },
+      })),
+    ],
+  };
+}
+
+/** The `Investor` rows no office owns: what a caller with no office scope reads, and what a user writes. */
+const INVESTOR_NOT_OFFICE_OWNED: WhereFragment = { officeOrganizationId: { equals: null } };
+
+/**
+ * Whether a row an office owns may be served to a reader with this scope: the
+ * per-row form of {@link investorReadScope}, for rows reached through a
+ * relation rather than a root read.
+ *
+ * @param row - The row's office and id, as Prisma returned it.
+ * @param office - The reader's scope, or `null` for a reader with none.
+ */
+export function investorRowVisible(
+  row: { readonly id?: unknown; readonly officeOrganizationId?: unknown; readonly organizationId?: unknown },
+  office: OfficeScope | null
+): boolean {
+  if (row.officeOrganizationId === null) return true;
+  if (typeof row.officeOrganizationId !== 'string' || typeof row.id !== 'string' || office === null) return false;
+  const officeId = row.officeOrganizationId;
+  const id = row.id;
+  if (typeof row.organizationId === 'string' && office.managerOrgIds.includes(row.organizationId)) return true;
+  if (office.allOfficeIds.includes(officeId)) return true;
+  return office.listed.some((entry) => entry.officeId === officeId && entry.investorIds.includes(id));
+}
+
+// -----------------------------------------------------------------------------
 // Scope predicate construction + injection
 // -----------------------------------------------------------------------------
 
@@ -442,16 +669,25 @@ function eq(value: string): { equals: string } {
  *   - NotificationDelivery → `recipientUserId == userId`
  *   - NotificationPreference → `userId == userId`
  *   - RoleAssignment → `organizationId ∈ orgIds`
- *   - AuditorGrant → `officeOrganizationId ∈ orgIds`
- *   - EntityGroup → `officeId ∈ orgIds`
+ *   - AuditorGrant → the caller's own grants, and every grant of an office
+ *     where they see all entities (a grant names entities, so a member with
+ *     a listed scope does not read other people's)
+ *   - EntityGroup → `officeId` an office where they see all entities (a group
+ *     names entities, for the same reason)
+ *   - Investor → no office owns it, or it is in the caller's entity scope
+ *
+ * The three office-scoped models ({@link OFFICE_SCOPED_MODELS}) read the
+ * caller's {@link OfficeScope}; without one they fail closed.
  *
  * @param model - The governed model.
  * @param ent - The caller's entitlement.
+ * @param office - The caller's office scope, for the office-scoped models.
  * @returns A Prisma `where` fragment.
  */
 export function buildScopeWhere(
   model: ScopedModel,
-  ent: Entitlement
+  ent: Entitlement,
+  office: OfficeScope = NO_OFFICE_SCOPE
 ): WhereFragment {
   const orgIds = [...ent.orgIds];
   const fundIds = [...ent.fundIds];
@@ -497,9 +733,20 @@ export function buildScopeWhere(
     case 'RoleAssignment':
       return { organizationId: { in: orgIds } };
     case 'AuditorGrant':
-      return { officeOrganizationId: { in: orgIds } };
+      return {
+        OR: [{ userId: eq(ent.userId) }, { officeOrganizationId: { in: [...office.allOfficeIds] } }],
+      };
     case 'EntityGroup':
-      return { officeId: { in: orgIds } };
+      return { officeId: { in: [...office.allOfficeIds] } };
+    case 'Investor':
+      return investorReadScope(office);
+    case 'Holding':
+    case 'InvestorTransaction':
+    case 'TaxDocument':
+      return { investor: { is: investorReadScope(office) } };
+    case 'InvestorDocument':
+      // A fund-wide document names no investor and keeps its reach.
+      return { OR: [{ investorId: { equals: null } }, { investor: { is: investorReadScope(office) } }] };
   }
 }
 
@@ -511,14 +758,20 @@ export function buildScopeWhere(
  * user only as their own authored draft, in a fund they belong to; a SYSTEM
  * strategy is never in a user's write scope.
  *
+ * An `Investor` an office owns is never in a user's write scope (see
+ * {@link READ_SCOPED_MODELS}).
+ *
  * @param model - The governed model.
  * @param ent - The caller's entitlement.
+ * @param office - The caller's office scope, for the office-scoped models.
  * @returns A Prisma `where` fragment.
  */
 export function buildWriteScopeWhere(
   model: ScopedModel,
-  ent: Entitlement
+  ent: Entitlement,
+  office: OfficeScope = NO_OFFICE_SCOPE
 ): WhereFragment {
+  if (model === 'Investor') return INVESTOR_NOT_OFFICE_OWNED;
   if (model === 'Strategy') {
     return {
       kind: { not: null },
@@ -528,20 +781,34 @@ export function buildWriteScopeWhere(
   }
   if (model === 'AdaConversation') return { userId: eq(ent.userId) };
   if (model === 'AdaMessage') return { conversation: { is: { userId: eq(ent.userId) } } };
-  return buildScopeWhere(model, ent);
+  return buildScopeWhere(model, ent, office);
 }
 
 /**
  * The scope an UNAUTHENTICATED read of a model is held to, or `null` when the
  * model has none (it is then passed or refused by the middleware's mode
  * rules). A caller with no identity belongs to no fund, so it reads only the
- * SYSTEM strategies and never an authored one.
+ * SYSTEM strategies and never an authored one, and to no office, so it reads
+ * only the investors no office owns.
  *
  * @param model - The scoped model.
  * @returns A Prisma `where` fragment, or `null`.
  */
 export function anonymousScopeWhere(model: ScopedModel): WhereFragment | null {
-  return model === 'Strategy' ? { kind: { equals: null } } : null;
+  switch (model) {
+    case 'Strategy':
+      return { kind: { equals: null } };
+    case 'Investor':
+      return INVESTOR_NOT_OFFICE_OWNED;
+    case 'Holding':
+    case 'InvestorTransaction':
+    case 'TaxDocument':
+      return { investor: { is: INVESTOR_NOT_OFFICE_OWNED } };
+    case 'InvestorDocument':
+      return { OR: [{ investorId: { equals: null } }, { investor: { is: INVESTOR_NOT_OFFICE_OWNED } }] };
+    default:
+      return null;
+  }
 }
 
 /**
@@ -682,8 +949,14 @@ function singleDataInScope(
     case 'RoleAssignment':
     case 'AuditorGrant':
     case 'EntityGroup':
+    case 'Investor':
+    case 'Holding':
+    case 'InvestorTransaction':
+    case 'InvestorDocument':
+    case 'TaxDocument':
       // Read-scoped only: no create is classified, and the mutation guard
-      // holds every generated write of an access model to the service.
+      // holds every generated write of an access model or an entity to the
+      // service.
       return false;
   }
 }
@@ -905,6 +1178,13 @@ function readAlreadyScoped(
       return inOrg('officeOrganizationId');
     case 'EntityGroup':
       return inOrg('officeId');
+    case 'Investor':
+    case 'Holding':
+    case 'InvestorTransaction':
+    case 'InvestorDocument':
+    case 'TaxDocument':
+      // Always enforced: the scope is injected whatever this says.
+      return false;
   }
 }
 

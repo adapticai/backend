@@ -8,6 +8,14 @@ export default defineConfig({
     // in the same gate as the package's own.
     include: ['src/**/*.test.ts', 'src/**/*.spec.ts', 'scripts/**/*.test.ts'],
     exclude: ['node_modules', 'dist', 'src/generated/**', 'src/modules/**'],
+    // The database suites (src/tests/*-authz, *-roundtrip, the health and
+    // restatement suites) run against a Postgres this setup provisions on
+    // every run; they fail, never skip, without one (scripts/test-db/).
+    globalSetup: ['./scripts/test-db/global-setup.ts'],
+    // Each served-schema harness spawns a ts-node process of ~3.8 GB; more
+    // than two at once exhausts a 16 GB runner.
+    maxWorkers: 2,
+    minWorkers: 1,
     testTimeout: 10000,
     hookTimeout: 10000,
     // The generator suite runs the full codegen in-process, and its logger

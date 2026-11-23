@@ -18,9 +18,9 @@ import {
  *    double-record, an FK that blocks hard-deleting a restated trade, and an
  *    attributed revert.
  * 2. The revert path, exercised on a COPY: a throwaway schema with its own
- *    `trades` table and the real migration applied. This runs only when
- *    RESTATEMENT_TEST_DATABASE_URL points at a disposable Postgres (CI has no
- *    database service); it creates and drops its own schema and never touches
+ *    `trades` table and the real migration applied. It needs
+ *    RESTATEMENT_TEST_DATABASE_URL pointing at a disposable Postgres, which
+ *    scripts/test-db/global-setup.ts provisions on every run; it creates and drops its own schema and never touches
  *    `public`. Run it before the first real write:
  *      RESTATEMENT_TEST_DATABASE_URL=postgresql://localhost:5432/scratch \
  *        npx vitest run src/restatements
@@ -142,7 +142,13 @@ const TRADE_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 const TRADE_C = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 const REF = 'RST-TEST-ENTRYBASIS';
 
-describe.skipIf(!TEST_DATABASE_URL)(
+// The database is provisioned for every run (scripts/test-db/global-setup.ts);
+// without it this suite fails rather than skips, since a skip reads as a pass.
+if (!TEST_DATABASE_URL) {
+  throw new Error('No database for this suite: scripts/test-db/global-setup.ts provisions one on every run.');
+}
+
+describe(
   'trade_restatements revert path on a copy',
   () => {
     const schema = `restatement_test_${randomBytes(4).toString('hex')}`;

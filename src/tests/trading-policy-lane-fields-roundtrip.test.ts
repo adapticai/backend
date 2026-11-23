@@ -6,8 +6,8 @@ import { runTsNodeHarness } from '../middleware/__tests__/ts-node-harness';
  * the migration's own SQL run down and up, against a real Postgres built from
  * the migration history (`trading-policy-lane-fields-roundtrip.harness.ts`).
  *
- * SKIPPED IN CI: it runs only when LANE_IT_DATABASE_URL points at a
- * disposable migrated database, and CI has none. Run it locally:
+ * Needs LANE_IT_DATABASE_URL pointing at a
+ * disposable migrated database, which scripts/test-db/global-setup.ts provisions on every run. Run it locally:
  *
  *   LANE_IT_DATABASE_URL=postgresql://postgres@127.0.0.1:5499/lane_it \
  *     npx vitest run src/tests/trading-policy-lane-fields-roundtrip.test.ts
@@ -44,7 +44,13 @@ function withoutLaneColumns(row: Record<string, unknown> | null): Record<string,
   return Object.fromEntries(Object.entries(row ?? {}).filter(([key]) => !LANE_KEYS.includes(key)));
 }
 
-describe.skipIf(!DATABASE_URL)('TradingPolicy lane preferences against a migrated Postgres', () => {
+// The database is provisioned for every run (scripts/test-db/global-setup.ts);
+// without it this suite fails rather than skips, since a skip reads as a pass.
+if (!DATABASE_URL) {
+  throw new Error('No database for this suite: scripts/test-db/global-setup.ts provisions one on every run.');
+}
+
+describe('TradingPolicy lane preferences against a migrated Postgres', () => {
   let report: Report;
   const policy = (name: string): Record<string, unknown> => {
     const data = report.steps[name].data ?? {};

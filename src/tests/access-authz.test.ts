@@ -7,8 +7,8 @@ import { runTsNodeHarness } from '../middleware/__tests__/ts-node-harness';
  * built from the migration history (`access-authz.harness.ts`), with every
  * staged mode at its default (shadow).
  *
- * SKIPPED IN CI: it runs only when ACCESS_IT_DATABASE_URL points at a
- * disposable migrated database, and CI has none. The pure halves are
+ * Needs ACCESS_IT_DATABASE_URL pointing at a
+ * disposable migrated database, which scripts/test-db/global-setup.ts provisions on every run. The pure halves are
  * src/auth/__tests__/access-models-authorization.test.ts and
  * src/resolvers/custom/__tests__/allocator-access-service.test.ts. Locally:
  *
@@ -48,7 +48,13 @@ function ids(step: StepResult, field: string): string[] {
   return rows.map((row) => row.id).sort();
 }
 
-describe.skipIf(!DATABASE_URL)('access models on the served schema', () => {
+// The database is provisioned for every run (scripts/test-db/global-setup.ts);
+// without it this suite fails rather than skips, since a skip reads as a pass.
+if (!DATABASE_URL) {
+  throw new Error('No database for this suite: scripts/test-db/global-setup.ts provisions one on every run.');
+}
+
+describe('access models on the served schema', () => {
   let report: Report;
 
   beforeAll(async () => {

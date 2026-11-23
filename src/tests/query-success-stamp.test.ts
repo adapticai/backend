@@ -14,7 +14,7 @@ if (itUrl) {
  *
  * The unit block needs no database. The integration block reproduces pool
  * saturation against a real Postgres and only runs when
- * HEALTH_IT_DATABASE_URL is set (CI has no database, so it is skipped there):
+ * HEALTH_IT_DATABASE_URL is set, which scripts/test-db/global-setup.ts provisions on every run:
  *
  *   HEALTH_IT_DATABASE_URL=postgresql://postgres@127.0.0.1:55432/postgres \
  *     npx vitest run src/tests/query-success-stamp.test.ts
@@ -43,7 +43,13 @@ describe('stampQuerySuccess', () => {
   });
 });
 
-describe.skipIf(!itUrl)(
+// The database is provisioned for every run (scripts/test-db/global-setup.ts);
+// without it this suite fails rather than skips, since a skip reads as a pass.
+if (!itUrl) {
+  throw new Error('No database for this suite: scripts/test-db/global-setup.ts provisions one on every run.');
+}
+
+describe(
   '/health readiness under a saturated pool (real Postgres)',
   () => {
     it('stays connected via recent-query while every pool connection is busy', async () => {

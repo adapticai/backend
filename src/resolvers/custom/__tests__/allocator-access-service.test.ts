@@ -61,6 +61,8 @@ interface Fake {
 
 function fake(seed: {
   memberOrgs?: string[];
+  /** Member organizations whose membership has entityScopeAll. */
+  scopeAllOrgs?: string[];
   grants?: AuditorGrantRow[];
   assignments?: RoleAssignmentRow[];
   membership?: { entityScopeAll: boolean; entityScopeIds: string[] } | null;
@@ -77,7 +79,12 @@ function fake(seed: {
     orgMembership: {
       findMany: record(
         'orgMembership',
-        (seed.memberOrgs ?? []).map((organizationId) => ({ organizationId }))
+        (seed.memberOrgs ?? []).map((organizationId) => ({
+          organizationId,
+          entityScopeAll: (seed.scopeAllOrgs ?? []).includes(organizationId),
+          entityScopeIds: [],
+          organization: { kind: 'ALLOCATOR_OFFICE' },
+        }))
       ),
       findFirst: async (args: unknown) => {
         calls.push({ model: 'orgMembership.findFirst', args });
@@ -86,7 +93,14 @@ function fake(seed: {
     },
     fund: { findMany: record('fund', []) },
     fundAssignment: { findMany: record('fundAssignment', []) },
-    auditorGrant: { findMany: record('auditorGrant', seed.grants ?? []) },
+    auditorGrant: {
+      // The office-scope read selects columns; the served read does not.
+      findMany: async (args: { select?: unknown }) => {
+        const model = args.select === undefined ? 'auditorGrant' : 'auditorGrant.scope';
+        calls.push({ model, args });
+        return model === 'auditorGrant' ? (seed.grants ?? []) : [];
+      },
+    },
     roleAssignment: {
       findMany: record('roleAssignment', seed.assignments ?? []),
     },
@@ -130,8 +144,8 @@ describe('activeAuditorGrants', () => {
     ).toBe('BAD_USER_INPUT');
   });
 
-  it("selects only active grants, ANDed with the user's organizations and the filters", async () => {
-    const f = fake({ memberOrgs: [ORG_A] });
+  it("selects only active grants, ANDed with the caller's own grants or the offices whose every entity they see, and the filters", async () => {
+    const f = fake({ memberOrgs: [ORG_A], scopeAllOrgs: [ORG_A] });
     await activeAuditorGrants(
       f.prisma,
       USER_P,
@@ -141,9 +155,20 @@ describe('activeAuditorGrants', () => {
     expect(whereOf(f, 'auditorGrant')).toEqual({
       AND: [
         { revokedAt: { equals: null }, expiresAt: { gt: NOW } },
-        { officeOrganizationId: { in: [ORG_A] } },
+        { OR: [{ userId: { equals: USER } }, { officeOrganizationId: { in: [ORG_A] } }] },
         { officeOrganizationId: { equals: ORG_A } },
         { userId: { equals: USER } },
+      ],
+    });
+  });
+
+  it('a member with a listed entity scope reads only their own grants of that office, never other people\'s', async () => {
+    const f = fake({ memberOrgs: [ORG_A] });
+    await activeAuditorGrants(f.prisma, USER_P, {}, clock);
+    expect(whereOf(f, 'auditorGrant')).toEqual({
+      AND: [
+        { revokedAt: { equals: null }, expiresAt: { gt: NOW } },
+        { OR: [{ userId: { equals: USER } }, { officeOrganizationId: { in: [] } }] },
       ],
     });
   });
@@ -171,13 +196,13 @@ describe('activeAuditorGrants', () => {
     expect(f.calls.some((c) => c.model === 'orgMembership')).toBe(false);
   });
 
-  it('scopes a member of no organization to an empty set', async () => {
+  it('an external auditor, a member of no organization, reads their own grants and no one else\'s', async () => {
     const f = fake({ memberOrgs: [] });
     await activeAuditorGrants(f.prisma, USER_P, {}, clock);
     expect(whereOf(f, 'auditorGrant')).toEqual({
       AND: [
         { revokedAt: { equals: null }, expiresAt: { gt: NOW } },
-        { officeOrganizationId: { in: [] } },
+        { OR: [{ userId: { equals: USER } }, { officeOrganizationId: { in: [] } }] },
       ],
     });
   });

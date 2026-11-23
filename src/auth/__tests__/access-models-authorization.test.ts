@@ -78,15 +78,19 @@ function target(
 }
 
 describe('access models: read scope', () => {
-  it('scopes each access model to the caller organizations and nothing else', () => {
+  it('scopes role assignments to the caller organizations, and grants and groups to the office scope', () => {
     expect(buildScopeWhere('RoleAssignment', ENT)).toEqual({
       organizationId: { in: [ORG_A] },
     });
+    // A grant and a group name entities, so they are read by the offices'
+    // whole-office readers and a grant by its holder
+    // (src/auth/__tests__/office-entity-scope.test.ts); with no office scope,
+    // only the caller's own grants.
     expect(buildScopeWhere('AuditorGrant', ENT)).toEqual({
-      officeOrganizationId: { in: [ORG_A] },
+      OR: [{ userId: { equals: USER } }, { officeOrganizationId: { in: [] } }],
     });
     expect(buildScopeWhere('EntityGroup', ENT)).toEqual({
-      officeId: { in: [ORG_A] },
+      officeId: { in: [] },
     });
   });
 
@@ -407,10 +411,11 @@ describe('reserved authority columns (kind, entity scope)', () => {
     return columns;
   }
 
-  it('names the kind and the entity scope, and nothing else', () => {
+  it("names the kind, the entity scope and an entity's office and parent, and nothing else", () => {
     expect([...RESERVED_COLUMNS.entries()].map(([m, c]) => [m, [...c]])).toEqual([
       ['Organization', ['kind']],
       ['OrgMembership', ['entityScopeAll', 'entityScopeIds']],
+      ['Investor', ['officeOrganizationId', 'officeOrganization', 'parentInvestorId', 'parentInvestor']],
     ]);
   });
 

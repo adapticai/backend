@@ -79,11 +79,8 @@ import { findNestedWrites, type NestedWrite, type WrittenColumn } from '../auth/
 import { firstNestedRefusal, writesNestedModelRows, type RelationFacts } from '../auth/nested-write-policy';
 import { GOVERNED_MODELS, type GovernedModel } from '../auth/tenancy-scope';
 import type { BackendPrincipal } from '../auth/token-verifier';
-import {
-  ALWAYS_ENFORCED_CONTENT_REFUSALS,
-  userContentRefusal,
-  writesReservedColumn,
-} from '../auth/user-write-content';
+import { escalatedMutationMode, userContentRefusal } from '../auth/user-write-content';
+import { dropEchoedReservedColumns, type EchoRowReader } from './reserved-column-echo';
 import { metricsRegistry } from '../config/metrics';
 import { logger } from '../utils/logger';
 import {
@@ -293,6 +290,18 @@ function logCredentialRefusal(
 /** The database client slice the guard reads its facts through. */
 type GuardPrisma = MutationAuthPrisma & MembershipFactsPrisma;
 
+/** The request's Prisma delegate for a model, when it can read one row. */
+function echoReaderFor(prisma: unknown, model: string): EchoRowReader | undefined {
+  if (prisma === null || typeof prisma !== 'object') return undefined;
+  const delegate = (prisma as Record<string, unknown>)[model.charAt(0).toLowerCase() + model.slice(1)];
+  if (delegate === null || typeof delegate !== 'object') return undefined;
+  // Cast justified: a Prisma delegate's findUnique takes `{ where, select }`
+  // and resolves the selected columns or null, which is EchoRowReader.
+  return typeof (delegate as { findUnique?: unknown }).findUnique === 'function'
+    ? (delegate as EchoRowReader)
+    : undefined;
+}
+
 /** Decide one mutation, resolving database facts only when the decision needs them. */
 async function decide(
   principal: BackendPrincipal | null,
@@ -475,29 +484,28 @@ function createMutationGuard(
     try {
       baseMode = resolveMode();
       target = classifyMutationField(info.fieldName, models);
+      // A reserved column a user's update re-sends unchanged (the generated
+      // client echoes every field it was given) is the identity, not a write
+      // of it; it is dropped before anything below reads the payload.
+      await dropEchoedReservedColumns(principal, target, argRecord, (model) => echoReaderFor(context.prisma, model));
       const columns: WrittenColumn[] = [];
       nested = findNestedWrites(info, argRecord, modelsLongestFirst, target, columns);
       const written = nested.filter((n) => writesNestedModelRows(n, relations)).map((n) => n.model);
-      mode = effectiveModeFor([target.model, ...written], baseMode, resolveEnforced());
-      // A user-written row that places itself in a fund's ledger, or sets an
-      // organization's kind, is refused in every mode, `off` included: the
-      // ledger is the fund's record of what happened (G-LED-01) and its reader
-      // keys on fundId alone; an organization's kind decides which workspace
-      // every member is given. Either forged value would be served as fact
-      // while the global guard sits in shadow.
+      // Escalations no configuration lowers (escalatedMutationMode): a
+      // user-written ledger entry, workspace-wide audit tag or organization
+      // kind is decided at enforce in every mode, `off` included, and so is a
+      // payload setting an authority column born after the guard (an
+      // organization's kind, a membership's entity scope, an entity's office
+      // or parent), root or nested, for every principal but the service and
+      // admins. Each forged value would otherwise be served as fact while the
+      // global guard sits in shadow.
       const contentRefusal = principal?.kind === 'user' ? userContentRefusal(target, argRecord, principal.sub) : null;
-      if (contentRefusal !== null && ALWAYS_ENFORCED_CONTENT_REFUSALS.has(contentRefusal)) {
-        mode = 'enforce';
-      }
-      // A payload setting an authority column born after the guard (an
-      // organization's kind, a membership's entity scope), at the root or in
-      // any nested write, is decided at enforce for every principal but the
-      // service and admins: in shadow a member could widen their own entity
-      // scope. Enforcement applies the model's ordinary rule.
-      const unprivileged = principal?.kind !== 'server' && principal?.kind !== 'admin';
-      if (unprivileged && writesReservedColumn(columns)) {
-        mode = 'enforce';
-      }
+      mode = escalatedMutationMode({
+        principal,
+        contentRefusal,
+        columns,
+        mode: effectiveModeFor([target.model, ...written], baseMode, resolveEnforced()),
+      });
       evaluation =
         mode === 'off'
           ? { allowed: true, reason: 'guard_off' }

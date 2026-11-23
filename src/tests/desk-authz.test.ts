@@ -6,8 +6,8 @@ import { runTsNodeHarness } from '../middleware/__tests__/ts-node-harness';
  * message delete restriction and the MandateVersion write rules, measured on
  * the served schema against a real Postgres (`desk-authz.harness.ts`).
  *
- * SKIPPED IN CI: it runs only when DESK_IT_DATABASE_URL points at a
- * disposable database the migrations have been applied to, and CI has none.
+ * Needs DESK_IT_DATABASE_URL pointing at a
+ * disposable database the migrations have been applied to, which scripts/test-db/global-setup.ts provisions on every run.
  * The pure halves of these rules are covered without a database by
  * src/auth/__tests__/desk-authorization.test.ts and totp.test.ts.
  *
@@ -50,7 +50,13 @@ interface Report {
 const DATABASE_URL = process.env.DESK_IT_DATABASE_URL;
 const HARNESS_TIMEOUT_MS = 300_000;
 
-describe.skipIf(!DATABASE_URL)(
+// The database is provisioned for every run (scripts/test-db/global-setup.ts);
+// without it this suite fails rather than skips, since a skip reads as a pass.
+if (!DATABASE_URL) {
+  throw new Error('No database for this suite: scripts/test-db/global-setup.ts provisions one on every run.');
+}
+
+describe(
   'desk authorization on the served schema',
   () => {
     let report: Report;
