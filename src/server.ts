@@ -22,6 +22,7 @@ import {
 } from './config/server-only-models';
 import {
   AccountEquityCurveResolver,
+  AllocatorAccessResolver,
   BrokerageAccountCredentialStatusResolver,
   OptionsGreeksHistoryCustomResolver,
   StrategyDraftResolver,
@@ -185,6 +186,7 @@ const startServer = async () => {
       AccountEquityCurveResolver,
       UserTotpResolver,
       StrategyDraftResolver,
+      AllocatorAccessResolver,
     ],
     validate: false,
     // Row-level tenancy scoping (SP2-G7 / SOC2). Applies ONLY to user-scoped

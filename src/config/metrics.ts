@@ -117,6 +117,18 @@ export const tenancyScopingDecisionsTotal = new Counter({
   registers: [metricsRegistry],
 });
 
+/**
+ * Served access reads (active auditor grants, active role assignments, an
+ * office's entities) by query, principal kind and outcome (`served` or the
+ * refusal code). A rising refusal series names a consumer asking wrongly.
+ */
+export const accessReadsTotal = new Counter({
+  name: 'access_reads_total',
+  help: 'Served access reads by query, principal kind and outcome',
+  labelNames: ['query', 'principal_kind', 'outcome'] as const,
+  registers: [metricsRegistry],
+});
+
 // ---------------------------------------------------------------------------
 // Application metrics
 // ---------------------------------------------------------------------------

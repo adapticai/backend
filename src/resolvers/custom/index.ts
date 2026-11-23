@@ -28,6 +28,7 @@ export {
   UserTotpResult,
   UserTotpVerification,
 } from './UserTotpResolver';
+export { AllocatorAccessResolver, OfficeEntity } from './AllocatorAccessResolver';
 export {
   StrategyDraftResolver,
   StrategyDraftWrite,

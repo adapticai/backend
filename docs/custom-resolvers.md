@@ -69,6 +69,20 @@ const schema = await buildSchema({
 });
 ```
 
+## Access reads (AG-29, GAP-MO-ORG-02)
+
+`src/resolvers/custom/AllocatorAccessResolver.ts`, rules in `allocator-access-service.ts` and `src/auth/allocator-access.ts`. Each is refused with `UNAUTHENTICATED` for no principal and `BAD_USER_INPUT` for a malformed id, logged (`[access-read]`) and counted (`access_reads_total{query,principal_kind,outcome}`).
+
+```graphql
+activeAuditorGrants(officeOrganizationId: String, userId: String): [AuditorGrant!]!
+activeRoleAssignments(organizationId: String, userId: String): [RoleAssignment!]!
+officeEntities(officeOrganizationId: String!, userId: String): [OfficeEntity!]!
+```
+
+- **Active** is decided at the server's clock: a grant while `revokedAt` is null and now is strictly before `expiresAt` (`periodFrom`..`periodTo` is the audited period, not validity); an assignment from `startsAt` (inclusive) to `endsAt` (exclusive), open-ended when null. The generated `auditorGrants` / `roleAssignments` reads return the history, revoked and expired rows included.
+- A **user** reads only rows of their own organizations, and only their own entity view. The **service** and **admin** principals read unscoped and name the viewer of `officeEntities` with `userId`.
+- **Entity scope fails closed**: `officeEntities` returns the office's (non-deleted) entities in the viewer's `OrgMembership` scope — every entity only when `entityScopeAll` is true, otherwise exactly `entityScopeIds` — widened by the entities their active auditor grants for that office name. No membership and no active grant, or `entityScopeAll = false` with an empty list, is no entity.
+
 ### Adding New Custom Resolvers
 
 To add a new custom resolver:
